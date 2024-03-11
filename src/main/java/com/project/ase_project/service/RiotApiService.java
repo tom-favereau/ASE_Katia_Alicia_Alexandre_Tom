@@ -1,5 +1,8 @@
 package com.project.ase_project.service;
 
+import java.lang.reflect.Array;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -8,7 +11,10 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import java.util.Arrays;
+import com.project.ase_project.model.League;
 import com.project.ase_project.model.Match;
+import com.project.ase_project.model.Rank;
 import com.project.ase_project.model.Summoner;
 import com.project.ase_project.repository.MatchRepository;
 import com.project.ase_project.repository.RankRepository;
@@ -53,7 +59,6 @@ public class RiotApiService {
         headers.set("X-Riot-Token", apiKey);
         HttpEntity<String> entity = new HttpEntity<>(headers);
         ResponseEntity<Match> response = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, Match.class);
-        //ResponseEntity<String> response2 = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, String.class);
         System.out.println("Voici le corps de la réponse : ");
         System.out.println(response.getBody().toString());
         System.out.println("Voici le code de statut de la réponse : ");
@@ -65,16 +70,19 @@ public class RiotApiService {
         return match;
     }
 
-    /*public List<Rank> getRankData(String encryptedSummonerId) {
-        String apiUrl = "https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/" + encryptedSummonerId + "?api_key="+apiKey;
+    public List<League> getRankData(String encryptedSummonerId) {
+        String apiUrl = "https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/" + encryptedSummonerId; //+ "?api_key="+apiKey;
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-Riot-Token", apiKey);
         HttpEntity<String> entity = new HttpEntity<>(headers);
-        ResponseEntity<Rank[]> response = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, Rank[].class);
-        Rank[] rankList = response.getBody();
-        if (rankList != null) {
-            rankRepository.save(rankList);
-        }
+        ResponseEntity<League[]> response = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, League[].class);
+        League[] rankArray = response.getBody();
+        List<League> rankList = Arrays.asList(rankArray);
+        /*if (rankList != null) {
+            for (League rank : rankList) {
+                rankRepository.save(rank);
+            }
+        }*/
         return rankList;
-    }*/
+    }
 }

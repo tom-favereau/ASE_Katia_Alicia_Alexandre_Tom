@@ -1,4 +1,6 @@
 package com.project.ase_project;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -9,6 +11,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.project.ase_project.model.League;
 import com.project.ase_project.model.Match;
 import com.project.ase_project.model.Rank;
 import com.project.ase_project.model.RankList;
@@ -33,11 +37,11 @@ public class AseProjectApplication {
         return new ResponseEntity<>(summoner, HttpStatus.OK);
     }
 
-    /*@GetMapping("/rank/{encryptedSummonerId}")
-    public ResponseEntity<RankList> getRankData(@PathVariable String encryptedSummonerId) {
-        RankList rankList = riotApiService.getRankData(encryptedSummonerId);
+    @GetMapping("/rank/{encryptedSummonerId}")
+    public ResponseEntity<List<League>> getRankData(@PathVariable String encryptedSummonerId) {
+        List<League> rankList = riotApiService.getRankData(encryptedSummonerId);
         return new ResponseEntity<>(rankList, HttpStatus.OK);
-    }*/
+    }
 
     @GetMapping("/matches/{matchId}")
     public ResponseEntity<Match> getMatchData(@PathVariable String matchId) {
