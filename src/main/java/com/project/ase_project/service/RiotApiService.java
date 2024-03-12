@@ -1,23 +1,29 @@
 package com.project.ase_project.service;
 
-import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Arrays;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+
+
+import com.project.ase_project.model.dto.league.LeagueDto;
+import com.project.ase_project.model.dto.match.MatchDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import java.util.Arrays;
-import com.project.ase_project.model.League;
-import com.project.ase_project.model.Match;
-import com.project.ase_project.model.Rank;
-import com.project.ase_project.model.Summoner;
+
+import com.project.ase_project.model.dto.summoner.SummonerDto;
+import com.project.ase_project.model.dto.match.MatchDto;
+import com.project.ase_project.model.dto.league.LeagueDto;
+
+import com.project.ase_project.model.clean.league.League;
+import com.project.ase_project.model.clean.match.Match;
+import com.project.ase_project.model.clean.summoner.Summoner;
+
 import com.project.ase_project.repository.MatchRepository;
-import com.project.ase_project.repository.RankRepository;
+import com.project.ase_project.repository.LeagueRepository;
 import com.project.ase_project.repository.SummonerRepository;
 
 @Service
@@ -28,61 +34,55 @@ public class RiotApiService {
 
     private final SummonerRepository summonerRepository;
     private final MatchRepository matchRepository;
-    private final RankRepository rankRepository;
+    private final LeagueRepository leagueRepository;
     private final RestTemplate restTemplate;
 
     @Autowired
-    public RiotApiService(RestTemplate restTemplate, SummonerRepository summonerRepository, MatchRepository matchRepository, RankRepository rankRepository) {
+    public RiotApiService(RestTemplate restTemplate, SummonerRepository summonerRepository, MatchRepository matchRepository, LeagueRepository leagueRepository) {
         this.restTemplate = restTemplate;
         this.summonerRepository = summonerRepository;
         this.matchRepository = matchRepository;
-        this.rankRepository = rankRepository;
+        this.leagueRepository = leagueRepository;
     }
 
     public Summoner getSummonerByName(String summonerName) {
         String apiUrl = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerName + "?api_key="+apiKey;
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Riot-Token", apiKey);
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-        ResponseEntity<Summoner> response = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, Summoner.class);
-        Summoner summoner = response.getBody();
-        if (summoner != null) {
+        SummonerDto summonerDto = restTemplate.getForObject(apiUrl, SummonerDto.class);
+        if (summonerDto != null) {
+            Summoner summoner = SummonerDto.toSummoner(summonerDto);
             summonerRepository.save(summoner);
+            return summoner;
         }
-        return summoner;
+        else {
+            throw new RuntimeException("Summoner not found");
+        }
     }
 
-    public Match getMatchById(String matchId) {
+    public Match getMatchById(String matchId) throws JsonProcessingException {
         String apiUrl = "https://europe.api.riotgames.com/lol/match/v5/matches/" + matchId + "?api_key="+apiKey;
-        System.out.println(apiUrl);
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Riot-Token", apiKey);
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-        ResponseEntity<Match> response = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, Match.class);
-        System.out.println("Voici le corps de la réponse : ");
-        System.out.println(response.getBody().toString());
-        System.out.println("Voici le code de statut de la réponse : ");
-        System.out.println(response.getStatusCode());
-        Match match = response.getBody();
-        if (match != null) {
+        MatchDto matchDto = restTemplate.getForObject(apiUrl, MatchDto.class);
+        if (matchDto != null) {
+            Match match = new Match();
+            match.setMatchId(matchDto.getMetadata().getMatchId());
             matchRepository.save(match);
+            return match;
         }
-        return match;
+        return null;
     }
 
-    public List<League> getRankData(String encryptedSummonerId) {
-        String apiUrl = "https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/" + encryptedSummonerId; //+ "?api_key="+apiKey;
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Riot-Token", apiKey);
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-        ResponseEntity<League[]> response = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, League[].class);
-        League[] rankArray = response.getBody();
-        List<League> rankList = Arrays.asList(rankArray);
-        /*if (rankList != null) {
-            for (League rank : rankList) {
-                rankRepository.save(rank);
+    public ArrayList<League> getRankData(String encryptedSummonerId) {
+        String apiUrl = "https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/" + encryptedSummonerId + "?api_key="+apiKey;
+        LeagueDto[] leaguesDto = restTemplate.getForObject(apiUrl, LeagueDto[].class);
+        if (leaguesDto != null) {
+            ArrayList<League> leagues = new ArrayList<>();
+            for (LeagueDto leagueDto : leaguesDto) {
+                League league = new League();
+                league.setLeagueId(leagueDto.getLeagueId());
+                leagueRepository.save(league);
+                leagues.add(league);
             }
-        }*/
-        return rankList;
+            return leagues;
+        }
+        return null;
     }
 }
