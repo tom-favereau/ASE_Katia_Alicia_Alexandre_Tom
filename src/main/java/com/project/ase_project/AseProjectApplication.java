@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,10 +28,42 @@ public class AseProjectApplication {
     @Autowired
     private RiotApiService riotApiService;
 
+//    @GetMapping("/summoners/{summonerName}")
+//    public ResponseEntity<Summoner> getSummonerData(@PathVariable String summonerName) {
+//        Summoner summoner = riotApiService.getSummonerByName(summonerName);
+//        return new ResponseEntity<>(summoner, HttpStatus.OK);
+//    }
+
     @GetMapping("/summoners/{summonerName}")
-    public ResponseEntity<Summoner> getSummonerData(@PathVariable String summonerName) {
-        Summoner summoner = riotApiService.getSummonerByName(summonerName);
-        return new ResponseEntity<>(summoner, HttpStatus.OK);
+    public String getSummonerData(@PathVariable String summonerName) {
+        try {
+            Summoner summoner = riotApiService.getSummonerByName(summonerName);
+            return "<html>\n" +
+                    "<head>\n" +
+                    "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\">\n" +
+                    "<title>Champion</title>\n" +
+                    "</head>\n" +
+                    "<body>\n" +
+                    "    <h1 align=\"center\">" + summoner.getName() + "</h1>\n" +
+                    "    <p>Level: " + summoner.getSummonerLevel() + "</p>" +
+                    "    <br/>\n" +
+                    "\n" +
+                    "</body>\n" +
+                    "</html>";
+        }
+        catch (Exception e) {
+            return "<html>\n" +
+                    "<head>\n" +
+                    "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\">\n" +
+                    "<title>Champion</title>\n" +
+                    "</head>\n" +
+                    "<body>\n" +
+                    "    <h1 align=\"center\">Not found</h1>\n" +
+                    "    <br/>\n" +
+                    "\n" +
+                    "</body>\n" +
+                    "</html>";
+        }
     }
 
     /*@GetMapping("/rank/{encryptedSummonerId}")
