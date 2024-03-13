@@ -94,6 +94,7 @@ public class RiotApiService {
 
     @PostConstruct
     public void initializeChampions() throws IOException {
+        String[] remove = new String[]{"blurb", "version", "title", "info", "tags", "partype", "stats"};
         //TODO enlever la variable en dur
         if (championRepository.count() != 167) {
             //Getting raw json
@@ -104,9 +105,11 @@ public class RiotApiService {
             Iterator<String> championIterator = championJson.fieldNames();
             while (championIterator.hasNext()){
                 String name = championIterator.next();
-                JsonNode championNode = championJson.get(name);
-                //Removing the blurb
-                ((ObjectNode) championNode).remove("blurb");
+                ObjectNode championNode = (ObjectNode)championJson.get(name);
+                //Removing useless fields
+                for (String field : remove){
+                    championNode.remove(field);
+                }
                 //Conversion to Champion type
                 Champion champion = new ObjectMapper().treeToValue(championNode, Champion.class);
                 result.put(name, champion);
