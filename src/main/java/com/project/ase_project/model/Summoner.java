@@ -67,8 +67,12 @@ public class Summoner {
         this.revisionDate = revisionDate;
     }
 
-    public void setSummonerLevel(long summonerLevel) {
+    public void summonerLevel(long summonerLevel) {
         this.summonerLevel = summonerLevel;
+    }
+
+    public String getProfileIconAddress() {
+        return "https://ddragon.leagueoflegends.com/cdn/14.5.1/img/profileicon/" + this.getProfileIconId() + ".png";
     }
 
     @Override

@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+    <title>Champion</title>
+    </head>
+ <body>
+    <h1 th:text="${summoner.getName()}"> </h1>
+    <img th:src="${summoner.getProfileIconAddress()}"/>
+    <p> Level: <span th:text="${summoner.getSummonerLevel()}"></span></p>
+    <br/>
+</body>
+</html>
