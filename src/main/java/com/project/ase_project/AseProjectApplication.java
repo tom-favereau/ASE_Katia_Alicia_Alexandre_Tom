@@ -15,6 +15,8 @@ import com.project.ase_project.model.RankList;
 import com.project.ase_project.model.Summoner;
 import com.project.ase_project.service.RiotApiService;
 
+import java.io.IOException;
+
 @RestController
 @RequestMapping("/riot")
 @SpringBootApplication
@@ -45,5 +47,9 @@ public class AseProjectApplication {
         return new ResponseEntity<>(match, HttpStatus.OK);
     }
 
+    @GetMapping("/champions")
+    public void test() throws IOException {
+        riotApiService.initializeChampions();
+    }
 }
 

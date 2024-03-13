@@ -1,5 +1,11 @@
 package com.project.ase_project.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.project.ase_project.model.champion.Champion;
+import com.project.ase_project.repository.ChampionRepository;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -14,6 +20,12 @@ import com.project.ase_project.repository.MatchRepository;
 import com.project.ase_project.repository.RankRepository;
 import com.project.ase_project.repository.SummonerRepository;
 
+import java.io.IOException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 @Service
 public class RiotApiService {
 
@@ -24,13 +36,15 @@ public class RiotApiService {
     private final MatchRepository matchRepository;
     private final RankRepository rankRepository;
     private final RestTemplate restTemplate;
+    private final ChampionRepository championRepository;
 
     @Autowired
-    public RiotApiService(RestTemplate restTemplate, SummonerRepository summonerRepository, MatchRepository matchRepository, RankRepository rankRepository) {
+    public RiotApiService(RestTemplate restTemplate, SummonerRepository summonerRepository, MatchRepository matchRepository, RankRepository rankRepository, ChampionRepository championRepository) {
         this.restTemplate = restTemplate;
         this.summonerRepository = summonerRepository;
         this.matchRepository = matchRepository;
         this.rankRepository = rankRepository;
+        this.championRepository = championRepository;
     }
 
     public Summoner getSummonerByName(String summonerName) {
@@ -77,4 +91,33 @@ public class RiotApiService {
         }
         return rankList;
     }*/
+
+    @PostConstruct
+    public void initializeChampions() throws IOException {
+        //TODO enlever la variable en dur
+        if (championRepository.count() != 167) {
+            //Getting raw json
+            JsonNode json = new ObjectMapper().readTree(new URL("https://ddragon.leagueoflegends.com/cdn/14.5.1/data/en_US/champion.json"));
+            JsonNode championJson = json.get("data");
+            // Iteration on json nodes
+            HashMap<String, Champion> result = new HashMap<>();
+            Iterator<String> championIterator = championJson.fieldNames();
+            while (championIterator.hasNext()){
+                String name = championIterator.next();
+                JsonNode championNode = championJson.get(name);
+                //Removing the blurb
+                ((ObjectNode) championNode).remove("blurb");
+                //Conversion to Champion type
+                Champion champion = new ObjectMapper().treeToValue(championNode, Champion.class);
+                result.put(name, champion);
+            }
+            //Saving all the champions in the repository
+            for (String championName : result.keySet()) {
+                championRepository.save(result.get(championName));
+            }
+            System.out.println("Champion table successfully initialized.");
+        } else {
+            System.out.println("Champion table already initialized.");
+        }
+    }
 }
