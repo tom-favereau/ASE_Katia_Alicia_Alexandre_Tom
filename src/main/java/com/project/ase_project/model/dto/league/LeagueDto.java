@@ -1,6 +1,6 @@
 package com.project.ase_project.model.dto.league;
-/* ObjectMapper om = new ObjectMapper();
-Root[] root = om.readValue(myJsonString, Root[].class); */
+
+import com.project.ase_project.model.clean.league.League;
 
 /**
  * Represents a LeagueDto object from the Riot API (https://developer.riotgames.com/apis#league-v4/GET_getLeagueEntriesForSummoner)
@@ -120,5 +120,18 @@ public class LeagueDto {
                 ", freshBlood=" + freshBlood +
                 ", hotStreak=" + hotStreak +
                 '}';
+    }
+
+    // TO LEAGUE
+    public static League toLeague(LeagueDto leagueDto) {
+        League league = new League();
+        league.setSummonerName(leagueDto.getSummonerName());
+        league.setQueueType(leagueDto.getQueueType());
+        league.setTier(leagueDto.getTier());
+        league.setRank(leagueDto.getRank());
+        league.setLeaguePoints(leagueDto.getLeaguePoints());
+        league.setWins(leagueDto.getWins());
+        league.setLosses(leagueDto.getLosses());
+        return league;
     }
 }

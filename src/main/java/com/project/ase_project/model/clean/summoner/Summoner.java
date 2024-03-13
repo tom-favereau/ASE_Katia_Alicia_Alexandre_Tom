@@ -1,8 +1,6 @@
 package com.project.ase_project.model.clean.summoner;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
 @Entity
@@ -11,8 +9,7 @@ public class Summoner {
     private int profileIconId;
     private long summonerLevel;
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    private String id;
 
     public String getName() {
         return name;
@@ -38,11 +35,11 @@ public class Summoner {
         this.summonerLevel = summonerLevel;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 }

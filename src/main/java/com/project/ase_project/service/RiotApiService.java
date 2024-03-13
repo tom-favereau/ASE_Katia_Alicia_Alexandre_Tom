@@ -1,8 +1,6 @@
 package com.project.ase_project.service;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Arrays;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -61,13 +59,15 @@ public class RiotApiService {
     public Match getMatchById(String matchId) throws JsonProcessingException {
         String apiUrl = "https://europe.api.riotgames.com/lol/match/v5/matches/" + matchId + "?api_key="+apiKey;
         MatchDto matchDto = restTemplate.getForObject(apiUrl, MatchDto.class);
+        //System.out.println(matchDto);
         if (matchDto != null) {
-            Match match = new Match();
-            match.setMatchId(matchDto.getMetadata().getMatchId());
+            Match match = MatchDto.toMatch(matchDto);
             matchRepository.save(match);
             return match;
         }
-        return null;
+        else {
+            throw new RuntimeException("Match not found");
+        }
     }
 
     public ArrayList<League> getRankData(String encryptedSummonerId) {
@@ -76,13 +76,14 @@ public class RiotApiService {
         if (leaguesDto != null) {
             ArrayList<League> leagues = new ArrayList<>();
             for (LeagueDto leagueDto : leaguesDto) {
-                League league = new League();
-                league.setLeagueId(leagueDto.getLeagueId());
+                League league = LeagueDto.toLeague(leagueDto);
                 leagueRepository.save(league);
                 leagues.add(league);
             }
             return leagues;
         }
-        return null;
+        else {
+            throw new RuntimeException("Leagues not found");
+        }
     }
 }

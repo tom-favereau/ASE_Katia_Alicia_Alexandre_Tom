@@ -997,7 +997,7 @@ public class Participant {
     public void setWardsPlaced(int wardsPlaced) {
         this.wardsPlaced = wardsPlaced;
     }
-    public boolean isWin() {
+    public boolean getWin() {
         return win;
     }
     public void setWin(boolean win) {
