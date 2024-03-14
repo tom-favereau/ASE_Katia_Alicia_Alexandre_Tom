@@ -125,6 +125,7 @@ public class LeagueDto {
     // TO LEAGUE
     public static League toLeague(LeagueDto leagueDto) {
         League league = new League();
+        league.setLeagueId(leagueDto.getLeagueId());
         league.setSummonerName(leagueDto.getSummonerName());
         league.setQueueType(leagueDto.getQueueType());
         league.setTier(leagueDto.getTier());

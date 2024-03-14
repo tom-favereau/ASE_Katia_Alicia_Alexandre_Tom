@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 
+import com.project.ase_project.model.clean.summary.Summary;
 import com.project.ase_project.model.dto.league.LeagueDto;
 import com.project.ase_project.model.dto.match.MatchDto;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,5 +86,11 @@ public class RiotApiService {
         else {
             throw new RuntimeException("Leagues not found");
         }
+    }
+
+    public Summary getSummary(String summonerName) throws JsonProcessingException {
+        Summoner summoner = getSummonerByName(summonerName);
+        ArrayList<League> leagues = getRankData(summoner.getId());
+        return new Summary(summoner, leagues);
     }
 }

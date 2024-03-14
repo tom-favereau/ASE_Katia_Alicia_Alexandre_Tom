@@ -2,6 +2,7 @@ package com.project.ase_project;
 import java.util.ArrayList;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.project.ase_project.model.clean.summary.Summary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -50,5 +51,9 @@ public class AseProjectApplication {
         return new ResponseEntity<>(match, HttpStatus.OK);
     }
 
-
+    @GetMapping("/summary/{summonerName}")
+    public ResponseEntity<Summary> getSummary(@PathVariable String summonerName) throws JsonProcessingException {
+        Summary summary = riotApiService.getSummary(summonerName);
+        return new ResponseEntity<>(summary, HttpStatus.OK);
+    }
 }
