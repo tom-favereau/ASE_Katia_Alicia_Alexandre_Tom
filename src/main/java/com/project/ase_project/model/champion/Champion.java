@@ -6,9 +6,9 @@ import jakarta.persistence.*;
 @Entity
 public class Champion {
     @JsonProperty
-    @Id
     private String id;
     @JsonProperty("key")
+    @Id
     private Integer championKey;
     @JsonProperty
     private String name;

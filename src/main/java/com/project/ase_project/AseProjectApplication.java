@@ -46,10 +46,5 @@ public class AseProjectApplication {
         Match match = riotApiService.getMatchById(matchId);
         return new ResponseEntity<>(match, HttpStatus.OK);
     }
-
-    @GetMapping("/champions")
-    public void test() throws IOException {
-        riotApiService.initializeChampions();
-    }
 }
 
