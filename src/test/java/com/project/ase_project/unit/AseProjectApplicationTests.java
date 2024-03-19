@@ -1,6 +1,7 @@
 package com.project.ase_project.unit;
 
 import com.project.ase_project.AseProjectApplication;
+import com.project.ase_project.exception.SummonerNotFoundException;
 import com.project.ase_project.model.clean.league.League;
 import com.project.ase_project.model.clean.summary.Summary;
 import com.project.ase_project.model.clean.summoner.Summoner;
@@ -10,15 +11,14 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -59,12 +59,10 @@ class AseProjectApplicationTests {
             78
     );
     ArrayList<League> leagues = new ArrayList<>(List.of(league1, league2));
-
     Summary summary = new Summary(summoner, leagues);
-    @Test
-    public void testGetSummonerData() throws Exception {
-        // ResponseEntity<Summary> response = new ResponseEntity<>(summary, HttpStatus.OK);
 
+    @Test
+    public void testGetSummaryData() throws Exception {
         Mockito.when(riotApiService.getSummary("Belugafurtif")).thenReturn(summary);
 
         mockMvc.perform(MockMvcRequestBuilders
@@ -79,5 +77,27 @@ class AseProjectApplicationTests {
                 .andExpect(jsonPath("$.rankSolo").value("GOLD III 58 LP 126W / 78L"))
                 .andExpect(jsonPath("$.region").value("EUW1"))
                 .andExpect(jsonPath("$.grade").value(0));
+    }
+
+    @Test
+    public void testGetSummaryNotFound() throws Exception {
+        Mockito.when(riotApiService.getSummary("Belugafurti")).thenThrow(SummonerNotFoundException.class);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .get("/riot/summary/Belugafurti")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof SummonerNotFoundException));
+    }
+
+    @Test
+    public void testGetSummaryNoArgument() throws Exception {
+        Mockito.when(riotApiService.getSummary(null)).thenThrow(IllegalArgumentException.class);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .get("/riot/summary/")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof IllegalArgumentException));
     }
 }

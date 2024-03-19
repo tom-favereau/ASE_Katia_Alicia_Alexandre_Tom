@@ -1,10 +1,7 @@
 package com.project.ase_project.model.dto.summoner;
 
 import com.project.ase_project.model.clean.summoner.Summoner;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 /**
  * Represents a SummonerDto object from the Riot API (<a href="https://developer.riotgames.com/apis#summoner-v4/GET_getBySummonerName">...</a>)
@@ -13,6 +10,9 @@ import lombok.ToString;
  */
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Getter
 @Setter
 @ToString
