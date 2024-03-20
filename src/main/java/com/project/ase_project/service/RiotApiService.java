@@ -1,29 +1,44 @@
 package com.project.ase_project.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.project.ase_project.model.champion.Champion;
-import com.project.ase_project.model.maps.LOLMap;
-import com.project.ase_project.model.queue.LOLQueue;
-import com.project.ase_project.repository.*;
-import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import com.project.ase_project.model.Match;
-import com.project.ase_project.model.Summoner;
-
+import java.util.ArrayList;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.core.JsonProcessingException;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.RestTemplate;
+
+import jakarta.annotation.PostConstruct;
+
+import com.project.ase_project.model.champion.Champion;
+import com.project.ase_project.model.maps.LOLMap;
+import com.project.ase_project.model.queue.LOLQueue;
+
+import com.project.ase_project.exception.*;
+
+import com.project.ase_project.model.dto.summoner.SummonerDto;
+import com.project.ase_project.model.dto.match.MatchDto;
+import com.project.ase_project.model.dto.league.LeagueDto;
+
+import com.project.ase_project.model.clean.league.League;
+import com.project.ase_project.model.clean.match.Match;
+import com.project.ase_project.model.clean.summoner.Summoner;
+import com.project.ase_project.model.clean.summary.Summary;
+
+import com.project.ase_project.repository.MatchRepository;
+import com.project.ase_project.repository.LeagueRepository;
+import com.project.ase_project.repository.SummonerRepository;
 
 @Service
 public class RiotApiService {
@@ -31,9 +46,7 @@ public class RiotApiService {
     @Value("${riot.api.key}")
     private String apiKey;
 
-    private final SummonerRepository summonerRepository;
     private final MatchRepository matchRepository;
-    private final RankRepository rankRepository;
     private final RestTemplate restTemplate;
     private final ChampionRepository championRepository;
     private final MapRepository mapRepository;
@@ -43,7 +56,6 @@ public class RiotApiService {
     public RiotApiService(RestTemplate restTemplate, SummonerRepository summonerRepository, MatchRepository matchRepository, RankRepository rankRepository,
                           ChampionRepository championRepository, MapRepository mapRepository, QueueRepository queueRepository) {
         this.restTemplate = restTemplate;
-        this.summonerRepository = summonerRepository;
         this.matchRepository = matchRepository;
         this.rankRepository = rankRepository;
         this.championRepository = championRepository;
@@ -53,48 +65,145 @@ public class RiotApiService {
 
     public Summoner getSummonerByName(String summonerName) {
         String apiUrl = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerName + "?api_key="+apiKey;
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Riot-Token", apiKey);
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-        ResponseEntity<Summoner> response = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, Summoner.class);
-        Summoner summoner = response.getBody();
-        if (summoner != null) {
-            summonerRepository.save(summoner);
+        try {
+            SummonerDto summonerDto = restTemplate.getForObject(apiUrl, SummonerDto.class);
+            if (summonerDto != null) {
+                return SummonerDto.toSummoner(summonerDto);
+            }
+            else {
+                throw new SummonerNotFoundException("Erreur 404 : Le joueur " + summonerName + " n'existe pas.");
+            }
+        } catch (HttpClientErrorException.BadRequest e) {
+            throw new BadRequestException("Erreur 400 : Bad request");
         }
-        return summoner;
+        catch (HttpClientErrorException.Unauthorized e) {
+            throw new BadRequestException("Erreur 401 : Unauthorized");
+        }
+        catch (HttpClientErrorException.Forbidden e) {
+            throw new BadRequestException("Erreur 403 : Forbidden");
+        }
+        catch (HttpClientErrorException.NotFound e) {
+            throw new SummonerNotFoundException("Erreur 404 : Le joueur " + summonerName + " n'existe pas.");
+        }
+        catch (HttpClientErrorException.MethodNotAllowed e) {
+            throw new MethodNotAllowed("Erreur 405 : Method not allowed");
+        }
+        catch (HttpClientErrorException.UnsupportedMediaType e) {
+            throw new UnsupportedMediaType("Erreur 415 : Unsupported media type");
+        }
+        catch (HttpClientErrorException.TooManyRequests e) {
+            throw new RateLimitExceededException("Erreur 429 : Too many requests");
+        }
+        catch (HttpServerErrorException.InternalServerError e) {
+            throw new InternalServerError("Erreur 500 : Internal server error");
+        }
+        catch (HttpServerErrorException.BadGateway e) {
+            throw new BadGateway("Erreur 502 : Bad gateway");
+        }
+        catch (HttpServerErrorException.ServiceUnavailable e) {
+            throw new ServiceUnavailable("Erreur 503 : Service unavailable");
+        }
+        catch (HttpServerErrorException.GatewayTimeout e) {
+            throw new GatewayTimeout("Erreur 504 : Gateway timeout");
+        }
     }
 
-    public Match getMatchById(String matchId) {
+    public Match getMatchById(String matchId) throws JsonProcessingException {
         String apiUrl = "https://europe.api.riotgames.com/lol/match/v5/matches/" + matchId + "?api_key="+apiKey;
-        System.out.println(apiUrl);
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Riot-Token", apiKey);
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-        ResponseEntity<Match> response = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, Match.class);
-        //ResponseEntity<String> response2 = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, String.class);
-        System.out.println("Voici le corps de la réponse : ");
-        System.out.println(response.getBody().toString());
-        System.out.println("Voici le code de statut de la réponse : ");
-        System.out.println(response.getStatusCode());
-        Match match = response.getBody();
-        if (match != null) {
-            matchRepository.save(match);
+        try {
+            MatchDto matchDto = restTemplate.getForObject(apiUrl, MatchDto.class);
+            if (matchDto != null) {
+                Match match = MatchDto.toMatch(matchDto);
+                matchRepository.save(match);
+                return match;
+            }
+            else {
+                throw new MatchNotFoundException("Erreur 404 : Le match " + matchId + " n'existe pas.");
+            }
+        } catch (HttpClientErrorException.BadRequest e) {
+            throw new BadRequestException("Erreur 400 : Bad request");
         }
-        return match;
+        catch (HttpClientErrorException.Unauthorized e) {
+            throw new BadRequestException("Erreur 401 : Unauthorized");
+        }
+        catch (HttpClientErrorException.Forbidden e) {
+            throw new BadRequestException("Erreur 403 : Forbidden");
+        }
+        catch (HttpClientErrorException.NotFound e) {
+            throw new MatchNotFoundException("Erreur 404 : Le match " + matchId + " n'existe pas.");
+        }
+        catch (HttpClientErrorException.MethodNotAllowed e) {
+            throw new MethodNotAllowed("Erreur 405 : Method not allowed");
+        }
+        catch (HttpClientErrorException.UnsupportedMediaType e) {
+            throw new UnsupportedMediaType("Erreur 415 : Unsupported media type");
+        }
+        catch (HttpClientErrorException.TooManyRequests e) {
+            throw new RateLimitExceededException("Erreur 429 : Too many requests");
+        }
+        catch (HttpServerErrorException.InternalServerError e) {
+            throw new InternalServerError("Erreur 500 : Internal server error");
+        }
+        catch (HttpServerErrorException.BadGateway e) {
+            throw new BadGateway("Erreur 502 : Bad gateway");
+        }
+        catch (HttpServerErrorException.ServiceUnavailable e) {
+            throw new ServiceUnavailable("Erreur 503 : Service unavailable");
+        }
+        catch (HttpServerErrorException.GatewayTimeout e) {
+            throw new GatewayTimeout("Erreur 504 : Gateway timeout");
+        }
     }
 
-    /*public List<Rank> getRankData(String encryptedSummonerId) {
+    public ArrayList<League> getRankData(String encryptedSummonerId) {
         String apiUrl = "https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/" + encryptedSummonerId + "?api_key="+apiKey;
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Riot-Token", apiKey);
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-        ResponseEntity<Rank[]> response = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, Rank[].class);
-        Rank[] rankList = response.getBody();
-        if (rankList != null) {
-            rankRepository.save(rankList);
+        try {
+            LeagueDto[] leaguesDto = restTemplate.getForObject(apiUrl, LeagueDto[].class);
+            if (leaguesDto != null && leaguesDto.length > 0) {
+                ArrayList<League> leagues = new ArrayList<>();
+                for (LeagueDto leagueDto : leaguesDto) {
+                    League league = LeagueDto.toLeague(leagueDto);
+                    leagues.add(league);
+                }
+                return leagues;
+            }
+            else {
+                throw new LeaguesNotFoundException("Erreur 404 : Le joueur avec l'identifiant " + encryptedSummonerId + " n'a pas de classement.");
+            }
+        } catch (HttpClientErrorException.BadRequest e) {
+            throw new BadRequestException("Erreur 400 : Bad request");
         }
-        return rankList;
-    }*/
+        catch (HttpClientErrorException.Unauthorized e) {
+            throw new BadRequestException("Erreur 401 : Unauthorized");
+        }
+        catch (HttpClientErrorException.Forbidden e) {
+            throw new BadRequestException("Erreur 403 : Forbidden");
+        }
+        catch (HttpClientErrorException.NotFound e) {
+            throw new LeaguesNotFoundException("Erreur 404 : Le joueur avec l'identifiant " + encryptedSummonerId + " n'a pas de classement.");
+        }
+        catch (HttpClientErrorException.MethodNotAllowed e) {
+            throw new MethodNotAllowed("Erreur 405 : Method not allowed");
+        }
+        catch (HttpClientErrorException.UnsupportedMediaType e) {
+            throw new UnsupportedMediaType("Erreur 415 : Unsupported media type");
+        }
+        catch (HttpClientErrorException.TooManyRequests e) {
+            throw new RateLimitExceededException("Erreur 429 : Too many requests");
+        }
+        catch (HttpServerErrorException.InternalServerError e) {
+            throw new InternalServerError("Erreur 500 : Internal server error");
+        }
+        catch (HttpServerErrorException.BadGateway e) {
+            throw new BadGateway("Erreur 502 : Bad gateway");
+        }
+        catch (HttpServerErrorException.ServiceUnavailable e) {
+            throw new ServiceUnavailable("Erreur 503 : Service unavailable");
+        }
+        catch (HttpServerErrorException.GatewayTimeout e) {
+            throw new GatewayTimeout("Erreur 504 : Gateway timeout");
+        }
+    }
 
     @PostConstruct
     public boolean initializeChampions() throws IOException {
@@ -182,5 +291,43 @@ public class RiotApiService {
 
     public QueueRepository getQueueRepository() {
         return queueRepository;
+
+        
+
+    public Summary getSummary(String summonerName) {
+        try {
+            Summoner summoner = getSummonerByName(summonerName);
+            ArrayList<League> leagues = getRankData(summoner.getId());
+            return new Summary(summoner, leagues);
+        } catch (BadRequestException e) {
+            throw new BadRequestException(e.getMessage());
+        }
+        catch (SummonerNotFoundException e) {
+            throw new SummonerNotFoundException(e.getMessage());
+        }
+        catch (LeaguesNotFoundException e) {
+            throw new LeaguesNotFoundException(e.getMessage());
+        }
+        catch (MethodNotAllowed e) {
+            throw new MethodNotAllowed(e.getMessage());
+        }
+        catch (UnsupportedMediaType e) {
+            throw new UnsupportedMediaType(e.getMessage());
+        }
+        catch (RateLimitExceededException e) {
+            throw new RateLimitExceededException(e.getMessage());
+        }
+        catch (InternalServerError e) {
+            throw new InternalServerError(e.getMessage());
+        }
+        catch (BadGateway e) {
+            throw new BadGateway(e.getMessage());
+        }
+        catch (ServiceUnavailable e) {
+            throw new ServiceUnavailable(e.getMessage());
+        }
+        catch (GatewayTimeout e) {
+            throw new GatewayTimeout(e.getMessage());
+        }
     }
 }
