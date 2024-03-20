@@ -15,4 +15,10 @@ public class LOLMap {
     private String notes;
 
     public LOLMap(){}
+
+    public LOLMap(Integer mapId, String mapName, String notes) {
+        this.mapId = mapId;
+        this.mapName = mapName;
+        this.notes = notes;
+    }
 }

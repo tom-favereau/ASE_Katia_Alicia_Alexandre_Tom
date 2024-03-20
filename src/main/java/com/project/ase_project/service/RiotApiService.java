@@ -97,7 +97,7 @@ public class RiotApiService {
     }*/
 
     @PostConstruct
-    public void initializeChampions() throws IOException {
+    public boolean initializeChampions() throws IOException {
         String[] remove = new String[]{"blurb", "version", "title", "info", "tags", "partype", "stats"};
         //Getting raw json
         JsonNode json = new ObjectMapper().readTree(new URL("https://ddragon.leagueoflegends.com/cdn/14.5.1/data/en_US/champion.json"));
@@ -126,10 +126,11 @@ public class RiotApiService {
         } else {
             System.out.println("Champion table already initialized.");
         }
+        return championRepository.count() != championJson.size();
     }
 
     @PostConstruct
-    public void initializeMaps() throws IOException {
+    public boolean initializeMaps() throws IOException {
         //Getting raw json
         JsonNode mapArrayJson = new ObjectMapper().readTree(new URL("https://static.developer.riotgames.com/docs/lol/maps.json"));
         //Resetting the table if new maps have been added or if table is not initialized.
@@ -145,10 +146,11 @@ public class RiotApiService {
         } else {
             System.out.println("Map table already initialized.");
         }
+        return mapRepository.count() != mapArrayJson.size();
     }
 
     @PostConstruct
-    public void initializeQueues() throws IOException {
+    public boolean initializeQueues() throws IOException {
         //Getting raw json
         JsonNode queueArrayJson = new ObjectMapper().readTree(new URL("https://static.developer.riotgames.com/docs/lol/queues.json"));
         //Resetting the table if new queues have been added or if table is not initialized.
@@ -167,5 +169,18 @@ public class RiotApiService {
         } else {
             System.out.println("Queue table already initialized.");
         }
+        return queueRepository.count() != queueArrayJson.size();
+    }
+
+    public ChampionRepository getChampionRepository() {
+        return championRepository;
+    }
+
+    public MapRepository getMapRepository() {
+        return mapRepository;
+    }
+
+    public QueueRepository getQueueRepository() {
+        return queueRepository;
     }
 }

@@ -18,6 +18,13 @@ public class Champion {
 
     public Champion(){}
 
+    public Champion(String id, Integer championKey, String name, Image image) {
+        this.id = id;
+        this.championKey = championKey;
+        this.name = name;
+        this.image = image;
+    }
+
     @Override
     public String toString() {
         return "Champion{" +
