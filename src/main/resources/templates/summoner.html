@@ -3,11 +3,52 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
     <title>Champion</title>
-    </head>
+
+    <style>
+        * {
+           margin: 0px;
+           padding: 0px;
+        }
+
+        #header {
+            background-color: black;
+            color: white;
+            height: 50px;
+            display: flex;
+	        flex-direction: row;
+	        align-items: center;
+        }
+
+        #riot-logo {
+            width: 100px;
+            height: auto;
+            padding-left: 20px;
+            padding-right: 50px;
+        }
+
+        #summoner-name {
+          text-align: center;
+          padding-top: 50px;
+          padding-bottom: 30px;
+        }
+
+        #profile-image {
+            position: absolute;
+            right: 5%;
+        }
+    </style>
+</head>
  <body>
-    <h1 th:text="${summoner.getName()}"> </h1>
-    <img th:src="${summoner.getProfileIconAddress()}"/>
-    <p> Level: <span th:text="${summoner.getSummonerLevel()}"></span></p>
-    <br/>
+    <div id="header">
+        <img id="riot-logo" src="https://upload.wikimedia.org/wikipedia/fr/thumb/5/5b/Riot_Games_2022.svg/2560px-Riot_Games_2022.svg.png"/>
+        <p>Riot summoners</p>
+    </div>
+    <div id="summoner-name">
+        <h1 th:text="${summoner.getName()}"> </h1>
+    </div>
+    <div>
+        <img id="profile-image" th:src="${summoner.getProfileIconAddress()}"/>
+        <p> Level: <span th:text="${summoner.getSummonerLevel()}"></span></p>
+    </div>
 </body>
 </html>
