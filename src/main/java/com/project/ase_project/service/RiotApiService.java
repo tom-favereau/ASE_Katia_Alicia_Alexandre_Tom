@@ -2,7 +2,6 @@ package com.project.ase_project.service;
 
 import java.util.ArrayList;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -10,7 +9,6 @@ import java.util.Iterator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.core.JsonProcessingException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,6 +18,10 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import jakarta.annotation.PostConstruct;
+
+import lombok.Getter;
+
+import com.project.ase_project.repository.*;
 
 import com.project.ase_project.model.champion.Champion;
 import com.project.ase_project.model.maps.LOLMap;
@@ -36,10 +38,6 @@ import com.project.ase_project.model.clean.match.Match;
 import com.project.ase_project.model.clean.summoner.Summoner;
 import com.project.ase_project.model.clean.summary.Summary;
 
-import com.project.ase_project.repository.MatchRepository;
-import com.project.ase_project.repository.LeagueRepository;
-import com.project.ase_project.repository.SummonerRepository;
-
 @Service
 public class RiotApiService {
 
@@ -48,16 +46,18 @@ public class RiotApiService {
 
     private final MatchRepository matchRepository;
     private final RestTemplate restTemplate;
+    @Getter
     private final ChampionRepository championRepository;
+    @Getter
     private final MapRepository mapRepository;
+    @Getter
     private final QueueRepository queueRepository;
 
     @Autowired
-    public RiotApiService(RestTemplate restTemplate, SummonerRepository summonerRepository, MatchRepository matchRepository, RankRepository rankRepository,
+    public RiotApiService(RestTemplate restTemplate, MatchRepository matchRepository,
                           ChampionRepository championRepository, MapRepository mapRepository, QueueRepository queueRepository) {
         this.restTemplate = restTemplate;
         this.matchRepository = matchRepository;
-        this.rankRepository = rankRepository;
         this.championRepository = championRepository;
         this.mapRepository = mapRepository;
         this.queueRepository = queueRepository;
@@ -108,7 +108,7 @@ public class RiotApiService {
         }
     }
 
-    public Match getMatchById(String matchId) throws JsonProcessingException {
+    public Match getMatchById(String matchId) {
         String apiUrl = "https://europe.api.riotgames.com/lol/match/v5/matches/" + matchId + "?api_key="+apiKey;
         try {
             MatchDto matchDto = restTemplate.getForObject(apiUrl, MatchDto.class);
@@ -280,19 +280,6 @@ public class RiotApiService {
         }
         return queueRepository.count() != queueArrayJson.size();
     }
-
-    public ChampionRepository getChampionRepository() {
-        return championRepository;
-    }
-
-    public MapRepository getMapRepository() {
-        return mapRepository;
-    }
-
-    public QueueRepository getQueueRepository() {
-        return queueRepository;
-
-        
 
     public Summary getSummary(String summonerName) {
         try {
