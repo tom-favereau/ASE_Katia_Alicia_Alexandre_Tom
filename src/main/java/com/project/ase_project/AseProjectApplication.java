@@ -20,6 +20,8 @@ import com.project.ase_project.service.RiotApiService;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
+import java.io.IOException;
+
 @RestController
 @RequestMapping("/riot")
 @SpringBootApplication
