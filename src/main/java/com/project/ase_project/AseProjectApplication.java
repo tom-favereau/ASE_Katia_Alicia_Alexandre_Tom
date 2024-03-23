@@ -31,6 +31,11 @@ public class AseProjectApplication {
     @Autowired
     private RiotApiService riotApiService;
 
+    @GetMapping("/")
+    public String homePage() {
+        return "index";
+    }
+
     // Exemple : http://localhost:8080/riot/summoners/Belugafurtif
     @GetMapping("/summoners/{summonerName}")
     public ResponseEntity<Summoner> getSummonerData(@PathVariable String summonerName) {
@@ -46,6 +51,7 @@ public class AseProjectApplication {
             return "summoner";
         }
         catch (Exception e) {
+            model.addAttribute("summoner", summonerName);
             return "not_found";
         }
     }

@@ -1,0 +1,26 @@
+#search-label {
+    padding-top: 175px;
+    padding-left: 30%;
+    color: white;
+    font-family: "Amarante", serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 2rem;
+}
+
+#div-search-textarea {
+    padding: 30px;
+    padding-left: 30%;
+}
+
+#search-textarea {
+    width: 500px;
+    height: 50px;
+    padding: 12px;
+    box-sizing: border-box;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    background-color: #f8f8f8;
+    font-size: 16px;
+    resize: none;
+}
