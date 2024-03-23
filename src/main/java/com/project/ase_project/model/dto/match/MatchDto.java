@@ -24,9 +24,9 @@ public class MatchDto {
     private InfoDto info;
 
     // TO MATCH
-    public static Match toMatch(MatchDto matchDto) {
-        MetadataDto metadata = matchDto.getMetadata();
-        InfoDto info = matchDto.getInfo();
+    public Match toMatch() {
+        MetadataDto metadata = this.getMetadata();
+        InfoDto info = this.getInfo();
         Match match = new Match();
 
         match.setMatchId(metadata.getMatchId());

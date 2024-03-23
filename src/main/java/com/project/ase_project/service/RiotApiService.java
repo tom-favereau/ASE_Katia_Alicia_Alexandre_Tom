@@ -2,13 +2,6 @@ package com.project.ase_project.service;
 
 import java.util.ArrayList;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
-
-import com.project.ase_project.exception.*;
-import com.project.ase_project.model.clean.summary.Summary;
-import com.project.ase_project.model.dto.league.LeagueDto;
-import com.project.ase_project.model.dto.match.MatchDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -20,13 +13,14 @@ import com.project.ase_project.model.dto.summoner.SummonerDto;
 import com.project.ase_project.model.dto.match.MatchDto;
 import com.project.ase_project.model.dto.league.LeagueDto;
 
+import com.project.ase_project.exception.*;
+
+import com.project.ase_project.model.clean.summary.Summary;
 import com.project.ase_project.model.clean.league.League;
 import com.project.ase_project.model.clean.match.Match;
 import com.project.ase_project.model.clean.summoner.Summoner;
 
 import com.project.ase_project.repository.MatchRepository;
-import com.project.ase_project.repository.LeagueRepository;
-import com.project.ase_project.repository.SummonerRepository;
 
 @Service
 public class RiotApiService {
@@ -38,7 +32,7 @@ public class RiotApiService {
     private final RestTemplate restTemplate;
 
     @Autowired
-    public RiotApiService(RestTemplate restTemplate, SummonerRepository summonerRepository, MatchRepository matchRepository, LeagueRepository leagueRepository) {
+    public RiotApiService(RestTemplate restTemplate, MatchRepository matchRepository) {
         this.restTemplate = restTemplate;
         this.matchRepository = matchRepository;
     }
@@ -48,9 +42,10 @@ public class RiotApiService {
         try {
             SummonerDto summonerDto = restTemplate.getForObject(apiUrl, SummonerDto.class);
             if (summonerDto != null) {
-                return SummonerDto.toSummoner(summonerDto);
+                return summonerDto.toSummoner();
             }
             else {
+                System.out.println("Summoner not found");
                 throw new SummonerNotFoundException("Erreur 404 : Le joueur " + summonerName + " n'existe pas.");
             }
         } catch (HttpClientErrorException.BadRequest e) {
@@ -88,12 +83,12 @@ public class RiotApiService {
         }
     }
 
-    public Match getMatchById(String matchId) throws JsonProcessingException {
+    public Match getMatchById(String matchId) {
         String apiUrl = "https://europe.api.riotgames.com/lol/match/v5/matches/" + matchId + "?api_key="+apiKey;
         try {
             MatchDto matchDto = restTemplate.getForObject(apiUrl, MatchDto.class);
             if (matchDto != null) {
-                Match match = MatchDto.toMatch(matchDto);
+                Match match = matchDto.toMatch();
                 matchRepository.save(match);
                 return match;
             }
@@ -142,7 +137,7 @@ public class RiotApiService {
             if (leaguesDto != null && leaguesDto.length > 0) {
                 ArrayList<League> leagues = new ArrayList<>();
                 for (LeagueDto leagueDto : leaguesDto) {
-                    League league = LeagueDto.toLeague(leagueDto);
+                    League league = leagueDto.toLeague();
                     leagues.add(league);
                 }
                 return leagues;

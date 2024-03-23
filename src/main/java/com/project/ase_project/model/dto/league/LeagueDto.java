@@ -32,17 +32,17 @@ public class LeagueDto {
     private boolean hotStreak;
 
     // TO LEAGUE
-    public static League toLeague(LeagueDto leagueDto) {
+    public League toLeague() {
         League league = new League();
-        league.setLeagueId(leagueDto.getLeagueId());
-        league.setSummonerId(leagueDto.getSummonerId());
-        league.setSummonerName(leagueDto.getSummonerName());
-        league.setQueueType(leagueDto.getQueueType());
-        league.setTier(leagueDto.getTier());
-        league.setRank(leagueDto.getRank());
-        league.setLeaguePoints(leagueDto.getLeaguePoints());
-        league.setWins(leagueDto.getWins());
-        league.setLosses(leagueDto.getLosses());
+        league.setLeagueId(this.getLeagueId());
+        league.setSummonerId(this.getSummonerId());
+        league.setSummonerName(this.getSummonerName());
+        league.setQueueType(this.getQueueType());
+        league.setTier(this.getTier());
+        league.setRank(this.getRank());
+        league.setLeaguePoints(this.getLeaguePoints());
+        league.setWins(this.getWins());
+        league.setLosses(this.getLosses());
         return league;
     }
 }
