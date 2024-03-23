@@ -1,6 +1,14 @@
 package com.project.ase_project.service;
 
 import java.util.ArrayList;
+import java.io.IOException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Iterator;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,6 +16,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
+
+import jakarta.annotation.PostConstruct;
+
+import lombok.Getter;
+
+import com.project.ase_project.repository.*;
+
+import com.project.ase_project.model.champion.Champion;
+import com.project.ase_project.model.maps.LOLMap;
+import com.project.ase_project.model.queue.LOLQueue;
+
+import com.project.ase_project.exception.*;
 
 import com.project.ase_project.model.dto.summoner.SummonerDto;
 import com.project.ase_project.model.dto.match.MatchDto;
@@ -30,11 +50,21 @@ public class RiotApiService {
 
     private final MatchRepository matchRepository;
     private final RestTemplate restTemplate;
+    @Getter
+    private final ChampionRepository championRepository;
+    @Getter
+    private final MapRepository mapRepository;
+    @Getter
+    private final QueueRepository queueRepository;
 
     @Autowired
-    public RiotApiService(RestTemplate restTemplate, MatchRepository matchRepository) {
+    public RiotApiService(RestTemplate restTemplate, MatchRepository matchRepository,
+                          ChampionRepository championRepository, MapRepository mapRepository, QueueRepository queueRepository) {
         this.restTemplate = restTemplate;
         this.matchRepository = matchRepository;
+        this.championRepository = championRepository;
+        this.mapRepository = mapRepository;
+        this.queueRepository = queueRepository;
     }
 
     public Summoner getSummonerByName(String summonerName) {
@@ -178,6 +208,82 @@ public class RiotApiService {
         catch (HttpServerErrorException.GatewayTimeout e) {
             throw new GatewayTimeout("Erreur 504 : Gateway timeout");
         }
+    }
+
+    @PostConstruct
+    public boolean initializeChampions() throws IOException {
+        String[] remove = new String[]{"blurb", "version", "title", "info", "tags", "partype", "stats"};
+        //Getting raw json
+        JsonNode json = new ObjectMapper().readTree(new URL("https://ddragon.leagueoflegends.com/cdn/14.5.1/data/en_US/champion.json"));
+        JsonNode championJson = json.get("data");
+        //Resetting the table if new maps have been added or if table is not initialized.
+        if (championRepository.count() != championJson.size()) {
+            // Iteration over json nodes
+            HashMap<String, Champion> result = new HashMap<>();
+            Iterator<String> championIterator = championJson.fieldNames();
+            while (championIterator.hasNext()){
+                String name = championIterator.next();
+                ObjectNode championNode = (ObjectNode)championJson.get(name);
+                //Removing useless fields
+                for (String field : remove){
+                    championNode.remove(field);
+                }
+                //Conversion to Champion type
+                Champion champion = new ObjectMapper().treeToValue(championNode, Champion.class);
+                result.put(name, champion);
+            }
+            //Saving all the champions in the repository
+            for (String championName : result.keySet()) {
+                championRepository.save(result.get(championName));
+            }
+            System.out.println("Champion table successfully initialized.");
+        } else {
+            System.out.println("Champion table already initialized.");
+        }
+        return championRepository.count() != championJson.size();
+    }
+
+    @PostConstruct
+    public boolean initializeMaps() throws IOException {
+        //Getting raw json
+        JsonNode mapArrayJson = new ObjectMapper().readTree(new URL("https://static.developer.riotgames.com/docs/lol/maps.json"));
+        //Resetting the table if new maps have been added or if table is not initialized.
+        if (mapRepository.count() != mapArrayJson.size()) {
+            //Iterate over array.
+            for (JsonNode mapJson : mapArrayJson) {
+                //Mapping to LOLMap
+                LOLMap map = new ObjectMapper().treeToValue(mapJson, LOLMap.class);
+                //Saving to repository
+                mapRepository.save(map);
+            }
+            System.out.println("Map table successfully initialized.");
+        } else {
+            System.out.println("Map table already initialized.");
+        }
+        return mapRepository.count() != mapArrayJson.size();
+    }
+
+    @PostConstruct
+    public boolean initializeQueues() throws IOException {
+        //Getting raw json
+        JsonNode queueArrayJson = new ObjectMapper().readTree(new URL("https://static.developer.riotgames.com/docs/lol/queues.json"));
+        //Resetting the table if new queues have been added or if table is not initialized.
+        if (queueRepository.count() != queueArrayJson.size()) {
+            //Iterate over array.
+            for (JsonNode queueJson : queueArrayJson) {
+                //Removing unnecessary field.
+                ObjectNode queueObjectNode = (ObjectNode) queueJson;
+                queueObjectNode.remove("notes");
+                //Mapping to LOLQueue.
+                LOLQueue queue = new ObjectMapper().treeToValue(queueObjectNode, LOLQueue.class);
+                //Saving to repository
+                queueRepository.save(queue);
+            }
+            System.out.println("Queue table successfully initialized.");
+        } else {
+            System.out.println("Queue table already initialized.");
+        }
+        return queueRepository.count() != queueArrayJson.size();
     }
 
     public Summary getSummary(String summonerName) {
