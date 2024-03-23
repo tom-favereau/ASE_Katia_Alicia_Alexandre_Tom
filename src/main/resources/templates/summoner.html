@@ -4,10 +4,18 @@
     <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
     <title>Champion</title>
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amarante&family=Donegal+One&family=Goblin+One&family=Oxanium:wght@200..800&display=swap" rel="stylesheet">
+
     <style>
         * {
            margin: 0px;
            padding: 0px;
+        }
+
+        html {
+            background-color: #242424;
         }
 
         #header {
@@ -17,6 +25,10 @@
             display: flex;
 	        flex-direction: row;
 	        align-items: center;
+	        font-family: "Amarante", serif;
+            font-weight: 400;
+            font-style: normal;
+            font-size: 1.6rem;
         }
 
         #riot-logo {
@@ -26,16 +38,79 @@
             padding-right: 50px;
         }
 
+        #div-back-button {
+            position: absolute;
+            left: 20px;
+        }
+
+        #back-button {
+            background-color: #676767;
+            border: none;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+	        font-family: "Amarante", serif;
+            font-weight: 400;
+            font-size: 1.2rem;
+            font-style: normal;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 8px;
+            width: 75px;
+            height: 50px;
+        }
+
+        #back-button:hover {
+            background-color: #6A4C4D;
+        }
+
+        #back-button:active {
+            background-color: #000000;
+        }
+
         #summoner-name {
           text-align: center;
           padding-top: 50px;
-          padding-bottom: 30px;
+          padding-bottom: 50px;
+          font-family: "Goblin One", serif;
+          font-weight: 400;
+          font-size: 1.2rem;
+          font-style: normal;
+          color: white;
         }
 
         #profile-image {
             position: absolute;
             right: 5%;
+            box-shadow: 0 0 100px 0px #ffffffaa;
+            height: 300px;
+            width: auto;
         }
+
+        #info {
+            position: absolute;
+            left: 15%;
+            font-family: "Oxanium", sans-serif;
+            font-optical-sizing: auto;
+            font-weight: <weight>;
+            font-style: normal;
+            font-size: 2rem;
+            color: white;
+        }
+
+        #rating {
+            position: absolute;
+            right: 5%;
+            bottom: 10%;
+        }
+
+        .star {
+            width: 60px;
+            height: auto;
+            padding: 5px;
+        }
+
     </style>
 </head>
  <body>
@@ -44,11 +119,135 @@
         <p>Riot summoners</p>
     </div>
     <div id="summoner-name">
+        <div id="div-back-button">
+            <button id="back-button" onclick="window.location.href='http://localhost:8080';">Back</button>
+        </div>
         <h1 th:text="${summoner.getName()}"> </h1>
     </div>
     <div>
         <img id="profile-image" th:src="${summoner.getProfileIconAddress()}"/>
-        <p> Level: <span th:text="${summoner.getSummonerLevel()}"></span></p>
+        <div id="info">
+            <p> Level: <span th:text="${summoner.getSummonerLevel()}"></span></p>
+        </div>
+        <div id="rating">
+            <img id="star1" class="star" src="https://upload.wikimedia.org/wikipedia/commons/1/1b/Yellow_Star_with_rounded_edges.svg" onclick="add_rating(1)"/>
+            <img id="star2" class="star" src="https://upload.wikimedia.org/wikipedia/commons/1/1b/Yellow_Star_with_rounded_edges.svg" onclick="add_rating(2)"/>
+            <img id="star3" class="star" src="https://upload.wikimedia.org/wikipedia/commons/1/1b/Yellow_Star_with_rounded_edges.svg" onclick="add_rating(3)"/>
+            <img id="star4" class="star" src="https://upload.wikimedia.org/wikipedia/commons/1/1b/Yellow_Star_with_rounded_edges.svg" onclick="add_rating(4)"/>
+            <img id="star5" class="star" src="https://upload.wikimedia.org/wikipedia/commons/1/1b/Yellow_Star_with_rounded_edges.svg" onclick="add_rating(5)"/>
+        </div>
     </div>
+
+    <script>
+        var rating = 3.2; //TODO: get rating
+
+        const STYLE_NORMAL_STAR = "";
+        const STYLE_RED_STAR = "invert(12%) sepia(94%) saturate(6754%) hue-rotate(0deg) brightness(97%) contrast(112%)";
+        const STYLE_LIGHT_GREY_STAR = "invert(76%) sepia(4%) saturate(61%) hue-rotate(314deg) brightness(94%) contrast(78%)";
+        const STYLE_DARK_GREY_STAR = "invert(12%) sepia(94%) saturate(0%) hue-rotate(0deg) brightness(40%) contrast(112%)";
+
+        show_rating(rating);
+
+        document.body.addEventListener('mouseover', e => {
+            let star = e.target.closest('.star');
+            if (!star) { return; }
+            switch (star.id) {
+                case "star1" :
+                    document.querySelector("#star1").style.filter = STYLE_RED_STAR;
+                    document.querySelector("#star2").style.filter = STYLE_LIGHT_GREY_STAR;
+                    document.querySelector("#star3").style.filter = STYLE_LIGHT_GREY_STAR;
+                    document.querySelector("#star4").style.filter = STYLE_LIGHT_GREY_STAR;
+                    document.querySelector("#star5").style.filter = STYLE_LIGHT_GREY_STAR;
+                    break;
+
+                case "star2" :
+                    document.querySelector("#star1").style.filter = STYLE_RED_STAR;
+                    document.querySelector("#star2").style.filter = STYLE_RED_STAR;
+                    document.querySelector("#star3").style.filter = STYLE_LIGHT_GREY_STAR;
+                    document.querySelector("#star4").style.filter = STYLE_LIGHT_GREY_STAR;
+                    document.querySelector("#star5").style.filter = STYLE_LIGHT_GREY_STAR;
+                    break;
+
+                case "star3" :
+                    document.querySelector("#star1").style.filter = STYLE_RED_STAR;
+                    document.querySelector("#star2").style.filter = STYLE_RED_STAR;
+                    document.querySelector("#star3").style.filter = STYLE_RED_STAR;
+                    document.querySelector("#star4").style.filter = STYLE_LIGHT_GREY_STAR;
+                    document.querySelector("#star5").style.filter = STYLE_LIGHT_GREY_STAR;
+                    break;
+
+                case "star4" :
+                    document.querySelector("#star1").style.filter = STYLE_RED_STAR;
+                    document.querySelector("#star2").style.filter = STYLE_RED_STAR;
+                    document.querySelector("#star3").style.filter = STYLE_RED_STAR;
+                    document.querySelector("#star4").style.filter = STYLE_RED_STAR;
+                    document.querySelector("#star5").style.filter = STYLE_LIGHT_GREY_STAR;
+                    break;
+
+                case "star5" :
+                    document.querySelector("#star1").style.filter = STYLE_RED_STAR;
+                    document.querySelector("#star2").style.filter = STYLE_RED_STAR;
+                    document.querySelector("#star3").style.filter = STYLE_RED_STAR;
+                    document.querySelector("#star4").style.filter = STYLE_RED_STAR;
+                    document.querySelector("#star5").style.filter = STYLE_RED_STAR;
+                    break;
+
+                default :
+                    break;
+            }
+        });
+
+        document.body.addEventListener('mouseout', e => {
+            let stars = e.target.closest('#rating');
+            if (!stars) { return; }
+            show_rating(rating);
+        });
+
+        function show_rating(score) {
+            switch (Math.round(score)) {
+                case 1 :
+                    document.querySelector("#star1").style.filter = STYLE_NORMAL_STAR;
+                    document.querySelector("#star2").style.filter = STYLE_DARK_GREY_STAR;
+                    document.querySelector("#star3").style.filter = STYLE_DARK_GREY_STAR;
+                    document.querySelector("#star4").style.filter = STYLE_DARK_GREY_STAR;
+                    document.querySelector("#star5").style.filter = STYLE_DARK_GREY_STAR;
+                    break;
+                case 2 :
+                    document.querySelector("#star1").style.filter = STYLE_NORMAL_STAR;
+                    document.querySelector("#star2").style.filter = STYLE_NORMAL_STAR;
+                    document.querySelector("#star3").style.filter = STYLE_DARK_GREY_STAR;
+                    document.querySelector("#star4").style.filter = STYLE_DARK_GREY_STAR;
+                    document.querySelector("#star5").style.filter = STYLE_DARK_GREY_STAR;
+                    break;
+                case 3 :
+                    document.querySelector("#star1").style.filter = STYLE_NORMAL_STAR;
+                    document.querySelector("#star2").style.filter = STYLE_NORMAL_STAR;
+                    document.querySelector("#star3").style.filter = STYLE_NORMAL_STAR;
+                    document.querySelector("#star4").style.filter = STYLE_DARK_GREY_STAR;
+                    document.querySelector("#star5").style.filter = STYLE_DARK_GREY_STAR;
+                    break;
+                case 4 :
+                    document.querySelector("#star1").style.filter = STYLE_NORMAL_STAR;
+                    document.querySelector("#star2").style.filter = STYLE_NORMAL_STAR;
+                    document.querySelector("#star3").style.filter = STYLE_NORMAL_STAR;
+                    document.querySelector("#star4").style.filter = STYLE_NORMAL_STAR;
+                    document.querySelector("#star5").style.filter = STYLE_DARK_GREY_STAR;
+                    break;
+                case 5 :
+                    document.querySelector("#star1").style.filter = STYLE_NORMAL_STAR;
+                    document.querySelector("#star2").style.filter = STYLE_NORMAL_STAR;
+                    document.querySelector("#star3").style.filter = STYLE_NORMAL_STAR;
+                    document.querySelector("#star4").style.filter = STYLE_NORMAL_STAR;
+                    document.querySelector("#star5").style.filter = STYLE_NORMAL_STAR;
+                default :
+                    break;
+            }
+        }
+
+        function add_rating(score) {
+            console.log(score); //TODO: post rating
+            show_rating(rating);
+        }
+    </script>
 </body>
 </html>

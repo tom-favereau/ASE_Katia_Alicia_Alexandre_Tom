@@ -1,12 +1,96 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
-<html>
 <head>
-    <meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\">
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
     <title>Champion</title>
-    </head>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amarante&family=Donegal+One&family=Goblin+One&family=Oxanium:wght@200..800&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+           margin: 0px;
+           padding: 0px;
+        }
+
+        html {
+            background-color: #242424;
+        }
+
+        #header {
+            background-color: black;
+            color: white;
+            height: 50px;
+            display: flex;
+	        flex-direction: row;
+	        align-items: center;
+	        font-family: "Amarante", serif;
+            font-weight: 400;
+            font-style: normal;
+            font-size: 1.6rem;
+        }
+
+        #riot-logo {
+            width: 100px;
+            height: auto;
+            padding-left: 20px;
+            padding-right: 50px;
+        }
+
+        #div-back-button {
+            position: absolute;
+            left: 20px;
+        }
+
+        #back-button {
+            background-color: #676767;
+            border: none;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+	        font-family: "Amarante", serif;
+            font-weight: 400;
+            font-size: 1.2rem;
+            font-style: normal;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 8px;
+            width: 75px;
+            height: 50px;
+        }
+
+        #back-button:hover {
+            background-color: #6A4C4D;
+        }
+
+        #back-button:active {
+            background-color: #000000;
+        }
+
+        #summoner-name {
+          text-align: center;
+          padding-top: 50px;
+          padding-bottom: 50px;
+          font-family: "Goblin One", serif;
+          font-weight: 400;
+          font-size: 1.2rem;
+          font-style: normal;
+          color: white;
+        }
+    </style>
+</head>
 <body>
-    <h1>Not found</h1>
-    <br/>
+<div id="header">
+    <img id="riot-logo" src="https://upload.wikimedia.org/wikipedia/fr/thumb/5/5b/Riot_Games_2022.svg/2560px-Riot_Games_2022.svg.png"/>
+    <p>Riot summoners</p>
+</div>
+<div id="summoner-name">
+    <div id="div-back-button">
+        <button id="back-button" onclick="window.location.href='http://localhost:8080';">Back</button>
+    </div>
+    <h1>Not found!</h1>
+</div>
 </body>
 </html>
