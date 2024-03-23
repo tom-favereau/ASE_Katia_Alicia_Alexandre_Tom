@@ -19,7 +19,7 @@ import com.project.ase_project.model.clean.league.League;
 import com.project.ase_project.model.clean.summoner.Summoner;
 import com.project.ase_project.service.RiotApiService;
 
-@Controller
+@RestController
 @RequestMapping("/riot")
 @SpringBootApplication
 public class AseProjectApplication {
