@@ -33,10 +33,14 @@ import com.project.ase_project.model.dto.summoner.SummonerDto;
 import com.project.ase_project.model.dto.match.MatchDto;
 import com.project.ase_project.model.dto.league.LeagueDto;
 
+import com.project.ase_project.exception.*;
+
+import com.project.ase_project.model.clean.summary.Summary;
 import com.project.ase_project.model.clean.league.League;
 import com.project.ase_project.model.clean.match.Match;
 import com.project.ase_project.model.clean.summoner.Summoner;
-import com.project.ase_project.model.clean.summary.Summary;
+
+import com.project.ase_project.repository.MatchRepository;
 
 @Service
 public class RiotApiService {
@@ -68,9 +72,10 @@ public class RiotApiService {
         try {
             SummonerDto summonerDto = restTemplate.getForObject(apiUrl, SummonerDto.class);
             if (summonerDto != null) {
-                return SummonerDto.toSummoner(summonerDto);
+                return summonerDto.toSummoner();
             }
             else {
+                System.out.println("Summoner not found");
                 throw new SummonerNotFoundException("Erreur 404 : Le joueur " + summonerName + " n'existe pas.");
             }
         } catch (HttpClientErrorException.BadRequest e) {
@@ -113,7 +118,7 @@ public class RiotApiService {
         try {
             MatchDto matchDto = restTemplate.getForObject(apiUrl, MatchDto.class);
             if (matchDto != null) {
-                Match match = MatchDto.toMatch(matchDto);
+                Match match = matchDto.toMatch();
                 matchRepository.save(match);
                 return match;
             }
@@ -162,7 +167,7 @@ public class RiotApiService {
             if (leaguesDto != null && leaguesDto.length > 0) {
                 ArrayList<League> leagues = new ArrayList<>();
                 for (LeagueDto leagueDto : leaguesDto) {
-                    League league = LeagueDto.toLeague(leagueDto);
+                    League league = leagueDto.toLeague();
                     leagues.add(league);
                 }
                 return leagues;
