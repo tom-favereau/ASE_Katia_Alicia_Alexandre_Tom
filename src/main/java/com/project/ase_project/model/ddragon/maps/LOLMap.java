@@ -1,10 +1,18 @@
-package com.project.ase_project.model.maps;
+package com.project.ase_project.model.ddragon.maps;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import lombok.*;
 
 @Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Getter
+@Setter
+@ToString
 public class LOLMap {
     @Id
     @JsonProperty
@@ -13,12 +21,4 @@ public class LOLMap {
     String mapName;
     @JsonProperty
     private String notes;
-
-    public LOLMap(){}
-
-    public LOLMap(Integer mapId, String mapName, String notes) {
-        this.mapId = mapId;
-        this.mapName = mapName;
-        this.notes = notes;
-    }
 }

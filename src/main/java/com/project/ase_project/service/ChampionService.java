@@ -3,7 +3,7 @@ package com.project.ase_project.service;
 import com.project.ase_project.repository.ChampionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.project.ase_project.model.champion.Champion;
+import com.project.ase_project.model.ddragon.champion.Champion;
 
 import java.util.List;
 

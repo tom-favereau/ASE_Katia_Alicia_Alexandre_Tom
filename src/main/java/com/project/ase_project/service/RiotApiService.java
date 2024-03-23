@@ -23,17 +23,15 @@ import lombok.Getter;
 
 import com.project.ase_project.repository.*;
 
-import com.project.ase_project.model.champion.Champion;
-import com.project.ase_project.model.maps.LOLMap;
-import com.project.ase_project.model.queue.LOLQueue;
+import com.project.ase_project.model.ddragon.champion.Champion;
+import com.project.ase_project.model.ddragon.maps.LOLMap;
+import com.project.ase_project.model.ddragon.queue.LOLQueue;
 
 import com.project.ase_project.exception.*;
 
 import com.project.ase_project.model.dto.summoner.SummonerDto;
 import com.project.ase_project.model.dto.match.MatchDto;
 import com.project.ase_project.model.dto.league.LeagueDto;
-
-import com.project.ase_project.exception.*;
 
 import com.project.ase_project.model.clean.summary.Summary;
 import com.project.ase_project.model.clean.league.League;

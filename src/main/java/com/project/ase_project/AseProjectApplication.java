@@ -1,22 +1,23 @@
 package com.project.ase_project;
+
 import java.util.ArrayList;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.project.ase_project.exception.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.stereotype.Controller;
 
 import com.project.ase_project.model.clean.match.Match;
 import com.project.ase_project.model.clean.league.League;
 import com.project.ase_project.model.clean.summoner.Summoner;
+import com.project.ase_project.model.clean.summary.Summary;
+
 import com.project.ase_project.service.RiotApiService;
 
 @Controller
@@ -74,7 +75,7 @@ public class AseProjectApplication {
     }
     
     @GetMapping("/matches/{matchId}")
-    public ResponseEntity<Match> getMatchData(@PathVariable String matchId) throws JsonProcessingException {
+    public ResponseEntity<Match> getMatchData(@PathVariable String matchId) {
         Match match = riotApiService.getMatchById(matchId);
         return new ResponseEntity<>(match, HttpStatus.OK);
     }
