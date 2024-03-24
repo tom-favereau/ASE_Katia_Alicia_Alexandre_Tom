@@ -41,11 +41,6 @@ public class AseProjectApplication {
     @Autowired
     private RiotApiService riotApiService;
 
-    @GetMapping("/")
-    public String homePage() {
-        return "index";
-    }
-
     // Exemple : http://localhost:8080/riot/summoners/Belugafurtif
     @GetMapping("/summoners/")
     public ResponseEntity<Summoner> getEmptySummonerData() {
@@ -56,19 +51,6 @@ public class AseProjectApplication {
     public ResponseEntity<Summoner> getSummonerData(@PathVariable String summonerName) {
         Summoner summoner = riotApiService.getSummonerByName(summonerName);
         return new ResponseEntity<>(summoner, HttpStatus.OK);
-    }
-
-    @GetMapping("/summoner_page/{summonerName}")
-    public String getSummonerData(@PathVariable String summonerName, Model model) {
-        try {
-            Summoner summoner = riotApiService.getSummonerByName(summonerName);
-            model.addAttribute("summoner", summoner);
-            return "summoner";
-        }
-        catch (Exception e) {
-            model.addAttribute("summoner", summonerName);
-            return "not_found";
-        }
     }
 
     // Exemple : http://localhost:8080/riot/rank/F4btU20wCQOmkMlWn4QJm33f3jH-B5Nj-uPfNnyuLED3PT0DpQ_LLcB_IQ
