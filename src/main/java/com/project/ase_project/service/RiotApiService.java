@@ -1,10 +1,8 @@
 package com.project.ase_project.service;
 
-import java.util.ArrayList;
+import java.util.*;
 import java.io.IOException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Iterator;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,6 +31,7 @@ import com.project.ase_project.model.dto.summoner.SummonerDto;
 import com.project.ase_project.model.dto.match.MatchDto;
 import com.project.ase_project.model.dto.league.LeagueDto;
 
+import com.project.ase_project.model.clean.grade.Grade;
 import com.project.ase_project.model.clean.summary.Summary;
 import com.project.ase_project.model.clean.league.League;
 import com.project.ase_project.model.clean.match.Match;
@@ -47,6 +46,7 @@ public class RiotApiService {
     private String apiKey;
 
     private final MatchRepository matchRepository;
+    private final GradeRepository gradeRepository;
     private final RestTemplate restTemplate;
     @Getter
     private final ChampionRepository championRepository;
@@ -56,10 +56,11 @@ public class RiotApiService {
     private final QueueRepository queueRepository;
 
     @Autowired
-    public RiotApiService(RestTemplate restTemplate, MatchRepository matchRepository,
+    public RiotApiService(RestTemplate restTemplate, MatchRepository matchRepository, GradeRepository gradeRepository,
                           ChampionRepository championRepository, MapRepository mapRepository, QueueRepository queueRepository) {
         this.restTemplate = restTemplate;
         this.matchRepository = matchRepository;
+        this.gradeRepository = gradeRepository;
         this.championRepository = championRepository;
         this.mapRepository = mapRepository;
         this.queueRepository = queueRepository;
@@ -206,6 +207,27 @@ public class RiotApiService {
         catch (HttpServerErrorException.GatewayTimeout e) {
             throw new GatewayTimeout("Erreur 504 : Gateway timeout");
         }
+    }
+
+    public void postGrade(String summonerName, int note) {
+        Summoner summoner = getSummonerByName(summonerName);
+        Grade grade = gradeRepository.findById(summoner.getId()).orElse(null);
+        if (grade == null) {
+            grade = new Grade(summoner.getId(), summoner.getName(), note, 1);
+            gradeRepository.save(grade);
+        } else {
+            int average = grade.getAverage();
+            int cardinal = grade.getCardinal();
+            grade.setAverage((average * cardinal + note) / (cardinal + 1));
+            grade.setCardinal(cardinal + 1);
+            gradeRepository.save(grade);
+        }
+    }
+
+    public Grade getGrade(String summonerName) {
+        Summoner summoner = getSummonerByName(summonerName);
+        return Objects.requireNonNullElseGet(gradeRepository.findById(summoner.getId()).orElse(null),
+                () -> new Grade(summoner.getId(), summoner.getName(), 0, 0));
     }
 
     @PostConstruct

@@ -17,6 +17,7 @@ import com.project.ase_project.model.clean.match.Match;
 import com.project.ase_project.model.clean.league.League;
 import com.project.ase_project.model.clean.summoner.Summoner;
 import com.project.ase_project.model.clean.summary.Summary;
+import com.project.ase_project.model.clean.grade.Grade;
 
 import com.project.ase_project.service.RiotApiService;
 
@@ -114,6 +115,81 @@ public class AseProjectApplication {
                 throw new ServiceUnavailable(e.getMessage());
             } catch (GatewayTimeout e) {
                 throw new GatewayTimeout(e.getMessage());
+            }
+        }
+    }
+
+    // Exemple : http://localhost:8080/riot/grade/Belugafurtif
+    // Exemple : http://localhost:8080/riot/grade/Belugafurtif/5
+    @GetMapping("/grade/")
+    public ResponseEntity<String> getEmptyGrade() {
+        throw new IllegalArgumentException("Erreur 400 : Veuillez préciser un pseudo de joueur.");
+    }
+
+    @GetMapping("/grade/{summonerName}")
+    public ResponseEntity<Grade> getGrade(@PathVariable String summonerName) {
+        if (summonerName == null) {
+            throw new IllegalArgumentException("Erreur 400 : Veuillez préciser un pseudo de joueur.");
+        } else {
+            try {
+                Grade grade = riotApiService.getGrade(summonerName);
+                return new ResponseEntity<>(grade, HttpStatus.OK);
+            } catch (BadRequestException e) {
+                throw new BadRequestException(e.getMessage());
+            } catch (SummonerNotFoundException e) {
+                throw new SummonerNotFoundException(e.getMessage());
+            } catch (LeaguesNotFoundException e) {
+                throw new LeaguesNotFoundException(e.getMessage());
+            } catch (MethodNotAllowed e) {
+                throw new MethodNotAllowed(e.getMessage());
+            } catch (UnsupportedMediaType e) {
+                throw new UnsupportedMediaType(e.getMessage());
+            } catch (RateLimitExceededException e) {
+                throw new RateLimitExceededException(e.getMessage());
+            } catch (InternalServerError e) {
+                throw new InternalServerError(e.getMessage());
+            } catch (BadGateway e) {
+                throw new BadGateway(e.getMessage());
+            } catch (ServiceUnavailable e) {
+                throw new ServiceUnavailable(e.getMessage());
+            } catch (GatewayTimeout e) {
+                throw new GatewayTimeout(e.getMessage());
+            }
+        }
+    }
+
+    @PostMapping("/grade/{summonerName}/{grade}")
+    public ResponseEntity<String> getGrade(@PathVariable String summonerName, @PathVariable String grade) {
+        if (summonerName == null) {
+            throw new IllegalArgumentException("Erreur 400 : Veuillez préciser un pseudo de joueur.");
+        } else {
+            try {
+                int note = Integer.parseInt(grade);
+                if (note > 5 || note < 0) {
+                    throw new IllegalArgumentException("Erreur 400 : Veuillez préciser une note entre 0 et 5.");
+                }
+                riotApiService.postGrade(summonerName, note);
+                return new ResponseEntity<>("Votre note a été posté avec succès !", HttpStatus.OK);
+            } catch (BadRequestException e) {
+                throw new BadRequestException(e.getMessage());
+            } catch (SummonerNotFoundException e) {
+                throw new SummonerNotFoundException(e.getMessage());
+            } catch (MethodNotAllowed e) {
+                throw new MethodNotAllowed(e.getMessage());
+            } catch (UnsupportedMediaType e) {
+                throw new UnsupportedMediaType(e.getMessage());
+            } catch (RateLimitExceededException e) {
+                throw new RateLimitExceededException(e.getMessage());
+            } catch (InternalServerError e) {
+                throw new InternalServerError(e.getMessage());
+            } catch (BadGateway e) {
+                throw new BadGateway(e.getMessage());
+            } catch (ServiceUnavailable e) {
+                throw new ServiceUnavailable(e.getMessage());
+            } catch (GatewayTimeout e) {
+                throw new GatewayTimeout(e.getMessage());
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Erreur 400 : Veuillez préciser une note valide.");
             }
         }
     }
