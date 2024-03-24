@@ -1,6 +1,6 @@
 package com.project.ase_project.controller;
 
-import com.project.ase_project.model.queue.LOLQueue;
+import com.project.ase_project.model.ddragon.queue.LOLQueue;
 import com.project.ase_project.service.QueueService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;

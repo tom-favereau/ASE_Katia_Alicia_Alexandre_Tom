@@ -26,12 +26,12 @@ public class SummonerDto {
     private long summonerLevel;
 
     // TO SUMMONER
-    public static Summoner toSummoner(SummonerDto summonerDto) {
+    public Summoner toSummoner() {
         Summoner summoner = new Summoner();
-        summoner.setName(summonerDto.getName());
-        summoner.setProfileIconId(summonerDto.getProfileIconId());
-        summoner.setSummonerLevel(summonerDto.getSummonerLevel());
-        summoner.setId(summonerDto.getId());
+        summoner.setName(this.getName());
+        summoner.setProfileIconId(this.getProfileIconId());
+        summoner.setSummonerLevel(this.getSummonerLevel());
+        summoner.setId(this.getId());
         return summoner;
     }
 }

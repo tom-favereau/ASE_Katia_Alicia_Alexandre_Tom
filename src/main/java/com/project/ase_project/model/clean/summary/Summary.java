@@ -16,6 +16,8 @@ public class Summary {
         this.summonerName = summoner.getName();
         this.summonerLevel = summoner.getSummonerLevel();
         this.profileIconId = summoner.getProfileIconId();
+        this.average = summoner.getAverage();
+        this.cardinal = summoner.getCardinal();
         if (leagues.size() != 2) {
             throw new RuntimeException("Invalid number of leagues");
         }
@@ -35,7 +37,6 @@ public class Summary {
             throw new RuntimeException("Invalid queue type");
         }
         this.region = "EUW1";
-        this.grade = 0;
     }
 
     // JSON FIELDS
@@ -46,5 +47,6 @@ public class Summary {
     private String rankFlex;
     private String rankSolo;
     private String region;
-    private int grade;
+    private float average;
+    private int cardinal;
 }

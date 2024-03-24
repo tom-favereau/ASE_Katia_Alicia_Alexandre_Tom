@@ -1,10 +1,8 @@
 package com.project.ase_project.service;
 
-import java.util.ArrayList;
+import java.util.*;
 import java.io.IOException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Iterator;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,20 +21,21 @@ import lombok.Getter;
 
 import com.project.ase_project.repository.*;
 
-import com.project.ase_project.model.champion.Champion;
-import com.project.ase_project.model.maps.LOLMap;
-import com.project.ase_project.model.queue.LOLQueue;
-
 import com.project.ase_project.exception.*;
+
+import com.project.ase_project.model.ddragon.champion.Champion;
+import com.project.ase_project.model.ddragon.maps.LOLMap;
+import com.project.ase_project.model.ddragon.queue.LOLQueue;
 
 import com.project.ase_project.model.dto.summoner.SummonerDto;
 import com.project.ase_project.model.dto.match.MatchDto;
 import com.project.ase_project.model.dto.league.LeagueDto;
 
+import com.project.ase_project.model.clean.grade.Grade;
+import com.project.ase_project.model.clean.summary.Summary;
 import com.project.ase_project.model.clean.league.League;
 import com.project.ase_project.model.clean.match.Match;
 import com.project.ase_project.model.clean.summoner.Summoner;
-import com.project.ase_project.model.clean.summary.Summary;
 
 @Service
 public class RiotApiService {
@@ -45,6 +44,7 @@ public class RiotApiService {
     private String apiKey;
 
     private final MatchRepository matchRepository;
+    private final GradeRepository gradeRepository;
     private final RestTemplate restTemplate;
     @Getter
     private final ChampionRepository championRepository;
@@ -54,10 +54,11 @@ public class RiotApiService {
     private final QueueRepository queueRepository;
 
     @Autowired
-    public RiotApiService(RestTemplate restTemplate, MatchRepository matchRepository,
+    public RiotApiService(RestTemplate restTemplate, MatchRepository matchRepository, GradeRepository gradeRepository,
                           ChampionRepository championRepository, MapRepository mapRepository, QueueRepository queueRepository) {
         this.restTemplate = restTemplate;
         this.matchRepository = matchRepository;
+        this.gradeRepository = gradeRepository;
         this.championRepository = championRepository;
         this.mapRepository = mapRepository;
         this.queueRepository = queueRepository;
@@ -68,9 +69,19 @@ public class RiotApiService {
         try {
             SummonerDto summonerDto = restTemplate.getForObject(apiUrl, SummonerDto.class);
             if (summonerDto != null) {
-                return SummonerDto.toSummoner(summonerDto);
+                Summoner summoner = summonerDto.toSummoner();
+                Grade grade = gradeRepository.findById(summoner.getId()).orElse(null);
+                if (grade == null) {
+                    summoner.setAverage(0);
+                    summoner.setCardinal(0);
+                } else {
+                    summoner.setAverage(grade.getAverage());
+                    summoner.setCardinal(grade.getCardinal());
+                }
+                return summoner;
             }
             else {
+                //System.out.println("Summoner not found");
                 throw new SummonerNotFoundException("Erreur 404 : Le joueur " + summonerName + " n'existe pas.");
             }
         } catch (HttpClientErrorException.BadRequest e) {
@@ -113,7 +124,7 @@ public class RiotApiService {
         try {
             MatchDto matchDto = restTemplate.getForObject(apiUrl, MatchDto.class);
             if (matchDto != null) {
-                Match match = MatchDto.toMatch(matchDto);
+                Match match = matchDto.toMatch();
                 matchRepository.save(match);
                 return match;
             }
@@ -162,7 +173,7 @@ public class RiotApiService {
             if (leaguesDto != null && leaguesDto.length > 0) {
                 ArrayList<League> leagues = new ArrayList<>();
                 for (LeagueDto leagueDto : leaguesDto) {
-                    League league = LeagueDto.toLeague(leagueDto);
+                    League league = leagueDto.toLeague();
                     leagues.add(league);
                 }
                 return leagues;
@@ -205,82 +216,6 @@ public class RiotApiService {
         }
     }
 
-    @PostConstruct
-    public boolean initializeChampions() throws IOException {
-        String[] remove = new String[]{"blurb", "version", "title", "info", "tags", "partype", "stats"};
-        //Getting raw json
-        JsonNode json = new ObjectMapper().readTree(new URL("https://ddragon.leagueoflegends.com/cdn/14.5.1/data/en_US/champion.json"));
-        JsonNode championJson = json.get("data");
-        //Resetting the table if new maps have been added or if table is not initialized.
-        if (championRepository.count() != championJson.size()) {
-            // Iteration over json nodes
-            HashMap<String, Champion> result = new HashMap<>();
-            Iterator<String> championIterator = championJson.fieldNames();
-            while (championIterator.hasNext()){
-                String name = championIterator.next();
-                ObjectNode championNode = (ObjectNode)championJson.get(name);
-                //Removing useless fields
-                for (String field : remove){
-                    championNode.remove(field);
-                }
-                //Conversion to Champion type
-                Champion champion = new ObjectMapper().treeToValue(championNode, Champion.class);
-                result.put(name, champion);
-            }
-            //Saving all the champions in the repository
-            for (String championName : result.keySet()) {
-                championRepository.save(result.get(championName));
-            }
-            System.out.println("Champion table successfully initialized.");
-        } else {
-            System.out.println("Champion table already initialized.");
-        }
-        return championRepository.count() != championJson.size();
-    }
-
-    @PostConstruct
-    public boolean initializeMaps() throws IOException {
-        //Getting raw json
-        JsonNode mapArrayJson = new ObjectMapper().readTree(new URL("https://static.developer.riotgames.com/docs/lol/maps.json"));
-        //Resetting the table if new maps have been added or if table is not initialized.
-        if (mapRepository.count() != mapArrayJson.size()) {
-            //Iterate over array.
-            for (JsonNode mapJson : mapArrayJson) {
-                //Mapping to LOLMap
-                LOLMap map = new ObjectMapper().treeToValue(mapJson, LOLMap.class);
-                //Saving to repository
-                mapRepository.save(map);
-            }
-            System.out.println("Map table successfully initialized.");
-        } else {
-            System.out.println("Map table already initialized.");
-        }
-        return mapRepository.count() != mapArrayJson.size();
-    }
-
-    @PostConstruct
-    public boolean initializeQueues() throws IOException {
-        //Getting raw json
-        JsonNode queueArrayJson = new ObjectMapper().readTree(new URL("https://static.developer.riotgames.com/docs/lol/queues.json"));
-        //Resetting the table if new queues have been added or if table is not initialized.
-        if (queueRepository.count() != queueArrayJson.size()) {
-            //Iterate over array.
-            for (JsonNode queueJson : queueArrayJson) {
-                //Removing unnecessary field.
-                ObjectNode queueObjectNode = (ObjectNode) queueJson;
-                queueObjectNode.remove("notes");
-                //Mapping to LOLQueue.
-                LOLQueue queue = new ObjectMapper().treeToValue(queueObjectNode, LOLQueue.class);
-                //Saving to repository
-                queueRepository.save(queue);
-            }
-            System.out.println("Queue table successfully initialized.");
-        } else {
-            System.out.println("Queue table already initialized.");
-        }
-        return queueRepository.count() != queueArrayJson.size();
-    }
-
     public Summary getSummary(String summonerName) {
         try {
             Summoner summoner = getSummonerByName(summonerName);
@@ -316,5 +251,99 @@ public class RiotApiService {
         catch (GatewayTimeout e) {
             throw new GatewayTimeout(e.getMessage());
         }
+    }
+
+    public void postGrade(String summonerName, int note) {
+        Summoner summoner = getSummonerByName(summonerName);
+        Grade grade = gradeRepository.findById(summoner.getId()).orElse(null);
+        if (grade == null) {
+            grade = new Grade(summoner.getId(), summoner.getName(), note, 1);
+            gradeRepository.save(grade);
+        } else {
+            float average = grade.getAverage();
+            int cardinal = grade.getCardinal();
+            grade.setAverage((average * cardinal + note) / (cardinal + 1));
+            grade.setCardinal(cardinal + 1);
+            gradeRepository.save(grade);
+        }
+    }
+
+    @PostConstruct
+    public boolean initializeChampions() throws IOException {
+        String[] remove = new String[]{"blurb", "version", "title", "info", "tags", "partype", "stats"};
+        //Getting raw json
+        JsonNode json = new ObjectMapper().readTree(new URL("https://ddragon.leagueoflegends.com/cdn/14.5.1/data/en_US/champion.json"));
+        JsonNode championJson = json.get("data");
+        //Resetting the table if new maps have been added or if table is not initialized.
+        boolean originalStateIsNotValid = championRepository.count() != championJson.size();
+        if (originalStateIsNotValid) {
+            // Iteration over json nodes
+            HashMap<String, Champion> result = new HashMap<>();
+            Iterator<String> championIterator = championJson.fieldNames();
+            while (championIterator.hasNext()){
+                String name = championIterator.next();
+                ObjectNode championNode = (ObjectNode)championJson.get(name);
+                //Removing useless fields
+                for (String field : remove){
+                    championNode.remove(field);
+                }
+                //Conversion to Champion type
+                Champion champion = new ObjectMapper().treeToValue(championNode, Champion.class);
+                result.put(name, champion);
+            }
+            //Saving all the champions in the repository
+            for (String championName : result.keySet()) {
+                championRepository.save(result.get(championName));
+            }
+            System.out.println("Champion table successfully initialized.");
+        } else {
+            System.out.println("Champion table already initialized.");
+        }
+        return originalStateIsNotValid;
+    }
+
+    @PostConstruct
+    public boolean initializeMaps() throws IOException {
+        //Getting raw json
+        JsonNode mapArrayJson = new ObjectMapper().readTree(new URL("https://static.developer.riotgames.com/docs/lol/maps.json"));
+        //Resetting the table if new maps have been added or if table is not initialized.
+        boolean originalStateIsNotValid = mapRepository.count() != mapArrayJson.size();
+        if (originalStateIsNotValid) {
+            //Iterate over array.
+            for (JsonNode mapJson : mapArrayJson) {
+                //Mapping to LOLMap
+                LOLMap map = new ObjectMapper().treeToValue(mapJson, LOLMap.class);
+                //Saving to repository
+                mapRepository.save(map);
+            }
+            System.out.println("Map table successfully initialized.");
+        } else {
+            System.out.println("Map table already initialized.");
+        }
+        return originalStateIsNotValid;
+    }
+
+    @PostConstruct
+    public boolean initializeQueues() throws IOException {
+        //Getting raw json
+        JsonNode queueArrayJson = new ObjectMapper().readTree(new URL("https://static.developer.riotgames.com/docs/lol/queues.json"));
+        //Resetting the table if new queues have been added or if table is not initialized.
+        boolean originalStateIsNotValid = queueRepository.count() != queueArrayJson.size();
+        if (originalStateIsNotValid) {
+            //Iterate over array.
+            for (JsonNode queueJson : queueArrayJson) {
+                //Removing unnecessary field.
+                ObjectNode queueObjectNode = (ObjectNode) queueJson;
+                queueObjectNode.remove("notes");
+                //Mapping to LOLQueue.
+                LOLQueue queue = new ObjectMapper().treeToValue(queueObjectNode, LOLQueue.class);
+                //Saving to repository
+                queueRepository.save(queue);
+            }
+            System.out.println("Queue table successfully initialized.");
+        } else {
+            System.out.println("Queue table already initialized.");
+        }
+        return originalStateIsNotValid;
     }
 }

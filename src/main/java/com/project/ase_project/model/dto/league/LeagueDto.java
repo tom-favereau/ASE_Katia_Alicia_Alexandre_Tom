@@ -1,10 +1,7 @@
 package com.project.ase_project.model.dto.league;
 
 import com.project.ase_project.model.clean.league.League;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 /**
  * Represents a LeagueDto object from the Riot API (<a href="https://developer.riotgames.com/apis#league-v4/GET_getLeagueEntriesForSummoner">...</a>)
@@ -12,6 +9,9 @@ import lombok.ToString;
  */
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Getter
 @Setter
 @ToString
@@ -32,17 +32,17 @@ public class LeagueDto {
     private boolean hotStreak;
 
     // TO LEAGUE
-    public static League toLeague(LeagueDto leagueDto) {
+    public League toLeague() {
         League league = new League();
-        league.setLeagueId(leagueDto.getLeagueId());
-        league.setSummonerId(leagueDto.getSummonerId());
-        league.setSummonerName(leagueDto.getSummonerName());
-        league.setQueueType(leagueDto.getQueueType());
-        league.setTier(leagueDto.getTier());
-        league.setRank(leagueDto.getRank());
-        league.setLeaguePoints(leagueDto.getLeaguePoints());
-        league.setWins(leagueDto.getWins());
-        league.setLosses(leagueDto.getLosses());
+        league.setLeagueId(this.getLeagueId());
+        league.setSummonerId(this.getSummonerId());
+        league.setSummonerName(this.getSummonerName());
+        league.setQueueType(this.getQueueType());
+        league.setTier(this.getTier());
+        league.setRank(this.getRank());
+        league.setLeaguePoints(this.getLeaguePoints());
+        league.setWins(this.getWins());
+        league.setLosses(this.getLosses());
         return league;
     }
 }
