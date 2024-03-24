@@ -2,44 +2,27 @@ package com.project.ase_project.model.clean.summoner;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import lombok.*;
 
 @Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Getter
+@Setter
+@ToString
 public class Summoner {
     private String name;
     private int profileIconId;
     private long summonerLevel;
+    private float average;
+    private int cardinal;
+    private String puuid;
     @Id
     private String id;
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public int getProfileIconId() {
-        return profileIconId;
-    }
-
-    public void setProfileIconId(int profileIconId) {
-        this.profileIconId = profileIconId;
-    }
-
-    public long getSummonerLevel() {
-        return summonerLevel;
-    }
-
-    public void setSummonerLevel(long summonerLevel) {
-        this.summonerLevel = summonerLevel;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getId() {
-        return id;
+    public String getProfileIconAddress() {
+        return "https://ddragon.leagueoflegends.com/cdn/14.5.1/img/profileicon/" + this.profileIconId + ".png";
     }
 }
