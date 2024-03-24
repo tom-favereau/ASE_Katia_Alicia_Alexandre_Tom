@@ -1,9 +1,17 @@
-package com.project.ase_project.model.champion;
+package com.project.ase_project.model.ddragon.champion;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Embeddable;
+import lombok.*;
 
 @Embeddable
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Getter
+@Setter
+@ToString
 public class Image{
     @JsonProperty("full")
     private String fullImage;
@@ -19,6 +27,4 @@ public class Image{
     private int w;
     @JsonProperty
     private int h;
-
-    public Image(){}
 }

@@ -7,11 +7,15 @@ import com.project.ase_project.model.clean.summary.Summary;
 import com.project.ase_project.model.clean.summoner.Summoner;
 import com.project.ase_project.service.RiotApiService;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
@@ -22,7 +26,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(AseProjectApplication.class)
+@ExtendWith(SpringExtension.class)
+@SpringBootTest(
+        webEnvironment = SpringBootTest.WebEnvironment.MOCK,
+        classes = AseProjectApplication.class)
+//@WebMvcTest(AseProjectApplication.class)
+@AutoConfigureMockMvc
 class AseProjectApplicationTests {
     @Autowired
     MockMvc mockMvc;
@@ -34,6 +43,8 @@ class AseProjectApplicationTests {
             "Belugafurtif",
             456,
             123,
+            0,
+            0,
             "F4btU20wCQOmkMlWn4QJm33f3jH-B5Nj-uPfNnyuLED3PT0DpQ_LLcB_IQ"
     );
     League league1 = new League(
@@ -76,7 +87,8 @@ class AseProjectApplicationTests {
                 .andExpect(jsonPath("$.rankFlex").value("DIAMOND I 10 LP 50W / 50L"))
                 .andExpect(jsonPath("$.rankSolo").value("GOLD III 58 LP 126W / 78L"))
                 .andExpect(jsonPath("$.region").value("EUW1"))
-                .andExpect(jsonPath("$.grade").value(0));
+                .andExpect(jsonPath("$.average").value(0))
+                .andExpect(jsonPath("$.cardinal").value(0)) ;
     }
 
     @Test
