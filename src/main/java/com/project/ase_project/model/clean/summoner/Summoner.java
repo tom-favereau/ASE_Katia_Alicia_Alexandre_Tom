@@ -16,6 +16,8 @@ public class Summoner {
     private String name;
     private int profileIconId;
     private long summonerLevel;
+    private float average;
+    private int cardinal;
     @Id
     private String id;
 

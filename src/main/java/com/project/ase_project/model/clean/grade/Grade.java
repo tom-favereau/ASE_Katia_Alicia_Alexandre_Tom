@@ -16,6 +16,6 @@ public class Grade {
     @Id
     private String id;
     private String summonerName;
-    private int average;
+    private float average;
     private int cardinal;
 }

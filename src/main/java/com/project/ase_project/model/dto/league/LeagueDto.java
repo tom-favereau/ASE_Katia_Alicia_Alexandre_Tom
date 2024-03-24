@@ -1,10 +1,7 @@
 package com.project.ase_project.model.dto.league;
 
 import com.project.ase_project.model.clean.league.League;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 /**
  * Represents a LeagueDto object from the Riot API (<a href="https://developer.riotgames.com/apis#league-v4/GET_getLeagueEntriesForSummoner">...</a>)
@@ -12,6 +9,9 @@ import lombok.ToString;
  */
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Getter
 @Setter
 @ToString

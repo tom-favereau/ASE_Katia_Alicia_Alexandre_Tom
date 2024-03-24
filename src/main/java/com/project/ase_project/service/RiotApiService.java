@@ -71,7 +71,16 @@ public class RiotApiService {
         try {
             SummonerDto summonerDto = restTemplate.getForObject(apiUrl, SummonerDto.class);
             if (summonerDto != null) {
-                return summonerDto.toSummoner();
+                Summoner summoner = summonerDto.toSummoner();
+                Grade grade = gradeRepository.findById(summoner.getId()).orElse(null);
+                if (grade == null) {
+                    summoner.setAverage(0);
+                    summoner.setCardinal(0);
+                } else {
+                    summoner.setAverage(grade.getAverage());
+                    summoner.setCardinal(grade.getCardinal());
+                }
+                return summoner;
             }
             else {
                 System.out.println("Summoner not found");
@@ -216,18 +225,12 @@ public class RiotApiService {
             grade = new Grade(summoner.getId(), summoner.getName(), note, 1);
             gradeRepository.save(grade);
         } else {
-            int average = grade.getAverage();
+            float average = grade.getAverage();
             int cardinal = grade.getCardinal();
             grade.setAverage((average * cardinal + note) / (cardinal + 1));
             grade.setCardinal(cardinal + 1);
             gradeRepository.save(grade);
         }
-    }
-
-    public Grade getGrade(String summonerName) {
-        Summoner summoner = getSummonerByName(summonerName);
-        return Objects.requireNonNullElseGet(gradeRepository.findById(summoner.getId()).orElse(null),
-                () -> new Grade(summoner.getId(), summoner.getName(), 0, 0));
     }
 
     @PostConstruct

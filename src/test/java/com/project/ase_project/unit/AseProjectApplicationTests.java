@@ -34,6 +34,8 @@ class AseProjectApplicationTests {
             "Belugafurtif",
             456,
             123,
+            0,
+            0,
             "F4btU20wCQOmkMlWn4QJm33f3jH-B5Nj-uPfNnyuLED3PT0DpQ_LLcB_IQ"
     );
     League league1 = new League(
@@ -76,7 +78,8 @@ class AseProjectApplicationTests {
                 .andExpect(jsonPath("$.rankFlex").value("DIAMOND I 10 LP 50W / 50L"))
                 .andExpect(jsonPath("$.rankSolo").value("GOLD III 58 LP 126W / 78L"))
                 .andExpect(jsonPath("$.region").value("EUW1"))
-                .andExpect(jsonPath("$.grade").value(0));
+                .andExpect(jsonPath("$.average").value(0))
+                .andExpect(jsonPath("$.cardinal").value(0)) ;
     }
 
     @Test
