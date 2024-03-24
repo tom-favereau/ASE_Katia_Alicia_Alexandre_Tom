@@ -1,12 +1,26 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
-<html>
 <head>
-    <meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\">
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
     <title>Champion</title>
-    </head>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amarante&family=Donegal+One&family=Goblin+One&family=Oxanium:wght@200..800&display=swap" rel="stylesheet">
+
+    <link th:href="@{/styles/main.css}" rel="stylesheet" />
+    <link th:href="@{/styles/summoner.css}" rel="stylesheet" />
+</head>
 <body>
-    <h1>Not found</h1>
-    <br/>
+<div id="header">
+    <img id="riot-logo" src="https://upload.wikimedia.org/wikipedia/fr/thumb/5/5b/Riot_Games_2022.svg/2560px-Riot_Games_2022.svg.png"/>
+    <p>Riot summoners</p>
+</div>
+<div class="summoner-name">
+    <div id="div-back-button">
+        <button id="back-button" onclick="window.location.href='http://localhost:8080';">Back</button>
+    </div>
+    <h1>"<span th:text="${summonerName}"></span>" not found!</h1>
+</div>
 </body>
 </html>

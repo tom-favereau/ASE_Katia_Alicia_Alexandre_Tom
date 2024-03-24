@@ -53,18 +53,6 @@ public class AseProjectApplication {
         return new ResponseEntity<>(summoner, HttpStatus.OK);
     }
 
-    @GetMapping("/summoner_page/{summonerName}")
-    public String getSummonerData(@PathVariable String summonerName, Model model) {
-        try {
-            Summoner summoner = riotApiService.getSummonerByName(summonerName);
-            model.addAttribute("summoner", summoner);
-            return "summoner";
-        }
-        catch (Exception e) {
-            return "not_found";
-        }
-    }
-
     // Exemple : http://localhost:8080/riot/rank/F4btU20wCQOmkMlWn4QJm33f3jH-B5Nj-uPfNnyuLED3PT0DpQ_LLcB_IQ
     @GetMapping("/rank/")
     public ResponseEntity<ArrayList<League>> getEmptyRankData() {

@@ -1,0 +1,41 @@
+.summoner-name {
+    text-align: center;
+    padding-top: 50px;
+    padding-bottom: 50px;
+    font-family: "Goblin One", serif;
+    font-weight: 400;
+    font-size: 1.2rem;
+    font-style: normal;
+    color: white;
+}
+
+#profile-image {
+    position: absolute;
+    right: 5%;
+    box-shadow: 0 0 100px 0px #ffffffaa;
+    height: 300px;
+    width: auto;
+}
+
+#info {
+    position: absolute;
+    left: 15%;
+    font-family: "Oxanium", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: <weight>;
+    font-style: normal;
+    font-size: 2rem;
+    color: white;
+}
+
+#rating {
+    position: absolute;
+    right: 5%;
+    bottom: 10%;
+}
+
+.star {
+    width: 60px;
+    height: auto;
+    padding: 5px;
+}

@@ -4,51 +4,38 @@
     <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
     <title>Champion</title>
 
-    <style>
-        * {
-           margin: 0px;
-           padding: 0px;
-        }
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amarante&family=Donegal+One&family=Goblin+One&family=Oxanium:wght@200..800&display=swap" rel="stylesheet">
 
-        #header {
-            background-color: black;
-            color: white;
-            height: 50px;
-            display: flex;
-	        flex-direction: row;
-	        align-items: center;
-        }
-
-        #riot-logo {
-            width: 100px;
-            height: auto;
-            padding-left: 20px;
-            padding-right: 50px;
-        }
-
-        #summoner-name {
-          text-align: center;
-          padding-top: 50px;
-          padding-bottom: 30px;
-        }
-
-        #profile-image {
-            position: absolute;
-            right: 5%;
-        }
-    </style>
+    <link th:href="@{/styles/main.css}" rel="stylesheet" />
+    <link th:href="@{/styles/summoner.css}" rel="stylesheet" />
 </head>
  <body>
     <div id="header">
         <img id="riot-logo" src="https://upload.wikimedia.org/wikipedia/fr/thumb/5/5b/Riot_Games_2022.svg/2560px-Riot_Games_2022.svg.png"/>
         <p>Riot summoners</p>
     </div>
-    <div id="summoner-name">
+    <div class="summoner-name">
+        <div id="div-back-button">
+            <button id="back-button" onclick="window.location.href='http://localhost:8080';">Back</button>
+        </div>
         <h1 th:text="${summoner.getName()}"> </h1>
     </div>
     <div>
         <img id="profile-image" th:src="${summoner.getProfileIconAddress()}"/>
-        <p> Level: <span th:text="${summoner.getSummonerLevel()}"></span></p>
+        <div id="info">
+            <p> Level: <span th:text="${summoner.getSummonerLevel()}"></span></p>
+        </div>
+        <div id="rating">
+            <img id="star1" class="star" src="https://upload.wikimedia.org/wikipedia/commons/1/1b/Yellow_Star_with_rounded_edges.svg" onclick="add_rating(1)"/>
+            <img id="star2" class="star" src="https://upload.wikimedia.org/wikipedia/commons/1/1b/Yellow_Star_with_rounded_edges.svg" onclick="add_rating(2)"/>
+            <img id="star3" class="star" src="https://upload.wikimedia.org/wikipedia/commons/1/1b/Yellow_Star_with_rounded_edges.svg" onclick="add_rating(3)"/>
+            <img id="star4" class="star" src="https://upload.wikimedia.org/wikipedia/commons/1/1b/Yellow_Star_with_rounded_edges.svg" onclick="add_rating(4)"/>
+            <img id="star5" class="star" src="https://upload.wikimedia.org/wikipedia/commons/1/1b/Yellow_Star_with_rounded_edges.svg" onclick="add_rating(5)"/>
+        </div>
     </div>
+
+    <script type="text/javascript" th:src="@{/js/summoner.js}"></script>
 </body>
 </html>
