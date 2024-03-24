@@ -55,6 +55,7 @@ public class RiotApiServiceTests {
             156,
             0,
             0,
+            "krLjP_t5lT5gcJqVMXPP7QWzTnUJa2gvskYSngZz8Oyr8o4-6_T-4-gjgteZLe8Dhz3md-OAcYVUdw",
             "F4btU20wCQOmkMlWn4QJm33f3jH-B5Nj-uPfNnyuLED3PT0DpQ_LLcB_IQ"
     );
     LeagueDto leagueDto1 = new LeagueDto(
