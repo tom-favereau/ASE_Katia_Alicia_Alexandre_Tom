@@ -275,7 +275,8 @@ public class RiotApiService {
         JsonNode json = new ObjectMapper().readTree(new URL("https://ddragon.leagueoflegends.com/cdn/14.5.1/data/en_US/champion.json"));
         JsonNode championJson = json.get("data");
         //Resetting the table if new maps have been added or if table is not initialized.
-        if (championRepository.count() != championJson.size()) {
+        boolean originalStateIsNotValid = championRepository.count() != championJson.size();
+        if (originalStateIsNotValid) {
             // Iteration over json nodes
             HashMap<String, Champion> result = new HashMap<>();
             Iterator<String> championIterator = championJson.fieldNames();
@@ -298,7 +299,7 @@ public class RiotApiService {
         } else {
             System.out.println("Champion table already initialized.");
         }
-        return championRepository.count() != championJson.size();
+        return originalStateIsNotValid;
     }
 
     @PostConstruct
@@ -306,7 +307,8 @@ public class RiotApiService {
         //Getting raw json
         JsonNode mapArrayJson = new ObjectMapper().readTree(new URL("https://static.developer.riotgames.com/docs/lol/maps.json"));
         //Resetting the table if new maps have been added or if table is not initialized.
-        if (mapRepository.count() != mapArrayJson.size()) {
+        boolean originalStateIsNotValid = mapRepository.count() != mapArrayJson.size();
+        if (originalStateIsNotValid) {
             //Iterate over array.
             for (JsonNode mapJson : mapArrayJson) {
                 //Mapping to LOLMap
@@ -318,7 +320,7 @@ public class RiotApiService {
         } else {
             System.out.println("Map table already initialized.");
         }
-        return mapRepository.count() != mapArrayJson.size();
+        return originalStateIsNotValid;
     }
 
     @PostConstruct
@@ -326,7 +328,8 @@ public class RiotApiService {
         //Getting raw json
         JsonNode queueArrayJson = new ObjectMapper().readTree(new URL("https://static.developer.riotgames.com/docs/lol/queues.json"));
         //Resetting the table if new queues have been added or if table is not initialized.
-        if (queueRepository.count() != queueArrayJson.size()) {
+        boolean originalStateIsNotValid = queueRepository.count() != queueArrayJson.size();
+        if (originalStateIsNotValid) {
             //Iterate over array.
             for (JsonNode queueJson : queueArrayJson) {
                 //Removing unnecessary field.
@@ -341,6 +344,6 @@ public class RiotApiService {
         } else {
             System.out.println("Queue table already initialized.");
         }
-        return queueRepository.count() != queueArrayJson.size();
+        return originalStateIsNotValid;
     }
 }

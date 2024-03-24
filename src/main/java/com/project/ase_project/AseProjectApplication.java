@@ -9,13 +9,25 @@ import com.project.ase_project.service.RiotApiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+
+import com.project.ase_project.model.clean.match.Match;
+import com.project.ase_project.model.clean.league.League;
+import com.project.ase_project.model.clean.summoner.Summoner;
+import com.project.ase_project.service.RiotApiService;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.RestTemplate;
+
+import java.io.IOException;
 import java.util.ArrayList;
+
 
 @Controller
 @RequestMapping("/riot")
