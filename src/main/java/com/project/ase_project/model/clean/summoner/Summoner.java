@@ -18,6 +18,7 @@ public class Summoner {
     private long summonerLevel;
     private float average;
     private int cardinal;
+    private String puuid;
     @Id
     private String id;
 

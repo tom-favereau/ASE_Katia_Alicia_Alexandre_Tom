@@ -145,7 +145,7 @@ public class AseProjectApplication {
         } else {
             try {
                 int note = Integer.parseInt(grade);
-                if (note > 5 || note < 0) {
+                if (note >= 5 || note <= 0) {
                     throw new IllegalArgumentException("Erreur 400 : Veuillez préciser une note entre 0 et 5.");
                 }
                 riotApiService.postGrade(summonerName, note);
