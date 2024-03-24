@@ -18,7 +18,10 @@ public class Summary {
         this.profileIconId = summoner.getProfileIconId();
         this.average = summoner.getAverage();
         this.cardinal = summoner.getCardinal();
-        if (leagues.size() != 2) {
+        if (leagues.isEmpty()) {
+            this.rankFlex = "UNRANKED";
+            this.rankSolo = "UNRANKED";
+        } else if (leagues.size() != 2) {
             throw new RuntimeException("Invalid number of leagues");
         }
         else if (!leagues.get(0).getQueueType().equals("RANKED_FLEX_SR") || !leagues.get(1).getQueueType().equals("RANKED_SOLO_5x5")) {
@@ -49,4 +52,8 @@ public class Summary {
     private String region;
     private float average;
     private int cardinal;
+
+    public String getProfileIconAddress() {
+        return "https://ddragon.leagueoflegends.com/cdn/14.5.1/img/profileicon/" + this.profileIconId + ".png";
+    }
 }

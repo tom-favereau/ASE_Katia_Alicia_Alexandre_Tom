@@ -39,3 +39,11 @@
     height: auto;
     padding: 5px;
 }
+
+#info  p {
+    color: red;
+}
+
+#info > p > span {
+    color: white;
+}

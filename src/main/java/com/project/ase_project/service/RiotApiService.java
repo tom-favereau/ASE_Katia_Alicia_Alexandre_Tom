@@ -170,16 +170,20 @@ public class RiotApiService {
         String apiUrl = "https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/" + encryptedSummonerId + "?api_key="+apiKey;
         try {
             LeagueDto[] leaguesDto = restTemplate.getForObject(apiUrl, LeagueDto[].class);
-            if (leaguesDto != null && leaguesDto.length > 0) {
+            assert leaguesDto != null;
+            if (leaguesDto.length > 0) {
                 ArrayList<League> leagues = new ArrayList<>();
                 for (LeagueDto leagueDto : leaguesDto) {
                     League league = leagueDto.toLeague();
                     leagues.add(league);
                 }
+                if (leagues.size() == 1 && leagues.get(0).getQueueType().equals("RANKED_FLEX_SR")) {
+                    leagues.add(new League("", encryptedSummonerId, "", "RANKED_SOLO_5x5", "UNRANKED", "", 0, 0, 0));
+                }
                 return leagues;
             }
             else {
-                throw new LeaguesNotFoundException("Erreur 404 : Le joueur avec l'identifiant " + encryptedSummonerId + " n'a pas de classement.");
+                return new ArrayList<>();
             }
         } catch (HttpClientErrorException.BadRequest e) {
             throw new BadRequestException("Erreur 400 : Bad request");

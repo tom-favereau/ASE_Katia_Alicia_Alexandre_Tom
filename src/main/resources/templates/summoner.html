@@ -20,12 +20,15 @@
         <div id="div-back-button">
             <button id="back-button" onclick="window.location.href='http://localhost:8080';">Back</button>
         </div>
-        <h1 th:text="${summoner.getName()}"> </h1>
+        <h1 th:text="${summoner.getSummonerName()}"> </h1>
     </div>
     <div>
         <img id="profile-image" th:src="${summoner.getProfileIconAddress()}"/>
         <div id="info">
             <p> Level: <span th:text="${summoner.getSummonerLevel()}"></span></p>
+            <p> Rank Flex: <span th:text="${summoner.getRankFlex()}"></span></p>
+            <p> Rank Solo: <span th:text="${summoner.getRankSolo()}"></span></p>
+            <p> Region: <span th:text="${summoner.getRegion()}"></span></p>
         </div>
         <div id="rating">
             <img id="star1" class="star" src="https://upload.wikimedia.org/wikipedia/commons/1/1b/Yellow_Star_with_rounded_edges.svg" onclick="add_rating(1)"/>
