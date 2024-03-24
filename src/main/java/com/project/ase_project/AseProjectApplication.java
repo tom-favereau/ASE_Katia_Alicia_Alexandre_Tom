@@ -1,5 +1,6 @@
 package com.project.ase_project;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -82,6 +83,8 @@ public class AseProjectApplication {
         throw new IllegalArgumentException("Erreur 400 : Veuillez préciser un pseudo de joueur.");
     }
 
+
+
     @GetMapping("/summary/{summonerName}")
     public ResponseEntity<Summary> getSummary(@PathVariable String summonerName) {
         if (summonerName == null) {
@@ -112,6 +115,14 @@ public class AseProjectApplication {
                 throw new GatewayTimeout(e.getMessage());
             }
         }
+    }
+
+
+    @GetMapping("/summoners/{summonerName}/lastMatches")
+    public ResponseEntity<ArrayList<String>> getLastMatches(@PathVariable String summonerName) throws JsonProcessingException{
+        String puuid = riotApiService.getPuuid(summonerName);
+        ArrayList<String> matches = riotApiService.getMatches(puuid, 0, 0, 0, "", 0, 20);
+        return new ResponseEntity<>(matches, HttpStatus.OK);
     }
 
     @ExceptionHandler(BadRequestException.class)

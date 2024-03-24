@@ -6,6 +6,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -63,6 +64,8 @@ public class RiotApiService {
         this.queueRepository = queueRepository;
     }
 
+
+
     public Summoner getSummonerByName(String summonerName) {
         String apiUrl = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerName + "?api_key="+apiKey;
         try {
@@ -107,6 +110,105 @@ public class RiotApiService {
             throw new GatewayTimeout("Erreur 504 : Gateway timeout");
         }
     }
+
+    public String getPuuid(String summonerName){
+        String apiUrl = "https://europe.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerName + "?api_key="+apiKey;
+        try {
+            SummonerDto summoner = restTemplate.getForObject(apiUrl, SummonerDto.class);
+            return summoner.getPuuid();
+        }
+        catch (HttpClientErrorException.BadRequest e) {
+            throw new BadRequestException("Erreur 400 : Bad request getPuuid");
+        }
+        catch (HttpClientErrorException.Unauthorized e) {
+            throw new BadRequestException("Erreur 401 : Unauthorized getPuuid");
+        }
+        catch (HttpClientErrorException.Forbidden e) {
+            throw new BadRequestException("Erreur 403 : Forbidden");
+        }
+        catch (HttpClientErrorException.NotFound e) {
+            throw new MatchNotFoundException("Erreur 404 : Le summonerName" + summonerName + " n'existe pas.");
+        }
+        catch (HttpClientErrorException.MethodNotAllowed e) {
+            throw new MethodNotAllowed("Erreur 405 : Method not allowed");
+        }
+        catch (HttpClientErrorException.UnsupportedMediaType e) {
+            throw new UnsupportedMediaType("Erreur 415 : Unsupported media type");
+        }
+        catch (HttpClientErrorException.TooManyRequests e) {
+            throw new RateLimitExceededException("Erreur 429 : Too many requests");
+        }
+        catch (HttpServerErrorException.InternalServerError e) {
+            throw new InternalServerError("Erreur 500 : Internal server error");
+        }
+        catch (HttpServerErrorException.BadGateway e) {
+            throw new BadGateway("Erreur 502 : Bad gateway");
+        }
+        catch (HttpServerErrorException.ServiceUnavailable e) {
+            throw new ServiceUnavailable("Erreur 503 : Service unavailable");
+        }
+        catch (HttpServerErrorException.GatewayTimeout e) {
+            throw new GatewayTimeout("Erreur 504 : Gateway timeout");
+        }
+
+    }
+
+    public ArrayList<String> getMatches(String puuid, long startTime, long endTime, int queue, String type, int start, int count) throws JsonProcessingException {
+        String apiUrl = "https://europe.api.riotgames.com/lol/match/v5/matches/by-puuid/" + puuid + "?api_key="+apiKey;
+        try {
+            String[] matches = restTemplate.getForObject(apiUrl, String[].class, count);
+            ArrayList<String> res = new ArrayList<>();
+            int counter = 0;
+            for (String match : matches){
+
+                if (matchRepository.existsById(match)){
+
+                } else{
+                    getMatchById(match);
+                }
+                res.add(match);
+                if (counter++ > count){
+                    break;
+                }
+            }
+            return res;
+        }
+        catch (HttpClientErrorException.BadRequest e) {
+            throw new BadRequestException("Erreur 400 : Bad request");
+        }
+        catch (HttpClientErrorException.Unauthorized e) {
+            throw new BadRequestException("Erreur 401 : Unauthorized");
+        }
+        catch (HttpClientErrorException.Forbidden e) {
+            throw new BadRequestException("Erreur 403 : Forbidden");
+        }
+        catch (HttpClientErrorException.NotFound e) {
+            throw new MatchNotFoundException("Erreur 404 : Le puuid " + puuid + " n'existe pas.");
+        }
+        catch (HttpClientErrorException.MethodNotAllowed e) {
+            throw new MethodNotAllowed("Erreur 405 : Method not allowed");
+        }
+        catch (HttpClientErrorException.UnsupportedMediaType e) {
+            throw new UnsupportedMediaType("Erreur 415 : Unsupported media type");
+        }
+        catch (HttpClientErrorException.TooManyRequests e) {
+            throw new RateLimitExceededException("Erreur 429 : Too many requests");
+        }
+        catch (HttpServerErrorException.InternalServerError e) {
+            throw new InternalServerError("Erreur 500 : Internal server error");
+        }
+        catch (HttpServerErrorException.BadGateway e) {
+            throw new BadGateway("Erreur 502 : Bad gateway");
+        }
+        catch (HttpServerErrorException.ServiceUnavailable e) {
+            throw new ServiceUnavailable("Erreur 503 : Service unavailable");
+        }
+        catch (HttpServerErrorException.GatewayTimeout e) {
+            throw new GatewayTimeout("Erreur 504 : Gateway timeout");
+        }
+    }
+
+
 
     public Match getMatchById(String matchId) {
         String apiUrl = "https://europe.api.riotgames.com/lol/match/v5/matches/" + matchId + "?api_key="+apiKey;
@@ -316,5 +418,14 @@ public class RiotApiService {
         catch (GatewayTimeout e) {
             throw new GatewayTimeout(e.getMessage());
         }
+    }
+
+    private float winrate(String puuid) throws JsonProcessingException{
+        ArrayList<String> matches = getMatches(puuid, 0, 0, 0, "", 0, 20);
+        for (String matchName : matches){
+            Match match = getMatchById(matchName);
+        }
+        
+        return 0;
     }
 }

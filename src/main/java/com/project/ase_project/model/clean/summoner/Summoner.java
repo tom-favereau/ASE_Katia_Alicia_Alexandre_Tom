@@ -18,4 +18,7 @@ public class Summoner {
     private long summonerLevel;
     @Id
     private String id;
+    private String puuid;
+
+
 }
