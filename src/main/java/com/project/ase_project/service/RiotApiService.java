@@ -425,7 +425,7 @@ public class RiotApiService {
         for (String matchName : matches){
             Match match = getMatchById(matchName);
         }
-        
+
         return 0;
     }
 }
