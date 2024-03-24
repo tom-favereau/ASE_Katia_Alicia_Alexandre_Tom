@@ -1,25 +1,21 @@
 package com.project.ase_project;
 
-import java.util.ArrayList;
-
 import com.project.ase_project.exception.*;
-
+import com.project.ase_project.model.clean.league.League;
+import com.project.ase_project.model.clean.match.Match;
+import com.project.ase_project.model.clean.summary.Summary;
+import com.project.ase_project.model.clean.summoner.Summoner;
+import com.project.ase_project.service.RiotApiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.stereotype.Controller;
 
-import com.project.ase_project.model.clean.match.Match;
-import com.project.ase_project.model.clean.league.League;
-import com.project.ase_project.model.clean.summoner.Summoner;
-import com.project.ase_project.model.clean.summary.Summary;
-import com.project.ase_project.model.clean.grade.Grade;
-
-import com.project.ase_project.service.RiotApiService;
+import java.util.ArrayList;
 
 @Controller
 @RequestMapping("/riot")
@@ -120,9 +116,14 @@ public class AseProjectApplication {
     }
 
     // Exemple : http://localhost:8080/riot/grade/Belugafurtif/5
-    @GetMapping("/grade/")
-    public ResponseEntity<String> getEmptyGrade() {
+    @PostMapping("/grade/")
+    public ResponseEntity<String> postGradeNoSummoner() {
         throw new IllegalArgumentException("Erreur 400 : Veuillez préciser un pseudo de joueur.");
+    }
+
+    @PostMapping("/grade/{summonerName}")
+    public ResponseEntity<String> postGradeNoGrade(@PathVariable String summonerName) {
+        throw new IllegalArgumentException("Erreur 400 : Veuillez préciser une note entre 0 et 5 pour le joueur " + summonerName + ".");
     }
 
     @PostMapping("/grade/{summonerName}/{grade}")

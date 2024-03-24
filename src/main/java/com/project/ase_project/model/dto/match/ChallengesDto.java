@@ -62,6 +62,7 @@ public class ChallengesDto {
     private int initialCrabCount;
     private double jungleCsBefore10Minutes;
     private int junglerTakedownsNearDamagedEpicMonster;
+    @JsonProperty("kTurretsDestroyedBeforePlatesFall")
     private int kTurretsDestroyedBeforePlatesFall;
     private double kda;
     private int killAfterHiddenWithAlly;

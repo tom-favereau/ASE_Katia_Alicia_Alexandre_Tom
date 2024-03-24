@@ -21,11 +21,11 @@ import lombok.Getter;
 
 import com.project.ase_project.repository.*;
 
+import com.project.ase_project.exception.*;
+
 import com.project.ase_project.model.ddragon.champion.Champion;
 import com.project.ase_project.model.ddragon.maps.LOLMap;
 import com.project.ase_project.model.ddragon.queue.LOLQueue;
-
-import com.project.ase_project.exception.*;
 
 import com.project.ase_project.model.dto.summoner.SummonerDto;
 import com.project.ase_project.model.dto.match.MatchDto;
@@ -36,8 +36,6 @@ import com.project.ase_project.model.clean.summary.Summary;
 import com.project.ase_project.model.clean.league.League;
 import com.project.ase_project.model.clean.match.Match;
 import com.project.ase_project.model.clean.summoner.Summoner;
-
-import com.project.ase_project.repository.MatchRepository;
 
 @Service
 public class RiotApiService {
@@ -83,7 +81,7 @@ public class RiotApiService {
                 return summoner;
             }
             else {
-                System.out.println("Summoner not found");
+                //System.out.println("Summoner not found");
                 throw new SummonerNotFoundException("Erreur 404 : Le joueur " + summonerName + " n'existe pas.");
             }
         } catch (HttpClientErrorException.BadRequest e) {
@@ -218,6 +216,43 @@ public class RiotApiService {
         }
     }
 
+    public Summary getSummary(String summonerName) {
+        try {
+            Summoner summoner = getSummonerByName(summonerName);
+            ArrayList<League> leagues = getRankData(summoner.getId());
+            return new Summary(summoner, leagues);
+        } catch (BadRequestException e) {
+            throw new BadRequestException(e.getMessage());
+        }
+        catch (SummonerNotFoundException e) {
+            throw new SummonerNotFoundException(e.getMessage());
+        }
+        catch (LeaguesNotFoundException e) {
+            throw new LeaguesNotFoundException(e.getMessage());
+        }
+        catch (MethodNotAllowed e) {
+            throw new MethodNotAllowed(e.getMessage());
+        }
+        catch (UnsupportedMediaType e) {
+            throw new UnsupportedMediaType(e.getMessage());
+        }
+        catch (RateLimitExceededException e) {
+            throw new RateLimitExceededException(e.getMessage());
+        }
+        catch (InternalServerError e) {
+            throw new InternalServerError(e.getMessage());
+        }
+        catch (BadGateway e) {
+            throw new BadGateway(e.getMessage());
+        }
+        catch (ServiceUnavailable e) {
+            throw new ServiceUnavailable(e.getMessage());
+        }
+        catch (GatewayTimeout e) {
+            throw new GatewayTimeout(e.getMessage());
+        }
+    }
+
     public void postGrade(String summonerName, int note) {
         Summoner summoner = getSummonerByName(summonerName);
         Grade grade = gradeRepository.findById(summoner.getId()).orElse(null);
@@ -307,42 +342,5 @@ public class RiotApiService {
             System.out.println("Queue table already initialized.");
         }
         return queueRepository.count() != queueArrayJson.size();
-    }
-
-    public Summary getSummary(String summonerName) {
-        try {
-            Summoner summoner = getSummonerByName(summonerName);
-            ArrayList<League> leagues = getRankData(summoner.getId());
-            return new Summary(summoner, leagues);
-        } catch (BadRequestException e) {
-            throw new BadRequestException(e.getMessage());
-        }
-        catch (SummonerNotFoundException e) {
-            throw new SummonerNotFoundException(e.getMessage());
-        }
-        catch (LeaguesNotFoundException e) {
-            throw new LeaguesNotFoundException(e.getMessage());
-        }
-        catch (MethodNotAllowed e) {
-            throw new MethodNotAllowed(e.getMessage());
-        }
-        catch (UnsupportedMediaType e) {
-            throw new UnsupportedMediaType(e.getMessage());
-        }
-        catch (RateLimitExceededException e) {
-            throw new RateLimitExceededException(e.getMessage());
-        }
-        catch (InternalServerError e) {
-            throw new InternalServerError(e.getMessage());
-        }
-        catch (BadGateway e) {
-            throw new BadGateway(e.getMessage());
-        }
-        catch (ServiceUnavailable e) {
-            throw new ServiceUnavailable(e.getMessage());
-        }
-        catch (GatewayTimeout e) {
-            throw new GatewayTimeout(e.getMessage());
-        }
     }
 }
