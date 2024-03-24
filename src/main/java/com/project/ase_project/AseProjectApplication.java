@@ -29,7 +29,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 
-@Controller
+@RestController
 @RequestMapping("/riot")
 @SpringBootApplication
 public class AseProjectApplication {
