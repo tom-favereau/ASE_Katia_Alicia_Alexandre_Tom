@@ -23,13 +23,6 @@ public class Summary {
             this.rankSolo = "UNRANKED";
         } else if (leagues.size() != 2) {
             throw new RuntimeException("Invalid number of leagues");
-        }
-        else if (!leagues.get(0).getQueueType().equals("RANKED_FLEX_SR") || !leagues.get(1).getQueueType().equals("RANKED_SOLO_5x5")) {
-            throw new RuntimeException("Invalid queue type");
-        } else if (leagues.get(0).getQueueType().equals("RANKED_FLEX_SR") && leagues.get(1).getQueueType().equals("RANKED_FLEX_SR")) {
-            throw new RuntimeException("Invalid queue type");
-        } else if (leagues.get(0).getQueueType().equals("RANKED_SOLO_5x5") && leagues.get(1).getQueueType().equals("RANKED_SOLO_5x5")) {
-            throw new RuntimeException("Invalid queue type");
         } else if (leagues.get(0).getQueueType().equals("RANKED_FLEX_SR") && leagues.get(1).getQueueType().equals("RANKED_SOLO_5x5")) {
             this.rankFlex = leagues.get(0).getTier() + " " + leagues.get(0).getRank() + " " + leagues.get(0).getLeaguePoints() + " LP" + " " + leagues.get(0).getWins() + "W / " + leagues.get(0).getLosses() + "L";
             this.rankSolo = leagues.get(1).getTier() + " " + leagues.get(1).getRank() + " " + leagues.get(1).getLeaguePoints() + " LP" + " " + leagues.get(1).getWins() + "W / " + leagues.get(1).getLosses() + "L";

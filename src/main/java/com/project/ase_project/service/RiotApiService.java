@@ -70,18 +70,17 @@ public class RiotApiService {
             SummonerDto summonerDto = restTemplate.getForObject(apiUrl, SummonerDto.class);
             if (summonerDto != null) {
                 Summoner summoner = summonerDto.toSummoner();
-                Grade grade = gradeRepository.findById(summoner.getId()).orElse(null);
-                if (grade == null) {
+                Optional<Grade> grade = gradeRepository.findById(summoner.getId());
+                if (grade.isEmpty()) {
                     summoner.setAverage(0);
                     summoner.setCardinal(0);
                 } else {
-                    summoner.setAverage(grade.getAverage());
-                    summoner.setCardinal(grade.getCardinal());
+                    summoner.setAverage(grade.get().getAverage());
+                    summoner.setCardinal(grade.get().getCardinal());
                 }
                 return summoner;
             }
             else {
-                //System.out.println("Summoner not found");
                 throw new SummonerNotFoundException("Erreur 404 : Le joueur " + summonerName + " n'existe pas.");
             }
         } catch (HttpClientErrorException.BadRequest e) {
@@ -166,12 +165,13 @@ public class RiotApiService {
         }
     }
 
-    public ArrayList<League> getRankData(String encryptedSummonerId) {
+    public ArrayList<League> getRankById(String encryptedSummonerId) {
         String apiUrl = "https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/" + encryptedSummonerId + "?api_key="+apiKey;
         try {
             LeagueDto[] leaguesDto = restTemplate.getForObject(apiUrl, LeagueDto[].class);
-            assert leaguesDto != null;
-            if (leaguesDto.length > 0) {
+            if (leaguesDto == null) {
+                throw new LeaguesNotFoundException("Erreur 404 : Le joueur avec l'identifiant " + encryptedSummonerId + " n'a pas de classement.");
+            } else if (leaguesDto.length > 0) {
                 ArrayList<League> leagues = new ArrayList<>();
                 for (LeagueDto leagueDto : leaguesDto) {
                     League league = leagueDto.toLeague();
@@ -179,6 +179,8 @@ public class RiotApiService {
                 }
                 if (leagues.size() == 1 && leagues.get(0).getQueueType().equals("RANKED_FLEX_SR")) {
                     leagues.add(new League("", encryptedSummonerId, "", "RANKED_SOLO_5x5", "UNRANKED", "", 0, 0, 0));
+                } else if (leagues.size() == 1 && leagues.get(0).getQueueType().equals("RANKED_SOLO_5x5")) {
+                    leagues.add(new League("", encryptedSummonerId, "", "RANKED_FLEX_SR", "UNRANKED", "", 0, 0, 0));
                 }
                 return leagues;
             }
@@ -220,10 +222,10 @@ public class RiotApiService {
         }
     }
 
-    public Summary getSummary(String summonerName) {
+    public Summary getSummaryByName(String summonerName) {
         try {
             Summoner summoner = getSummonerByName(summonerName);
-            ArrayList<League> leagues = getRankData(summoner.getId());
+            ArrayList<League> leagues = getRankById(summoner.getId());
             return new Summary(summoner, leagues);
         } catch (BadRequestException e) {
             throw new BadRequestException(e.getMessage());
@@ -258,17 +260,44 @@ public class RiotApiService {
     }
 
     public void postGrade(String summonerName, int note) {
-        Summoner summoner = getSummonerByName(summonerName);
-        Grade grade = gradeRepository.findById(summoner.getId()).orElse(null);
-        if (grade == null) {
-            grade = new Grade(summoner.getId(), summoner.getName(), note, 1);
-            gradeRepository.save(grade);
-        } else {
-            float average = grade.getAverage();
-            int cardinal = grade.getCardinal();
-            grade.setAverage((average * cardinal + note) / (cardinal + 1));
-            grade.setCardinal(cardinal + 1);
-            gradeRepository.save(grade);
+        try {
+            Summoner summoner = getSummonerByName(summonerName);
+            Optional<Grade> grade = gradeRepository.findById(summoner.getId());
+            if (grade.isEmpty()) {
+                gradeRepository.save(new Grade(summoner.getId(), summoner.getName(), note, 1));
+            } else {
+                float average = grade.get().getAverage();
+                int cardinal = grade.get().getCardinal();
+                grade.get().setAverage((average * cardinal + note) / (cardinal + 1));
+                grade.get().setCardinal(cardinal + 1);
+                gradeRepository.save(grade.get());
+            }
+        } catch (BadRequestException e) {
+            throw new BadRequestException(e.getMessage());
+        }
+        catch (SummonerNotFoundException e) {
+            throw new SummonerNotFoundException(e.getMessage());
+        }
+        catch (MethodNotAllowed e) {
+            throw new MethodNotAllowed(e.getMessage());
+        }
+        catch (UnsupportedMediaType e) {
+            throw new UnsupportedMediaType(e.getMessage());
+        }
+        catch (RateLimitExceededException e) {
+            throw new RateLimitExceededException(e.getMessage());
+        }
+        catch (InternalServerError e) {
+            throw new InternalServerError(e.getMessage());
+        }
+        catch (BadGateway e) {
+            throw new BadGateway(e.getMessage());
+        }
+        catch (ServiceUnavailable e) {
+            throw new ServiceUnavailable(e.getMessage());
+        }
+        catch (GatewayTimeout e) {
+            throw new GatewayTimeout(e.getMessage());
         }
     }
 
