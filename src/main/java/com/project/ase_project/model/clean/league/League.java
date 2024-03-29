@@ -12,6 +12,7 @@ import lombok.*;
 @Getter
 @Setter
 @ToString
+@EqualsAndHashCode
 public class League {
     @Id
     private String leagueId;

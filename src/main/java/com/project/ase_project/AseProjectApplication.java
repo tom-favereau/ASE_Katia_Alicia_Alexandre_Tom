@@ -12,12 +12,14 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 
 
-@RestController
+@Controller
 @RequestMapping("/riot")
 @SpringBootApplication
 public class AseProjectApplication {
@@ -29,6 +31,12 @@ public class AseProjectApplication {
 
     @Autowired
     private RiotApiService riotApiService;
+
+    /*
+     *******************************************************************************************************************
+     *************************************************** PARTIE API ****************************************************
+     *******************************************************************************************************************
+     */
 
     // Exemple : http://localhost:8080/riot/summoners/Belugafurtif
     @GetMapping("/summoners/")
@@ -42,6 +50,7 @@ public class AseProjectApplication {
     }
     
     @GetMapping("/summoners/{summonerName}")
+    @ResponseBody
     public ResponseEntity<Summoner> getSummonerData(@PathVariable String summonerName) {
         try {
             Summoner summoner = riotApiService.getSummonerByName(summonerName);
@@ -77,6 +86,7 @@ public class AseProjectApplication {
     }
 
     @GetMapping("/rank/{encryptedSummonerId}")
+    @ResponseBody
     public ResponseEntity<ArrayList<League>> getRankData(@PathVariable String encryptedSummonerId) {
         try {
             ArrayList<League> rankList = riotApiService.getRankById(encryptedSummonerId);
@@ -112,6 +122,7 @@ public class AseProjectApplication {
     }
     
     @GetMapping("/matches/{matchId}")
+    @ResponseBody
     public ResponseEntity<Match> getMatchData(@PathVariable String matchId) {
         try {
             Match match = riotApiService.getMatchById(matchId);
@@ -147,6 +158,7 @@ public class AseProjectApplication {
     }
 
     @GetMapping("/summary/{summonerName}")
+    @ResponseBody
     public ResponseEntity<Summary> getSummaryData(@PathVariable String summonerName) {
         try {
             Summary summary = riotApiService.getSummaryByName(summonerName);
@@ -196,6 +208,7 @@ public class AseProjectApplication {
     }
 
     @PostMapping("/grade/{summonerName}/{grade}")
+    @ResponseBody
     public ResponseEntity<String> postGradeData(@PathVariable String summonerName, @PathVariable String grade) {
         try {
             int note = Integer.parseInt(grade);
@@ -224,6 +237,36 @@ public class AseProjectApplication {
             throw new IllegalArgumentException("Erreur 400 : Veuillez préciser une note valide.");
         }
     }
+
+    /*
+     *******************************************************************************************************************
+     ************************************************* PARTIE FRONTEND *************************************************
+     *******************************************************************************************************************
+     */
+
+    @GetMapping("/")
+    public String homePage() {
+        return "index";
+    }
+
+    @GetMapping("/summoner_page/{summonerName}")
+    public String getSummonerData(@PathVariable String summonerName, Model model) {
+        try {
+            Summoner summoner = riotApiService.getSummonerByName(summonerName);
+            model.addAttribute("summoner", summoner);
+            return "summoner";
+        }
+        catch (Exception e) {
+            model.addAttribute("summoner", summonerName);
+            return "not_found";
+        }
+    }
+
+    /*
+     *******************************************************************************************************************
+     ******************************************** PARTIE EXCEPTIONS HANDLER ********************************************
+     *******************************************************************************************************************
+     */
 
     @ExceptionHandler(BadRequestException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)

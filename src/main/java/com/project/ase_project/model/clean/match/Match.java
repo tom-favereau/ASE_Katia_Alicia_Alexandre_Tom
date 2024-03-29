@@ -13,6 +13,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
+@EqualsAndHashCode
 public class Match {
     // JSON FIELDS
     @Id

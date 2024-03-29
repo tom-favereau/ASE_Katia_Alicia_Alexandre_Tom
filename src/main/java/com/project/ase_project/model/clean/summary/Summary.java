@@ -10,6 +10,7 @@ import java.util.ArrayList;
 @Getter
 @Setter
 @ToString
+@EqualsAndHashCode
 public class Summary {
     public Summary(Summoner summoner, ArrayList<League> leagues) {
         this.summonerId = summoner.getId();

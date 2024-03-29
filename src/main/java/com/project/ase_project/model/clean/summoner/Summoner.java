@@ -12,6 +12,7 @@ import lombok.*;
 @Getter
 @Setter
 @ToString
+@EqualsAndHashCode
 public class Summoner {
     private String name;
     private int profileIconId;
