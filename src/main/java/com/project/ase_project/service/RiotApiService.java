@@ -8,6 +8,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import com.project.ase_project.model.clean.MostPlayedChampions.ChampionsPlayed;
+import com.project.ase_project.model.clean.MostPlayedGameModes.GameModesPlayed;
+import com.project.ase_project.model.clean.match.Participant;
+import lombok.Setter;
+import lombok.ToString;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -39,6 +44,42 @@ import com.project.ase_project.model.clean.summoner.Summoner;
 
 @Service
 public class RiotApiService {
+
+    @Getter
+    @Setter
+    @ToString
+    private static class ChampionData {
+        private int id;
+        private String name;
+
+        private int count;
+        private int wins;
+        private int losses;
+        private float winRate;
+
+        private int kills;
+        private int deaths;
+        private int assists;
+        private float kda;
+    }
+
+    @Getter
+    @Setter
+    @ToString
+    private static class GameModeData {
+        private int id;
+        private String name;
+
+        private int count;
+        private int wins;
+        private int losses;
+        private float winRate;
+
+        private int kills;
+        private int deaths;
+        private int assists;
+        private float kda;
+    }
 
     @Value("${riot.api.key}")
     private String apiKey;
@@ -227,6 +268,67 @@ public class RiotApiService {
             throw new GatewayTimeout("Erreur 504 : Gateway timeout");
         }
     }
+    // TODO : getMatchById en parallèle
+    public ArrayList<Match> getMatches(String summonerName, long startTime, long endTime, int queue, String type, int start, int count) {
+        Summoner summoner = getSummonerByName(summonerName);
+        String apiUrl = "https://europe.api.riotgames.com/lol/match/v5/matches/by-puuid/" + summoner.getPuuid() + "/ids?start=" + start + "&count=" + count + "&api_key=" + apiKey;
+        try {
+            String[] matches = restTemplate.getForObject(apiUrl, String[].class);
+            ArrayList<Match> matchList = new ArrayList<>();
+            int counter = 0;
+            if (matches != null) {
+                for (String match : matches){
+                    Optional<Match> matchEntity = matchRepository.findById(match);
+                    if (matchEntity.isPresent()) {
+                        matchList.add(matchEntity.get());
+                    } else {
+                        matchList.add(getMatchById(match));
+                    }
+                    if (counter++ > count){
+                        break;
+                    }
+                }
+            }
+            return matchList;
+        }
+        catch (HttpClientErrorException.BadRequest e) {
+            throw new BadRequestException("Erreur 400 : Bad request");
+        }
+        catch (HttpClientErrorException.Unauthorized e) {
+            throw new BadRequestException("Erreur 401 : Unauthorized");
+        }
+        catch (HttpClientErrorException.Forbidden e) {
+            throw new BadRequestException("Erreur 403 : Forbidden");
+        }
+        catch (HttpClientErrorException.NotFound e) {
+            throw new SummonerNotFoundException("Erreur 404 : Le puuid " + summoner.getPuuid() + " n'existe pas.");
+        }
+        catch (HttpClientErrorException.MethodNotAllowed e) {
+            throw new MethodNotAllowed("Erreur 405 : Method not allowed");
+        }
+        catch (HttpClientErrorException.UnsupportedMediaType e) {
+            throw new UnsupportedMediaType("Erreur 415 : Unsupported media type");
+        }
+        catch (HttpClientErrorException.TooManyRequests e) {
+            throw new RateLimitExceededException("Erreur 429 : Too many requests");
+        }
+        catch (HttpServerErrorException.InternalServerError e) {
+            throw new InternalServerError("Erreur 500 : Internal server error");
+        }
+        catch (HttpServerErrorException.BadGateway e) {
+            throw new BadGateway("Erreur 502 : Bad gateway");
+        }
+        catch (HttpServerErrorException.ServiceUnavailable e) {
+            throw new ServiceUnavailable("Erreur 503 : Service unavailable");
+        }
+        catch (HttpServerErrorException.GatewayTimeout e) {
+            throw new GatewayTimeout("Erreur 504 : Gateway timeout");
+        } catch (SummonerNotFoundException e) {
+            throw new SummonerNotFoundException(e.getMessage());
+        } catch (MatchNotFoundException e) {
+            throw new MatchNotFoundException(e.getMessage());
+        }
+    }
 
     /*
      *******************************************************************************************************************
@@ -311,6 +413,141 @@ public class RiotApiService {
         catch (GatewayTimeout e) {
             throw new GatewayTimeout(e.getMessage());
         }
+    }
+
+    public ChampionsPlayed getChampionsPlayedByName(String summonerName) {
+        ChampionsPlayed championsPlayed = new ChampionsPlayed();
+        ArrayList<Match> matches = getMatches(summonerName, 0, 0, 0, "", 0, 20);
+        HashMap<String, ChampionData> champions = new HashMap<>();
+        int participantId = 0;
+
+        for (Match match : matches) {
+            // Identification de la position du joueur dans la partie
+            for (Participant participant : match.getParticipants()) {
+                if (participant.getSummonerName().equals(summonerName)) {
+                    participantId = participant.getParticipantId()-1;
+                    break;
+                }
+
+            }
+            // Récupération des données du participant
+            Participant participant = match.getParticipants().get(participantId);
+            ChampionData championData;
+            if (!champions.containsKey(participant.getChampionName())) {
+                championData = new ChampionData();
+                championData.id = participant.getChampionId();
+                championData.name = participant.getChampionName();
+                championData.count = 1;
+                championData.wins = participant.isWin() ? 1 : 0;
+                championData.losses = participant.isWin() ? 0 : 1;
+                championData.kills = participant.getKills();
+                championData.deaths = participant.getDeaths();
+                championData.assists = participant.getAssists();
+            } else {
+                championData = champions.get(participant.getChampionName());
+                championData.count++;
+                championData.wins += participant.isWin() ? 1 : 0;
+                championData.losses += participant.isWin() ? 0 : 1;
+                championData.kills += participant.getKills();
+                championData.deaths += participant.getDeaths();
+                championData.assists += participant.getAssists();
+            }
+            champions.put(participant.getChampionName(), championData);
+        }
+        // Calcul des statistiques
+        for (ChampionData championData : champions.values()) {
+            championData.winRate = ((float) championData.wins / championData.count);
+            if (championData.deaths == 0) {
+                championData.kda = Integer.MAX_VALUE;
+            } else {
+                championData.kda = ((float) (championData.kills + championData.assists) / championData.deaths);
+            }
+        }
+        // Création de l'objet de retour
+        // Summoner fields
+        championsPlayed.setSummonerId(matches.get(0).getParticipants().get(participantId).getSummonerId());
+        championsPlayed.setSummonerName(summonerName);
+
+        championsPlayed.setTotalGamesPlayed(matches.size());
+        championsPlayed.setTotalWins(champions.values().stream().mapToInt(championData -> championData.wins).sum());
+        championsPlayed.setTotalLosses(champions.values().stream().mapToInt(championData -> championData.losses).sum());
+        championsPlayed.setWinRate((float) championsPlayed.getTotalWins() / championsPlayed.getTotalGamesPlayed());
+
+        championsPlayed.setTotalKills(champions.values().stream().mapToInt(championData -> championData.kills).sum());
+        championsPlayed.setTotalDeaths(champions.values().stream().mapToInt(championData -> championData.deaths).sum());
+        championsPlayed.setTotalAssists(champions.values().stream().mapToInt(championData -> championData.assists).sum());
+        if (championsPlayed.getTotalDeaths() == 0) {
+            championsPlayed.setKDA(Integer.MAX_VALUE);
+        } else {
+            championsPlayed.setKDA((float) (championsPlayed.getTotalKills() + championsPlayed.getTotalAssists()) / championsPlayed.getTotalDeaths());
+        }
+
+        // Most Played Champion fields
+        ChampionData mostPlayedChampion = Collections.max(champions.values(), Comparator.comparing(ChampionData::getCount));
+        championsPlayed.setMostPlayedChampionId(mostPlayedChampion.getId());
+        championsPlayed.setMostPlayedChampionName(mostPlayedChampion.getName());
+
+        championsPlayed.setMostPlayedChampionCount(mostPlayedChampion.getCount());
+        championsPlayed.setMostPlayedChampionWins(mostPlayedChampion.getWins());
+        championsPlayed.setMostPlayedChampionLosses(mostPlayedChampion.getLosses());
+        championsPlayed.setMostPlayedChampionWinRate(mostPlayedChampion.getWinRate());
+
+        championsPlayed.setMostPlayedChampionKills(mostPlayedChampion.getKills());
+        championsPlayed.setMostPlayedChampionDeaths(mostPlayedChampion.getDeaths());
+        championsPlayed.setMostPlayedChampionAssists(mostPlayedChampion.getAssists());
+        championsPlayed.setMostPlayedChampionKDA(mostPlayedChampion.getKda());
+
+        // Best Performing Champion fields
+        ChampionData bestPerformingChampion = Collections.max(champions.values(), Comparator.comparing(ChampionData::getWinRate));
+        championsPlayed.setBestPerformingChampionId(bestPerformingChampion.getId());
+        championsPlayed.setBestPerformingChampionName(bestPerformingChampion.getName());
+
+        championsPlayed.setBestPerformingChampionCount(bestPerformingChampion.getCount());
+        championsPlayed.setBestPerformingChampionWins(bestPerformingChampion.getWins());
+        championsPlayed.setBestPerformingChampionLosses(bestPerformingChampion.getLosses());
+        championsPlayed.setBestPerformingChampionWinRate(bestPerformingChampion.getWinRate());
+
+        championsPlayed.setBestPerformingChampionKills(bestPerformingChampion.getKills());
+        championsPlayed.setBestPerformingChampionDeaths(bestPerformingChampion.getDeaths());
+        championsPlayed.setBestPerformingChampionAssists(bestPerformingChampion.getAssists());
+        championsPlayed.setBestPerformingChampionKDA(bestPerformingChampion.getKda());
+
+        // Worst Performing Champion fields
+        ChampionData worstPerformingChampion = Collections.min(champions.values(), Comparator.comparing(ChampionData::getKda));
+        championsPlayed.setWorstPerformingChampionId(worstPerformingChampion.getId());
+        championsPlayed.setWorstPerformingChampionName(worstPerformingChampion.getName());
+
+        championsPlayed.setWorstPerformingChampionCount(worstPerformingChampion.getCount());
+        championsPlayed.setWorstPerformingChampionWins(worstPerformingChampion.getWins());
+        championsPlayed.setWorstPerformingChampionLosses(worstPerformingChampion.getLosses());
+        championsPlayed.setWorstPerformingChampionWinRate(worstPerformingChampion.getWinRate());
+
+        championsPlayed.setWorstPerformingChampionKills(worstPerformingChampion.getKills());
+        championsPlayed.setWorstPerformingChampionDeaths(worstPerformingChampion.getDeaths());
+        championsPlayed.setWorstPerformingChampionAssists(worstPerformingChampion.getAssists());
+        championsPlayed.setWorstPerformingChampionKDA(worstPerformingChampion.getKda());
+
+        // Second Most Played Champion fields
+        champions.remove(Collections.max(champions.values(), Comparator.comparing(ChampionData::getCount)).getName());
+        ChampionData secondMostPlayedChampion = Collections.max(champions.values(), Comparator.comparing(ChampionData::getCount));
+        championsPlayed.setSecondMostPlayedChampionId(secondMostPlayedChampion.getId());
+        championsPlayed.setSecondMostPlayedChampionName(secondMostPlayedChampion.getName());
+
+        championsPlayed.setSecondMostPlayedChampionCount(secondMostPlayedChampion.getCount());
+        championsPlayed.setSecondMostPlayedChampionWins(secondMostPlayedChampion.getWins());
+        championsPlayed.setSecondMostPlayedChampionLosses(secondMostPlayedChampion.getLosses());
+        championsPlayed.setSecondMostPlayedChampionWinRate(secondMostPlayedChampion.getWinRate());
+
+        championsPlayed.setSecondMostPlayedChampionKills(secondMostPlayedChampion.getKills());
+        championsPlayed.setSecondMostPlayedChampionDeaths(secondMostPlayedChampion.getDeaths());
+        championsPlayed.setSecondMostPlayedChampionAssists(secondMostPlayedChampion.getAssists());
+        championsPlayed.setSecondMostPlayedChampionKDA(secondMostPlayedChampion.getKda());
+
+        return championsPlayed;
+    }
+
+    public GameModesPlayed getMostPlayedGameModesByName() {
+        return null;
     }
 
     /*
