@@ -14,9 +14,16 @@ public class GameModesPlayed {
     // Summoner fields
     private String summonerId;
     private String summonerName;
+
     private int TotalGamesPlayed;
     private int TotalWins;
     private int TotalLosses;
+    private float WinRate;
+
+    private int TotalKills;
+    private int TotalDeaths;
+    private int TotalAssists;
+    private float KDA;
 
     // Most Played Game Mode fields
     private int MostPlayedGameModeId;

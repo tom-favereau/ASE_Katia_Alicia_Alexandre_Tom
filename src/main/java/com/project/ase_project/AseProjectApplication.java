@@ -2,6 +2,7 @@ package com.project.ase_project;
 
 import com.project.ase_project.exception.*;
 import com.project.ase_project.model.clean.MostPlayedChampions.ChampionsPlayed;
+import com.project.ase_project.model.clean.MostPlayedGameModes.GameModesPlayed;
 import com.project.ase_project.model.clean.league.League;
 import com.project.ase_project.model.clean.match.Match;
 import com.project.ase_project.model.clean.summary.Summary;
@@ -18,6 +19,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.NoSuchElementException;
 
 
 @Controller
@@ -271,6 +273,45 @@ public class AseProjectApplication {
             throw new SummonerNotFoundException(e.getMessage());
         } catch (MatchNotFoundException e) {
             throw new MatchNotFoundException(e.getMessage());
+        } catch (UnsupportedMediaType e) {
+            throw new UnsupportedMediaType(e.getMessage());
+        } catch (RateLimitExceededException e) {
+            throw new RateLimitExceededException(e.getMessage());
+        } catch (InternalServerError e) {
+            throw new InternalServerError(e.getMessage());
+        } catch (BadGateway e) {
+            throw new BadGateway(e.getMessage());
+        } catch (ServiceUnavailable e) {
+            throw new ServiceUnavailable(e.getMessage());
+        } catch (GatewayTimeout e) {
+            throw new GatewayTimeout(e.getMessage());
+        }
+    }
+
+    // Exemple : http://localhost:8080/riot/gameModesPlayed/Belugafurtif
+    @GetMapping("/gameModesPlayed/")
+    public ResponseEntity<GameModesPlayed> getEmptyGameModesPlayed() {
+        throw new IllegalArgumentException("Erreur 400 : Veuillez préciser un pseudo de joueur.");
+    }
+
+    @PostMapping("/gameModesPlayed/{summonerName}")
+    public ResponseEntity<GameModesPlayed> postGameModesPlayed(@PathVariable String summonerName) {
+        throw new MethodNotAllowed("Erreur 405 : La méthode POST n'est pas autorisée pour cette route. Utilisez la méthode GET pour obtenir les modes de jeu joués par " + summonerName + ".");
+    }
+
+    @GetMapping("/gameModesPlayed/{summonerName}")
+    public ResponseEntity<GameModesPlayed> getGameModesPlayed(@PathVariable String summonerName) {
+        try {
+            GameModesPlayed gameModesPlayed = riotApiService.getGameModesPlayedByName(summonerName);
+            return new ResponseEntity<>(gameModesPlayed, HttpStatus.OK);
+        } catch (BadRequestException e) {
+            throw new BadRequestException(e.getMessage());
+        } catch (SummonerNotFoundException e) {
+            throw new SummonerNotFoundException(e.getMessage());
+        } catch (MatchNotFoundException e) {
+            throw new MatchNotFoundException(e.getMessage());
+        } catch (NoSuchElementException e) {
+            throw new NoSuchElementException(e.getMessage());
         } catch (UnsupportedMediaType e) {
             throw new UnsupportedMediaType(e.getMessage());
         } catch (RateLimitExceededException e) {

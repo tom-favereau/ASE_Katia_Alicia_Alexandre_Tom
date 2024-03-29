@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import com.project.ase_project.model.clean.MostPlayedChampions.ChampionsPlayed;
 import com.project.ase_project.model.clean.MostPlayedGameModes.GameModesPlayed;
+import com.project.ase_project.model.clean.match.Metadata;
 import com.project.ase_project.model.clean.match.Participant;
 import lombok.Setter;
 import lombok.ToString;
@@ -546,8 +547,141 @@ public class RiotApiService {
         return championsPlayed;
     }
 
-    public GameModesPlayed getMostPlayedGameModesByName() {
-        return null;
+    public GameModesPlayed getGameModesPlayedByName(String summonerName) {
+        GameModesPlayed gameModesPlayed = new GameModesPlayed();
+        ArrayList<Match> matches = getMatches(summonerName, 0, 0, 0, "", 0, 20);
+        HashMap<String, GameModeData> gameModes = new HashMap<>();
+        int participantId = 0;
+
+        for (Match match : matches) {
+            // Identification de la position du joueur dans la partie
+            for (Participant participant : match.getParticipants()) {
+                if (participant.getSummonerName().equals(summonerName)) {
+                    participantId = participant.getParticipantId()-1;
+                    break;
+                }
+
+            }
+            // Récupération des données du participant
+            Metadata metadata = match.getMetadata();
+            Participant participant = match.getParticipants().get(participantId);
+            GameModeData gameModeData;
+            Optional<LOLQueue> queue = queueRepository.findById(metadata.getQueueId());
+            if (queue.isPresent()) {
+                if (!gameModes.containsKey(queue.get().getDescription())) {
+                    gameModeData = new GameModeData();
+                    gameModeData.id = queue.get().getQueueId();
+                    gameModeData.name = queue.get().getDescription();
+                    gameModeData.count = 1;
+                    gameModeData.wins = participant.isWin() ? 1 : 0;
+                    gameModeData.losses = participant.isWin() ? 0 : 1;
+                    gameModeData.kills = participant.getKills();
+                    gameModeData.deaths = participant.getDeaths();
+                    gameModeData.assists = participant.getAssists();
+                } else {
+                    gameModeData = gameModes.get(queue.get().getDescription());
+                    gameModeData.count++;
+                    gameModeData.wins += participant.isWin() ? 1 : 0;
+                    gameModeData.losses += participant.isWin() ? 0 : 1;
+                    gameModeData.kills += participant.getKills();
+                    gameModeData.deaths += participant.getDeaths();
+                    gameModeData.assists += participant.getAssists();
+                }
+                gameModes.put(queue.get().getDescription(), gameModeData);
+            } else {
+                throw new NoSuchElementException("Erreur : La file de jeu " + metadata.getQueueId() + " n'existe pas.");
+            }
+        }
+        // Calcul des statistiques
+        for (GameModeData gameModeData : gameModes.values()) {
+            gameModeData.winRate = ((float) gameModeData.wins / gameModeData.count);
+            if (gameModeData.deaths == 0) {
+                gameModeData.kda = Integer.MAX_VALUE;
+            } else {
+                gameModeData.kda = ((float) (gameModeData.kills + gameModeData.assists) / gameModeData.deaths);
+            }
+        }
+        // Création de l'objet de retour
+        // Summoner fields
+        gameModesPlayed.setSummonerId(matches.get(0).getParticipants().get(participantId).getSummonerId());
+        gameModesPlayed.setSummonerName(summonerName);
+
+        gameModesPlayed.setTotalGamesPlayed(matches.size());
+        gameModesPlayed.setTotalWins(gameModes.values().stream().mapToInt(gameModeData -> gameModeData.wins).sum());
+        gameModesPlayed.setTotalLosses(gameModes.values().stream().mapToInt(gameModeData -> gameModeData.losses).sum());
+        gameModesPlayed.setWinRate((float) gameModesPlayed.getTotalWins() / gameModesPlayed.getTotalGamesPlayed());
+
+        gameModesPlayed.setTotalKills(gameModes.values().stream().mapToInt(gameModeData -> gameModeData.kills).sum());
+        gameModesPlayed.setTotalDeaths(gameModes.values().stream().mapToInt(gameModeData -> gameModeData.deaths).sum());
+        gameModesPlayed.setTotalAssists(gameModes.values().stream().mapToInt(gameModeData -> gameModeData.assists).sum());
+        if (gameModesPlayed.getTotalDeaths() == 0) {
+            gameModesPlayed.setKDA(Integer.MAX_VALUE);
+        } else {
+            gameModesPlayed.setKDA((float) (gameModesPlayed.getTotalKills() + gameModesPlayed.getTotalAssists()) / gameModesPlayed.getTotalDeaths());
+        }
+
+        // Most Played Champion fields
+        GameModeData mostPlayedGameMode = Collections.max(gameModes.values(), Comparator.comparing(GameModeData::getCount));
+        gameModesPlayed.setMostPlayedGameModeId(mostPlayedGameMode.getId());
+        gameModesPlayed.setMostPlayedGameModeName(mostPlayedGameMode.getName());
+
+        gameModesPlayed.setMostPlayedGameModeCount(mostPlayedGameMode.getCount());
+        gameModesPlayed.setMostPlayedGameModeWins(mostPlayedGameMode.getWins());
+        gameModesPlayed.setMostPlayedGameModeLosses(mostPlayedGameMode.getLosses());
+        gameModesPlayed.setMostPlayedGameModeWinRate(mostPlayedGameMode.getWinRate());
+
+        gameModesPlayed.setMostPlayedGameModeKills(mostPlayedGameMode.getKills());
+        gameModesPlayed.setMostPlayedGameModeDeaths(mostPlayedGameMode.getDeaths());
+        gameModesPlayed.setMostPlayedGameModeAssists(mostPlayedGameMode.getAssists());
+        gameModesPlayed.setMostPlayedGameModeKDA(mostPlayedGameMode.getKda());
+
+        // Best Performing Champion fields
+        GameModeData bestPerformingGameMode = Collections.max(gameModes.values(), Comparator.comparing(GameModeData::getWinRate));
+        gameModesPlayed.setBestPerformingGameModeId(bestPerformingGameMode.getId());
+        gameModesPlayed.setBestPerformingGameModeName(bestPerformingGameMode.getName());
+
+        gameModesPlayed.setBestPerformingGameModeCount(bestPerformingGameMode.getCount());
+        gameModesPlayed.setBestPerformingGameModeWins(bestPerformingGameMode.getWins());
+        gameModesPlayed.setBestPerformingGameModeLosses(bestPerformingGameMode.getLosses());
+        gameModesPlayed.setBestPerformingGameModeWinRate(bestPerformingGameMode.getWinRate());
+
+        gameModesPlayed.setBestPerformingGameModeKills(bestPerformingGameMode.getKills());
+        gameModesPlayed.setBestPerformingGameModeDeaths(bestPerformingGameMode.getDeaths());
+        gameModesPlayed.setBestPerformingGameModeAssists(bestPerformingGameMode.getAssists());
+        gameModesPlayed.setBestPerformingGameModeKDA(bestPerformingGameMode.getKda());
+
+        // Worst Performing Champion fields
+        GameModeData worstPerformingGameMode = Collections.min(gameModes.values(), Comparator.comparing(GameModeData::getKda));
+        gameModesPlayed.setWorstPerformingGameModeId(worstPerformingGameMode.getId());
+        gameModesPlayed.setWorstPerformingGameModeName(worstPerformingGameMode.getName());
+
+        gameModesPlayed.setWorstPerformingGameModeCount(worstPerformingGameMode.getCount());
+        gameModesPlayed.setWorstPerformingGameModeWins(worstPerformingGameMode.getWins());
+        gameModesPlayed.setWorstPerformingGameModeLosses(worstPerformingGameMode.getLosses());
+        gameModesPlayed.setWorstPerformingGameModeWinRate(worstPerformingGameMode.getWinRate());
+
+        gameModesPlayed.setWorstPerformingGameModeKills(worstPerformingGameMode.getKills());
+        gameModesPlayed.setWorstPerformingGameModeDeaths(worstPerformingGameMode.getDeaths());
+        gameModesPlayed.setWorstPerformingGameModeAssists(worstPerformingGameMode.getAssists());
+        gameModesPlayed.setWorstPerformingGameModeKDA(worstPerformingGameMode.getKda());
+
+        // Second Most Played Champion fields
+        gameModes.remove(Collections.max(gameModes.values(), Comparator.comparing(GameModeData::getCount)).getName());
+        GameModeData secondMostPlayedGameMode = Collections.max(gameModes.values(), Comparator.comparing(GameModeData::getCount));
+        gameModesPlayed.setSecondMostPlayedGameModeId(secondMostPlayedGameMode.getId());
+        gameModesPlayed.setSecondMostPlayedGameModeName(secondMostPlayedGameMode.getName());
+
+        gameModesPlayed.setSecondMostPlayedGameModeCount(secondMostPlayedGameMode.getCount());
+        gameModesPlayed.setSecondMostPlayedGameModeWins(secondMostPlayedGameMode.getWins());
+        gameModesPlayed.setSecondMostPlayedGameModeLosses(secondMostPlayedGameMode.getLosses());
+        gameModesPlayed.setSecondMostPlayedGameModeWinRate(secondMostPlayedGameMode.getWinRate());
+
+        gameModesPlayed.setSecondMostPlayedGameModeKills(secondMostPlayedGameMode.getKills());
+        gameModesPlayed.setSecondMostPlayedGameModeDeaths(secondMostPlayedGameMode.getDeaths());
+        gameModesPlayed.setSecondMostPlayedGameModeAssists(secondMostPlayedGameMode.getAssists());
+        gameModesPlayed.setSecondMostPlayedGameModeKDA(secondMostPlayedGameMode.getKda());
+
+        return gameModesPlayed;
     }
 
     /*
