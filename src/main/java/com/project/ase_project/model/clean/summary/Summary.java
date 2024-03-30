@@ -17,7 +17,7 @@ public class Summary {
         this.summonerName = summoner.getName();
         this.summonerLevel = summoner.getSummonerLevel();
         this.profileIconId = summoner.getProfileIconId();
-        this.average = summoner.getAverage();
+        this.average = (float) (Math.round(summoner.getAverage() * 100.0) / 100.0);
         this.cardinal = summoner.getCardinal();
         if (leagues.isEmpty()) {
             this.rankFlex = "UNRANKED";

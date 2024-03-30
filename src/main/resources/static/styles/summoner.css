@@ -32,6 +32,29 @@
     position: absolute;
     right: 5%;
     bottom: 10%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+#stars {
+    padding-right: 30px;
+}
+
+#rating p {
+    font-family: "Oxanium", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: <weight>;
+    font-style: normal;
+    font-size: 3rem;
+    color: white;
+}
+
+#rating #nb-votes {
+    font-style: italic;
+    font-size: 2rem;
+    padding-left: 20px;
+    color: lightgrey;
 }
 
 .star {
