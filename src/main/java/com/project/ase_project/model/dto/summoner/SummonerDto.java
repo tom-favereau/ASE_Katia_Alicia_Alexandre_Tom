@@ -32,6 +32,7 @@ public class SummonerDto {
         summoner.setProfileIconId(this.getProfileIconId());
         summoner.setSummonerLevel(this.getSummonerLevel());
         summoner.setId(this.getId());
+        summoner.setPuuid(this.getPuuid());
         return summoner;
     }
 }

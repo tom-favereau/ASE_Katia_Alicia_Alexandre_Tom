@@ -15,6 +15,7 @@ import lombok.*;
 @Getter
 @Setter
 @ToString
+@EqualsAndHashCode
 public class LeagueDto {
     // JSON FIELDS
     private String leagueId;

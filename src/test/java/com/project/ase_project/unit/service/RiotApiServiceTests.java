@@ -2,6 +2,7 @@ package com.project.ase_project.unit.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.project.ase_project.exception.*;
 import com.project.ase_project.model.clean.grade.Grade;
 import com.project.ase_project.model.clean.league.League;
 import com.project.ase_project.model.clean.match.Match;
@@ -13,20 +14,27 @@ import com.project.ase_project.model.dto.summoner.SummonerDto;
 import com.project.ase_project.repository.GradeRepository;
 import com.project.ase_project.repository.MatchRepository;
 import com.project.ase_project.service.RiotApiService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
 public class RiotApiServiceTests {
@@ -55,6 +63,7 @@ public class RiotApiServiceTests {
             156,
             0,
             0,
+            "krLjP_t5lT5gcJqVMXPP7QWzTnUJa2gvskYSngZz8Oyr8o4-6_T-4-gjgteZLe8Dhz3md-OAcYVUdw",
             "F4btU20wCQOmkMlWn4QJm33f3jH-B5Nj-uPfNnyuLED3PT0DpQ_LLcB_IQ"
     );
     LeagueDto leagueDto1 = new LeagueDto(
@@ -111,29 +120,26 @@ public class RiotApiServiceTests {
             78
     );
     ArrayList<League> leagues = new ArrayList<>(List.of(league1, league2));
-    //String rawJSONMatch = "{\"metadata\":{\"dataVersion\":\"2\",\"matchId\":\"EUW1_6760205418\",\"participants\":[\"NSdcoRFNf4QK4MXv3t7k5DLJg3DBE6YpuGd2wIgmD57B3hYosKCeSePNoftPMcqRoXYqCnLycHTQvg\",\"W-6lu3K-72edepuy0jCAwrGtYt_8wCdKavdtq4p_6Hi6XZDeGAWoOns5WJ06_IJcY4qIam0EEvn2WA\",\"VnbzIL6pFXWJxOoMxeaAJ4yOgigM0YC3VkY9KlGz2TcdFf67mVUf9Kg3JA42PHbzTrseflM_yu-FcQ\",\"RPYtYTe4r08QikX2qNCALO5q3n9NU3d6FWeaNparmHEuCgcPaLtX-ag_uuM9lWBt2hLoU14OqcDJqA\",\"1MXlsiEgwnRYgQf3VmSvbxmEYZm3H_8-FGwa1he4WrWL_Uew-19s-gjqIX95yDcwbOR5gTvhFi7riw\",\"dxoUWrKBlQB9xP7tDH3nR4yF8FwOpBnMgXP-GIE6n80nHNuaw8ZTVDJxX8Xdw7ZE8d6c-9MnifVJrw\",\"n0eI8uzwTTAg6dQgpQTQN-LLfdU3_SKHszG0sGs1UiJx1l611YAjlQGLr6HENdlC1ZZYQ9ZiTfGUzw\",\"6sHKShM4yhPnIMrhUHQjuWVk9gJFJmlgEguUYma7NQxX7KP0RSmsUWY13hq6IKaDa6P12x-2DV4p4w\",\"Gw-DlJXWkCliGKvzx7SxAltlyLYR3pSMN7qNmDFtE3qK9a1V3wXwltB8gxsb985Bw4WQtrefPYc6Cg\",\"BUJmPYBwQjeaT-QBwg5v5FPdJh3rcoJaY7rjqq1PBuVNztGApND7ixjvwvg7d7GKvLUNtWoX3LDsbw\"]},\"info\":{\"gameCreation\":1704900909290,\"gameDuration\":2171,\"gameEndTimestamp\":1704903099430,\"gameId\":6760205418,\"gameMode\":\"CLASSIC\",\"gameName\":\"teambuilder-match-6760205418\",\"gameStartTimestamp\":1704900927809,\"gameType\":\"MATCHED_GAME\",\"gameVersion\":\"14.1.552.7117\",\"mapId\":11,\"participants\":[{\"allInPings\":0,\"assistMePings\":0,\"assists\":1,\"baronKills\":0,\"basicPings\":0,\"bountyLevel\":0,\"challenges\":{\"12AssistStreakCount\":0,\"abilityUses\":229,\"acesBefore15Minutes\":0,\"alliedJungleMonsterKills\":0,\"baronBuffGoldAdvantageOverThreshold\":1,\"baronTakedowns\":0,\"blastConeOppositeOpponentCount\":0,\"bountyGold\":0,\"buffsStolen\":0,\"completeSupportQuestInTime\":0,\"controlWardsPlaced\":0,\"damagePerMinute\":494.018700924033,\"damageTakenOnTeamPercentage\":0.22452073893226188,\"dancedWithRiftHerald\":0,\"deathsByEnemyChamps\":9,\"dodgeSkillShotsSmallWindow\":0,\"doubleAces\":0,\"dragonTakedowns\":1,\"earliestBaron\":1692.8634494,\"earliestDragonTakedown\":508.4861094,\"earlyLaningPhaseGoldExpAdvantage\":0,\"effectiveHealAndShielding\":0,\"elderDragonKillsWithOpposingSoul\":0,\"elderDragonMultikills\":0,\"enemyChampionImmobilizations\":0,\"enemyJungleMonsterKills\":12,\"epicMonsterKillsNearEnemyJungler\":0,\"epicMonsterKillsWithin30SecondsOfSpawn\":0,\"epicMonsterSteals\":0,\"epicMonsterStolenWithoutSmite\":0,\"firstTurretKilled\":0,\"flawlessAces\":0,\"fullTeamTakedown\":0,\"gameLength\":2171.8168219,\"getTakedownsInAllLanesEarlyJungleAsLaner\":0,\"goldPerMinute\":438.6315248195518,\"hadOpenNexus\":0,\"immobilizeAndKillWithAlly\":0,\"initialBuffCount\":0,\"initialCrabCount\":0,\"jungleCsBefore10Minutes\":4,\"junglerTakedownsNearDamagedEpicMonster\":1,\"kTurretsDestroyedBeforePlatesFall\":0,\"kda\":0.6666666666666666,\"killAfterHiddenWithAlly\":0,\"killParticipation\":0.15,\"killedChampTookFullTeamDamageSurvived\":0,\"killingSprees\":0,\"killsNearEnemyTurret\":1,\"killsOnOtherLanesEarlyJungleAsLaner\":1,\"killsOnRecentlyHealedByAramPack\":0,\"killsUnderOwnTurret\":0,\"killsWithHelpFromEpicMonster\":1,\"knockEnemyIntoTeamAndKill\":0,\"landSkillShotsEarlyGame\":0,\"laneMinionsFirst10Minutes\":61,\"laningPhaseGoldExpAdvantage\":0,\"legendaryCount\":0,\"legendaryItemUsed\":[6672,6675,3124,3153],\"lostAnInhibitor\":0,\"maxCsAdvantageOnLaneOpponent\":98.00000002980232,\"maxKillDeficit\":0,\"maxLevelLeadLaneOpponent\":2,\"mejaisFullStackInTime\":0,\"moreEnemyJungleThanOpponent\":0,\"multiKillOneSpell\":0,\"multiTurretRiftHeraldCount\":0,\"multikills\":1,\"multikillsAfterAggressiveFlash\":1,\"outerTurretExecutesBefore10Minutes\":0,\"outnumberedKills\":3,\"outnumberedNexusKill\":0,\"perfectDragonSoulsTaken\":0,\"perfectGame\":0,\"pickKillWithAlly\":3,\"playedChampSelectPosition\":1,\"poroExplosions\":0,\"quickCleanse\":0,\"quickFirstTurret\":0,\"quickSoloKills\":0,\"riftHeraldTakedowns\":0,\"saveAllyFromDeath\":0,\"scuttleCrabKills\":2,\"skillshotsDodged\":22,\"skillshotsHit\":0,\"snowballsHit\":0,\"soloBaronKills\":0,\"soloKills\":3,\"soloTurretsLategame\":3,\"stealthWardsPlaced\":11,\"survivedSingleDigitHpCount\":0,\"survivedThreeImmobilizesInFight\":5,\"takedownOnFirstTurret\":0,\"takedowns\":6,\"takedownsAfterGainingLevelAdvantage\":0,\"takedownsBeforeJungleMinionSpawn\":0,\"takedownsFirstXMinutes\":5,\"takedownsInAlcove\":0,\"takedownsInEnemyFountain\":0,\"teamBaronKills\":1,\"teamDamagePercentage\":0.15006955980997716,\"teamElderDragonKills\":0,\"teamRiftHeraldKills\":1,\"tookLargeDamageSurvived\":0,\"turretPlatesTaken\":0,\"turretTakedowns\":6,\"turretsTakenWithRiftHerald\":0,\"twentyMinionsIn3SecondsCount\":0,\"twoWardsOneSweeperCount\":0,\"unseenRecalls\":0,\"visionScoreAdvantageLaneOpponent\":0.21225452423095703,\"visionScorePerMinute\":0.6879664881061768,\"wardTakedowns\":1,\"wardTakedownsBefore20M\":0,\"wardsGuarded\":1},\"champExperience\":18776,\"champLevel\":18,\"championId\":23,\"championName\":\"Tryndamere\",\"championTransform\":0,\"commandPings\":4,\"consumablesPurchased\":1,\"damageDealtToBuildings\":17665,\"damageDealtToObjectives\":32375,\"damageDealtToTurrets\":17665,\"damageSelfMitigated\":41307,\"dangerPings\":0,\"deaths\":9,\"detectorWardsPlaced\":0,\"doubleKills\":1,\"dragonKills\":0,\"eligibleForProgression\":true,\"enemyMissingPings\":3,\"enemyVisionPings\":0,\"firstBloodAssist\":false,\"firstBloodKill\":false,\"firstTowerAssist\":false,\"firstTowerKill\":false,\"gameEndedInEarlySurrender\":false,\"gameEndedInSurrender\":false,\"getBackPings\":0,\"goldEarned\":15877,\"goldSpent\":15400,\"holdPings\":0,\"individualPosition\":\"TOP\",\"inhibitorKills\":1,\"inhibitorTakedowns\":1,\"inhibitorsLost\":1,\"item0\":3153,\"item1\":3006,\"item2\":6672,\"item3\":6675,\"item4\":3124,\"item5\":1038,\"item6\":3364,\"itemsPurchased\":24,\"killingSprees\":2,\"kills\":5,\"lane\":\"TOP\",\"largestCriticalStrike\":595,\"largestKillingSpree\":2,\"largestMultiKill\":2,\"longestTimeSpentLiving\":525,\"magicDamageDealt\":5640,\"magicDamageDealtToChampions\":421,\"magicDamageTaken\":21272,\"missions\":{\"playerScore0\":0,\"playerScore1\":0,\"playerScore10\":0,\"playerScore11\":0,\"playerScore2\":0,\"playerScore3\":0,\"playerScore4\":0,\"playerScore5\":0,\"playerScore6\":0,\"playerScore7\":0,\"playerScore8\":0,\"playerScore9\":0},\"needVisionPings\":0,\"neutralMinionsKilled\":26,\"nexusKills\":0,\"nexusLost\":1,\"nexusTakedowns\":0,\"objectivesStolen\":0,\"objectivesStolenAssists\":0,\"onMyWayPings\":0,\"participantId\":1,\"pentaKills\":0,\"perks\":{\"statPerks\":{\"defense\":5002,\"flex\":5008,\"offense\":5005},\"styles\":[{\"description\":\"primaryStyle\",\"selections\":[{\"perk\":8008,\"var1\":54,\"var2\":19,\"var3\":0},{\"perk\":9111,\"var1\":483,\"var2\":120,\"var3\":0},{\"perk\":9104,\"var1\":11,\"var2\":0,\"var3\":0},{\"perk\":8299,\"var1\":837,\"var2\":0,\"var3\":0}],\"style\":8000},{\"description\":\"subStyle\",\"selections\":[{\"perk\":8444,\"var1\":1597,\"var2\":0,\"var3\":0},{\"perk\":8242,\"var1\":126,\"var2\":0,\"var3\":0}],\"style\":8400}]},\"physicalDamageDealt\":289976,\"physicalDamageDealtToChampions\":17184,\"physicalDamageTaken\":30502,\"placement\":0,\"playerAugment1\":0,\"playerAugment2\":0,\"playerAugment3\":0,\"playerAugment4\":0,\"playerScore0\":0,\"playerScore1\":0,\"playerScore10\":0,\"playerScore11\":0,\"playerScore2\":0,\"playerScore3\":0,\"playerScore4\":0,\"playerScore5\":0,\"playerScore6\":0,\"playerScore7\":0,\"playerScore8\":0,\"playerScore9\":0,\"playerSubteamId\":0,\"profileIcon\":7,\"pushPings\":0,\"puuid\":\"NSdcoRFNf4QK4MXv3t7k5DLJg3DBE6YpuGd2wIgmD57B3hYosKCeSePNoftPMcqRoXYqCnLycHTQvg\",\"quadraKills\":0,\"riotIdGameName\":\"Forloven\",\"riotIdTagline\":\"Link\",\"role\":\"SOLO\",\"sightWardsBoughtInGame\":0,\"spell1Casts\":51,\"spell2Casts\":12,\"spell3Casts\":159,\"spell4Casts\":7,\"subteamPlacement\":0,\"summoner1Casts\":7,\"summoner1Id\":6,\"summoner2Casts\":6,\"summoner2Id\":4,\"summonerId\":\"Cnv9sKyA1mkOHb_cEX23LW0f9wIeceofEC5-iu5SIt9OJ1UPH5Gn7EAYsg\",\"summonerLevel\":89,\"summonerName\":\"020911 080623\",\"teamEarlySurrendered\":false,\"teamId\":100,\"teamPosition\":\"TOP\",\"timeCCingOthers\":8,\"timePlayed\":2171,\"totalAllyJungleMinionsKilled\":0,\"totalDamageDealt\":317569,\"totalDamageDealtToChampions\":17881,\"totalDamageShieldedOnTeammates\":0,\"totalDamageTaken\":52506,\"totalEnemyJungleMinionsKilled\":11,\"totalHeal\":21556,\"totalHealsOnTeammates\":0,\"totalMinionsKilled\":276,\"totalTimeCCDealt\":93,\"totalTimeSpentDead\":340,\"totalUnitsHealed\":1,\"tripleKills\":0,\"trueDamageDealt\":21951,\"trueDamageDealtToChampions\":276,\"trueDamageTaken\":731,\"turretKills\":6,\"turretTakedowns\":6,\"turretsLost\":9,\"unrealKills\":0,\"visionClearedPings\":0,\"visionScore\":24,\"visionWardsBoughtInGame\":0,\"wardsKilled\":1,\"wardsPlaced\":11,\"win\":false},{\"allInPings\":1,\"assistMePings\":3,\"assists\":7,\"baronKills\":1,\"basicPings\":0,\"bountyLevel\":0,\"challenges\":{\"12AssistStreakCount\":0,\"abilityUses\":514,\"acesBefore15Minutes\":0,\"alliedJungleMonsterKills\":95,\"baronBuffGoldAdvantageOverThreshold\":1,\"baronTakedowns\":1,\"blastConeOppositeOpponentCount\":0,\"bountyGold\":150,\"buffsStolen\":1,\"completeSupportQuestInTime\":0,\"controlWardsPlaced\":0,\"damagePerMinute\":378.02604346449925,\"damageTakenOnTeamPercentage\":0.2313241137287384,\"dancedWithRiftHerald\":0,\"deathsByEnemyChamps\":6,\"dodgeSkillShotsSmallWindow\":0,\"doubleAces\":0,\"dragonTakedowns\":1,\"earliestBaron\":1692.8634494,\"earliestDragonTakedown\":1758.1616161,\"earlyLaningPhaseGoldExpAdvantage\":0,\"effectiveHealAndShielding\":0,\"elderDragonKillsWithOpposingSoul\":0,\"elderDragonMultikills\":0,\"enemyChampionImmobilizations\":54,\"enemyJungleMonsterKills\":5,\"epicMonsterKillsNearEnemyJungler\":1,\"epicMonsterKillsWithin30SecondsOfSpawn\":0,\"epicMonsterSteals\":1,\"epicMonsterStolenWithoutSmite\":1,\"firstTurretKilled\":0,\"flawlessAces\":0,\"fullTeamTakedown\":0,\"gameLength\":2171.8168219,\"goldPerMinute\":417.2348275646718,\"hadOpenNexus\":0,\"immobilizeAndKillWithAlly\":8,\"initialBuffCount\":2,\"initialCrabCount\":0,\"jungleCsBefore10Minutes\":58.00000008940697,\"junglerKillsEarlyJungle\":0,\"junglerTakedownsNearDamagedEpicMonster\":0,\"kTurretsDestroyedBeforePlatesFall\":0,\"kda\":2.1666666666666665,\"killAfterHiddenWithAlly\":3,\"killParticipation\":0.325,\"killedChampTookFullTeamDamageSurvived\":0,\"killingSprees\":1,\"killsNearEnemyTurret\":2,\"killsOnLanersEarlyJungleAsJungler\":1,\"killsOnRecentlyHealedByAramPack\":0,\"killsUnderOwnTurret\":0,\"killsWithHelpFromEpicMonster\":0,\"knockEnemyIntoTeamAndKill\":8,\"landSkillShotsEarlyGame\":0,\"laneMinionsFirst10Minutes\":0,\"laningPhaseGoldExpAdvantage\":0,\"legendaryCount\":0,\"legendaryItemUsed\":[3161,3078,6694,4401],\"lostAnInhibitor\":0,\"maxCsAdvantageOnLaneOpponent\":38.049999952316284,\"maxKillDeficit\":0,\"maxLevelLeadLaneOpponent\":3,\"mejaisFullStackInTime\":0,\"moreEnemyJungleThanOpponent\":-57.50000008940697,\"multiKillOneSpell\":0,\"multiTurretRiftHeraldCount\":0,\"multikills\":0,\"multikillsAfterAggressiveFlash\":0,\"outerTurretExecutesBefore10Minutes\":0,\"outnumberedKills\":2,\"outnumberedNexusKill\":0,\"perfectDragonSoulsTaken\":0,\"perfectGame\":0,\"pickKillWithAlly\":11,\"playedChampSelectPosition\":1,\"poroExplosions\":0,\"quickCleanse\":0,\"quickFirstTurret\":0,\"quickSoloKills\":0,\"riftHeraldTakedowns\":1,\"saveAllyFromDeath\":0,\"scuttleCrabKills\":2,\"shortestTimeToAceFromFirstTakedown\":28.05149090000009,\"skillshotsDodged\":12,\"skillshotsHit\":11,\"snowballsHit\":0,\"soloBaronKills\":0,\"soloKills\":2,\"stealthWardsPlaced\":1,\"survivedSingleDigitHpCount\":0,\"survivedThreeImmobilizesInFight\":0,\"takedownOnFirstTurret\":0,\"takedowns\":13,\"takedownsAfterGainingLevelAdvantage\":0,\"takedownsBeforeJungleMinionSpawn\":0,\"takedownsFirstXMinutes\":2,\"takedownsInAlcove\":1,\"takedownsInEnemyFountain\":0,\"teamBaronKills\":1,\"teamDamagePercentage\":0.11483411829008534,\"teamElderDragonKills\":0,\"teamRiftHeraldKills\":1,\"tookLargeDamageSurvived\":0,\"turretPlatesTaken\":1,\"turretTakedowns\":2,\"turretsTakenWithRiftHerald\":0,\"twentyMinionsIn3SecondsCount\":0,\"twoWardsOneSweeperCount\":0,\"unseenRecalls\":0,\"visionScoreAdvantageLaneOpponent\":-0.6454658508300781,\"visionScorePerMinute\":0.4015420535455869,\"wardTakedowns\":2,\"wardTakedownsBefore20M\":0,\"wardsGuarded\":3},\"champExperience\":19014,\"champLevel\":18,\"championId\":120,\"championName\":\"Hecarim\",\"championTransform\":0,\"commandPings\":0,\"consumablesPurchased\":0,\"damageDealtToBuildings\":4789,\"damageDealtToObjectives\":46124,\"damageDealtToTurrets\":4789,\"damageSelfMitigated\":44396,\"dangerPings\":0,\"deaths\":6,\"detectorWardsPlaced\":0,\"doubleKills\":0,\"dragonKills\":1,\"eligibleForProgression\":true,\"enemyMissingPings\":0,\"enemyVisionPings\":0,\"firstBloodAssist\":false,\"firstBloodKill\":false,\"firstTowerAssist\":false,\"firstTowerKill\":false,\"gameEndedInEarlySurrender\":false,\"gameEndedInSurrender\":false,\"getBackPings\":6,\"goldEarned\":15102,\"goldSpent\":13983,\"holdPings\":0,\"individualPosition\":\"JUNGLE\",\"inhibitorKills\":0,\"inhibitorTakedowns\":0,\"inhibitorsLost\":1,\"item0\":3078,\"item1\":3111,\"item2\":3161,\"item3\":6694,\"item4\":4401,\"item5\":0,\"item6\":3364,\"itemsPurchased\":21,\"killingSprees\":1,\"kills\":6,\"lane\":\"JUNGLE\",\"largestCriticalStrike\":0,\"largestKillingSpree\":4,\"largestMultiKill\":1,\"longestTimeSpentLiving\":515,\"magicDamageDealt\":27104,\"magicDamageDealtToChampions\":2897,\"magicDamageTaken\":18376,\"missions\":{\"playerScore0\":0,\"playerScore1\":0,\"playerScore10\":0,\"playerScore11\":0,\"playerScore2\":0,\"playerScore3\":0,\"playerScore4\":0,\"playerScore5\":0,\"playerScore6\":0,\"playerScore7\":0,\"playerScore8\":0,\"playerScore9\":0},\"needVisionPings\":0,\"neutralMinionsKilled\":191,\"nexusKills\":0,\"nexusLost\":1,\"nexusTakedowns\":0,\"objectivesStolen\":1,\"objectivesStolenAssists\":0,\"onMyWayPings\":5,\"participantId\":2,\"pentaKills\":0,\"perks\":{\"statPerks\":{\"defense\":5001,\"flex\":5008,\"offense\":5008},\"styles\":[{\"description\":\"primaryStyle\",\"selections\":[{\"perk\":8230,\"var1\":14,\"var2\":0,\"var3\":0},{\"perk\":8224,\"var1\":826,\"var2\":0,\"var3\":0},{\"perk\":8234,\"var1\":14534,\"var2\":0,\"var3\":0},{\"perk\":8232,\"var1\":4,\"var2\":20,\"var3\":0}],\"style\":8200},{\"description\":\"subStyle\",\"selections\":[{\"perk\":9105,\"var1\":12,\"var2\":20,\"var3\":0},{\"perk\":8299,\"var1\":532,\"var2\":0,\"var3\":0}],\"style\":8000}]},\"physicalDamageDealt\":224183,\"physicalDamageDealtToChampions\":9916,\"physicalDamageTaken\":34494,\"placement\":0,\"playerAugment1\":0,\"playerAugment2\":0,\"playerAugment3\":0,\"playerAugment4\":0,\"playerScore0\":0,\"playerScore1\":0,\"playerScore10\":0,\"playerScore11\":0,\"playerScore2\":0,\"playerScore3\":0,\"playerScore4\":0,\"playerScore5\":0,\"playerScore6\":0,\"playerScore7\":0,\"playerScore8\":0,\"playerScore9\":0,\"playerSubteamId\":0,\"profileIcon\":7,\"pushPings\":0,\"puuid\":\"W-6lu3K-72edepuy0jCAwrGtYt_8wCdKavdtq4p_6Hi6XZDeGAWoOns5WJ06_IJcY4qIam0EEvn2WA\",\"quadraKills\":0,\"riotIdGameName\":\"Joggeson\",\"riotIdTagline\":\"4711\",\"role\":\"NONE\",\"sightWardsBoughtInGame\":0,\"spell1Casts\":364,\"spell2Casts\":77,\"spell3Casts\":64,\"spell4Casts\":9,\"subteamPlacement\":0,\"summoner1Casts\":8,\"summoner1Id\":6,\"summoner2Casts\":20,\"summoner2Id\":11,\"summonerId\":\"sCRgRqOCVUPBqHa8NPneL-8pjG-jdPURmBsrmXa68rAASAhGyg4vD6MAxw\",\"summonerLevel\":51,\"summonerName\":\"\",\"teamEarlySurrendered\":false,\"teamId\":100,\"teamPosition\":\"JUNGLE\",\"timeCCingOthers\":22,\"timePlayed\":2171,\"totalAllyJungleMinionsKilled\":142,\"totalDamageDealt\":331191,\"totalDamageDealtToChampions\":13683,\"totalDamageShieldedOnTeammates\":0,\"totalDamageTaken\":54097,\"totalEnemyJungleMinionsKilled\":11,\"totalHeal\":28525,\"totalHealsOnTeammates\":0,\"totalMinionsKilled\":59,\"totalTimeCCDealt\":344,\"totalTimeSpentDead\":174,\"totalUnitsHealed\":1,\"tripleKills\":0,\"trueDamageDealt\":79905,\"trueDamageDealtToChampions\":870,\"trueDamageTaken\":1225,\"turretKills\":2,\"turretTakedowns\":2,\"turretsLost\":9,\"unrealKills\":0,\"visionClearedPings\":0,\"visionScore\":14,\"visionWardsBoughtInGame\":0,\"wardsKilled\":2,\"wardsPlaced\":1,\"win\":false},{\"allInPings\":0,\"assistMePings\":2,\"assists\":15,\"baronKills\":0,\"basicPings\":0,\"bountyLevel\":0,\"challenges\":{\"12AssistStreakCount\":0,\"abilityUses\":239,\"acesBefore15Minutes\":0,\"alliedJungleMonsterKills\":5,\"baronBuffGoldAdvantageOverThreshold\":1,\"baronTakedowns\":1,\"blastConeOppositeOpponentCount\":0,\"bountyGold\":150,\"buffsStolen\":0,\"completeSupportQuestInTime\":0,\"controlWardsPlaced\":0,\"damagePerMinute\":1168.1722630988154,\"damageTakenOnTeamPercentage\":0.23613214171200045,\"dancedWithRiftHerald\":0,\"deathsByEnemyChamps\":6,\"dodgeSkillShotsSmallWindow\":0,\"doubleAces\":0,\"dragonTakedowns\":2,\"earliestBaron\":1692.8634494,\"earliestDragonTakedown\":508.4861094,\"earlyLaningPhaseGoldExpAdvantage\":0,\"effectiveHealAndShielding\":1385.2352294921875,\"elderDragonKillsWithOpposingSoul\":0,\"elderDragonMultikills\":0,\"enemyChampionImmobilizations\":58,\"enemyJungleMonsterKills\":2,\"epicMonsterKillsNearEnemyJungler\":1,\"epicMonsterKillsWithin30SecondsOfSpawn\":0,\"epicMonsterSteals\":0,\"epicMonsterStolenWithoutSmite\":0,\"firstTurretKilled\":0,\"flawlessAces\":0,\"fullTeamTakedown\":0,\"gameLength\":2171.8168219,\"getTakedownsInAllLanesEarlyJungleAsLaner\":0,\"goldPerMinute\":419.20765019492086,\"hadOpenNexus\":0,\"immobilizeAndKillWithAlly\":15,\"initialBuffCount\":0,\"initialCrabCount\":0,\"jungleCsBefore10Minutes\":4,\"junglerTakedownsNearDamagedEpicMonster\":0,\"kTurretsDestroyedBeforePlatesFall\":0,\"kda\":4.5,\"killAfterHiddenWithAlly\":3,\"killParticipation\":0.675,\"killedChampTookFullTeamDamageSurvived\":0,\"killingSprees\":2,\"killsNearEnemyTurret\":4,\"killsOnOtherLanesEarlyJungleAsLaner\":2,\"killsOnRecentlyHealedByAramPack\":0,\"killsUnderOwnTurret\":0,\"killsWithHelpFromEpicMonster\":0,\"knockEnemyIntoTeamAndKill\":0,\"landSkillShotsEarlyGame\":11,\"laneMinionsFirst10Minutes\":71,\"laningPhaseGoldExpAdvantage\":0,\"legendaryCount\":0,\"legendaryItemUsed\":[3068,2504,2502,3143],\"lostAnInhibitor\":0,\"maxCsAdvantageOnLaneOpponent\":40,\"maxKillDeficit\":0,\"maxLevelLeadLaneOpponent\":3,\"mejaisFullStackInTime\":0,\"moreEnemyJungleThanOpponent\":0,\"multiKillOneSpell\":0,\"multiTurretRiftHeraldCount\":0,\"multikills\":2,\"multikillsAfterAggressiveFlash\":0,\"outerTurretExecutesBefore10Minutes\":0,\"outnumberedKills\":3,\"outnumberedNexusKill\":0,\"perfectDragonSoulsTaken\":0,\"perfectGame\":0,\"pickKillWithAlly\":21,\"playedChampSelectPosition\":1,\"poroExplosions\":0,\"quickCleanse\":0,\"quickFirstTurret\":0,\"quickSoloKills\":0,\"riftHeraldTakedowns\":0,\"saveAllyFromDeath\":1,\"scuttleCrabKills\":0,\"shortestTimeToAceFromFirstTakedown\":28.05149090000009,\"skillshotsDodged\":32,\"skillshotsHit\":81,\"snowballsHit\":0,\"soloBaronKills\":0,\"soloKills\":4,\"stealthWardsPlaced\":12,\"survivedSingleDigitHpCount\":0,\"survivedThreeImmobilizesInFight\":11,\"takedownOnFirstTurret\":0,\"takedowns\":27,\"takedownsAfterGainingLevelAdvantage\":0,\"takedownsBeforeJungleMinionSpawn\":0,\"takedownsFirstXMinutes\":7,\"takedownsInAlcove\":0,\"takedownsInEnemyFountain\":0,\"teamBaronKills\":1,\"teamDamagePercentage\":0.3548592330160021,\"teamElderDragonKills\":0,\"teamRiftHeraldKills\":1,\"teleportTakedowns\":1,\"tookLargeDamageSurvived\":4,\"turretPlatesTaken\":2,\"turretTakedowns\":0,\"turretsTakenWithRiftHerald\":0,\"twentyMinionsIn3SecondsCount\":0,\"twoWardsOneSweeperCount\":0,\"unseenRecalls\":0,\"visionScoreAdvantageLaneOpponent\":0.12328159809112549,\"visionScorePerMinute\":0.5515178015750896,\"wardTakedowns\":0,\"wardTakedownsBefore20M\":0,\"wardsGuarded\":1},\"champExperience\":19704,\"champLevel\":18,\"championId\":3,\"championName\":\"Galio\",\"championTransform\":0,\"commandPings\":7,\"consumablesPurchased\":3,\"damageDealtToBuildings\":223,\"damageDealtToObjectives\":2867,\"damageDealtToTurrets\":223,\"damageSelfMitigated\":139836,\"dangerPings\":0,\"deaths\":6,\"detectorWardsPlaced\":0,\"doubleKills\":1,\"dragonKills\":1,\"eligibleForProgression\":true,\"enemyMissingPings\":7,\"enemyVisionPings\":4,\"firstBloodAssist\":false,\"firstBloodKill\":true,\"firstTowerAssist\":false,\"firstTowerKill\":false,\"gameEndedInEarlySurrender\":false,\"gameEndedInSurrender\":false,\"getBackPings\":0,\"goldEarned\":15174,\"goldSpent\":15150,\"holdPings\":0,\"individualPosition\":\"MIDDLE\",\"inhibitorKills\":0,\"inhibitorTakedowns\":0,\"inhibitorsLost\":1,\"item0\":2502,\"item1\":3143,\"item2\":2421,\"item3\":2504,\"item4\":3068,\"item5\":3047,\"item6\":3340,\"itemsPurchased\":22,\"killingSprees\":2,\"kills\":12,\"lane\":\"MIDDLE\",\"largestCriticalStrike\":0,\"largestKillingSpree\":6,\"largestMultiKill\":3,\"longestTimeSpentLiving\":777,\"magicDamageDealt\":153873,\"magicDamageDealtToChampions\":40055,\"magicDamageTaken\":21110,\"missions\":{\"playerScore0\":0,\"playerScore1\":0,\"playerScore10\":0,\"playerScore11\":0,\"playerScore2\":0,\"playerScore3\":0,\"playerScore4\":0,\"playerScore5\":0,\"playerScore6\":0,\"playerScore7\":0,\"playerScore8\":0,\"playerScore9\":0},\"needVisionPings\":0,\"neutralMinionsKilled\":9,\"nexusKills\":0,\"nexusLost\":1,\"nexusTakedowns\":0,\"objectivesStolen\":0,\"objectivesStolenAssists\":0,\"onMyWayPings\":8,\"participantId\":3,\"pentaKills\":0,\"perks\":{\"statPerks\":{\"defense\":5002,\"flex\":5002,\"offense\":5008},\"styles\":[{\"description\":\"primaryStyle\",\"selections\":[{\"perk\":8439,\"var1\":2208,\"var2\":2102,\"var3\":0},{\"perk\":8401,\"var1\":1033,\"var2\":0,\"var3\":0},{\"perk\":8444,\"var1\":3323,\"var2\":0,\"var3\":0},{\"perk\":8451,\"var1\":280,\"var2\":0,\"var3\":0}],\"style\":8400},{\"description\":\"subStyle\",\"selections\":[{\"perk\":8275,\"var1\":11,\"var2\":0,\"var3\":0},{\"perk\":8210,\"var1\":43,\"var2\":0,\"var3\":0}],\"style\":8200}]},\"physicalDamageDealt\":7470,\"physicalDamageDealtToChampions\":1034,\"physicalDamageTaken\":31665,\"placement\":0,\"playerAugment1\":0,\"playerAugment2\":0,\"playerAugment3\":0,\"playerAugment4\":0,\"playerScore0\":0,\"playerScore1\":0,\"playerScore10\":0,\"playerScore11\":0,\"playerScore2\":0,\"playerScore3\":0,\"playerScore4\":0,\"playerScore5\":0,\"playerScore6\":0,\"playerScore7\":0,\"playerScore8\":0,\"playerScore9\":0,\"playerSubteamId\":0,\"profileIcon\":6271,\"pushPings\":0,\"puuid\":\"VnbzIL6pFXWJxOoMxeaAJ4yOgigM0YC3VkY9KlGz2TcdFf67mVUf9Kg3JA42PHbzTrseflM_yu-FcQ\",\"quadraKills\":0,\"riotIdGameName\":\"Takumi D\",\"riotIdTagline\":\"0000\",\"role\":\"SOLO\",\"sightWardsBoughtInGame\":0,\"spell1Casts\":108,\"spell2Casts\":41,\"spell3Casts\":84,\"spell4Casts\":6,\"subteamPlacement\":0,\"summoner1Casts\":5,\"summoner1Id\":12,\"summoner2Casts\":6,\"summoner2Id\":4,\"summonerId\":\"J-ufPHbuxRnhq-t-RQ2aVzEb-yT0cANM0LmkqfomUf58ZLE\",\"summonerLevel\":534,\"summonerName\":\"Takumi D\",\"teamEarlySurrendered\":false,\"teamId\":100,\"teamPosition\":\"MIDDLE\",\"timeCCingOthers\":65,\"timePlayed\":2171,\"totalAllyJungleMinionsKilled\":2,\"totalDamageDealt\":165031,\"totalDamageDealtToChampions\":42284,\"totalDamageShieldedOnTeammates\":1385,\"totalDamageTaken\":55221,\"totalEnemyJungleMinionsKilled\":3,\"totalHeal\":12298,\"totalHealsOnTeammates\":0,\"totalMinionsKilled\":187,\"totalTimeCCDealt\":197,\"totalTimeSpentDead\":218,\"totalUnitsHealed\":1,\"tripleKills\":1,\"trueDamageDealt\":3688,\"trueDamageDealtToChampions\":1194,\"trueDamageTaken\":2445,\"turretKills\":0,\"turretTakedowns\":0,\"turretsLost\":9,\"unrealKills\":0,\"visionClearedPings\":0,\"visionScore\":19,\"visionWardsBoughtInGame\":0,\"wardsKilled\":0,\"wardsPlaced\":12,\"win\":false},{\"allInPings\":0,\"assistMePings\":0,\"assists\":7,\"baronKills\":0,\"basicPings\":0,\"bountyLevel\":1,\"challenges\":{\"12AssistStreakCount\":0,\"abilityUses\":100,\"acesBefore15Minutes\":0,\"alliedJungleMonsterKills\":1,\"baronBuffGoldAdvantageOverThreshold\":1,\"baronTakedowns\":0,\"blastConeOppositeOpponentCount\":0,\"bountyGold\":750,\"buffsStolen\":0,\"completeSupportQuestInTime\":0,\"controlWardsPlaced\":0,\"damagePerMinute\":1046.8100553301088,\"damageTakenOnTeamPercentage\":0.1499506545990976,\"dancedWithRiftHerald\":0,\"deathsByEnemyChamps\":6,\"dodgeSkillShotsSmallWindow\":0,\"doubleAces\":0,\"dragonTakedowns\":0,\"earliestBaron\":1692.8634494,\"earlyLaningPhaseGoldExpAdvantage\":0,\"effectiveHealAndShielding\":0,\"elderDragonKillsWithOpposingSoul\":0,\"elderDragonMultikills\":0,\"enemyChampionImmobilizations\":0,\"enemyJungleMonsterKills\":0,\"epicMonsterKillsNearEnemyJungler\":0,\"epicMonsterKillsWithin30SecondsOfSpawn\":0,\"epicMonsterSteals\":0,\"epicMonsterStolenWithoutSmite\":0,\"fastestLegendary\":1988.3899427,\"firstTurretKilled\":0,\"flawlessAces\":0,\"fullTeamTakedown\":0,\"gameLength\":2171.8168219,\"getTakedownsInAllLanesEarlyJungleAsLaner\":0,\"goldPerMinute\":484.5355332289868,\"hadOpenNexus\":0,\"immobilizeAndKillWithAlly\":0,\"initialBuffCount\":0,\"initialCrabCount\":0,\"jungleCsBefore10Minutes\":0,\"junglerTakedownsNearDamagedEpicMonster\":0,\"kTurretsDestroyedBeforePlatesFall\":0,\"kda\":3.8333333333333335,\"killAfterHiddenWithAlly\":4,\"killParticipation\":0.575,\"killedChampTookFullTeamDamageSurvived\":0,\"killingSprees\":2,\"killsNearEnemyTurret\":0,\"killsOnOtherLanesEarlyJungleAsLaner\":1,\"killsOnRecentlyHealedByAramPack\":0,\"killsUnderOwnTurret\":2,\"killsWithHelpFromEpicMonster\":0,\"knockEnemyIntoTeamAndKill\":0,\"landSkillShotsEarlyGame\":3,\"laneMinionsFirst10Minutes\":44,\"laningPhaseGoldExpAdvantage\":0,\"legendaryCount\":1,\"legendaryItemUsed\":[3153,3302,3124,2504,6672],\"lostAnInhibitor\":0,\"maxCsAdvantageOnLaneOpponent\":5.25,\"maxKillDeficit\":0,\"maxLevelLeadLaneOpponent\":2,\"mejaisFullStackInTime\":0,\"moreEnemyJungleThanOpponent\":0,\"multiKillOneSpell\":0,\"multiTurretRiftHeraldCount\":0,\"multikills\":3,\"multikillsAfterAggressiveFlash\":0,\"outerTurretExecutesBefore10Minutes\":0,\"outnumberedKills\":3,\"outnumberedNexusKill\":0,\"perfectDragonSoulsTaken\":0,\"perfectGame\":0,\"pickKillWithAlly\":18,\"playedChampSelectPosition\":1,\"poroExplosions\":0,\"quickCleanse\":0,\"quickFirstTurret\":0,\"quickSoloKills\":0,\"riftHeraldTakedowns\":0,\"saveAllyFromDeath\":0,\"scuttleCrabKills\":0,\"shortestTimeToAceFromFirstTakedown\":28.05149090000009,\"skillshotsDodged\":21,\"skillshotsHit\":16,\"snowballsHit\":0,\"soloBaronKills\":0,\"soloKills\":2,\"stealthWardsPlaced\":6,\"survivedSingleDigitHpCount\":0,\"survivedThreeImmobilizesInFight\":1,\"takedownOnFirstTurret\":0,\"takedowns\":23,\"takedownsAfterGainingLevelAdvantage\":0,\"takedownsBeforeJungleMinionSpawn\":0,\"takedownsFirstXMinutes\":5,\"takedownsInAlcove\":2,\"takedownsInEnemyFountain\":0,\"teamBaronKills\":1,\"teamDamagePercentage\":0.3179926669055474,\"teamElderDragonKills\":0,\"teamRiftHeraldKills\":1,\"tookLargeDamageSurvived\":0,\"turretPlatesTaken\":1,\"turretTakedowns\":0,\"turretsTakenWithRiftHerald\":0,\"twentyMinionsIn3SecondsCount\":0,\"twoWardsOneSweeperCount\":0,\"unseenRecalls\":0,\"visionScoreAdvantageLaneOpponent\":-0.5444542169570923,\"visionScorePerMinute\":0.47000227985804366,\"wardTakedowns\":3,\"wardTakedownsBefore20M\":0,\"wardsGuarded\":0},\"champExperience\":19417,\"champLevel\":18,\"championId\":96,\"championName\":\"KogMaw\",\"championTransform\":0,\"commandPings\":1,\"consumablesPurchased\":2,\"damageDealtToBuildings\":2251,\"damageDealtToObjectives\":2438,\"damageDealtToTurrets\":2251,\"damageSelfMitigated\":28714,\"dangerPings\":0,\"deaths\":6,\"detectorWardsPlaced\":0,\"doubleKills\":3,\"dragonKills\":0,\"eligibleForProgression\":true,\"enemyMissingPings\":5,\"enemyVisionPings\":0,\"firstBloodAssist\":false,\"firstBloodKill\":false,\"firstTowerAssist\":false,\"firstTowerKill\":false,\"gameEndedInEarlySurrender\":false,\"gameEndedInSurrender\":false,\"getBackPings\":0,\"goldEarned\":17538,\"goldSpent\":16750,\"holdPings\":0,\"individualPosition\":\"BOTTOM\",\"inhibitorKills\":0,\"inhibitorTakedowns\":0,\"inhibitorsLost\":1,\"item0\":3302,\"item1\":3006,\"item2\":3153,\"item3\":2504,\"item4\":6672,\"item5\":3124,\"item6\":3363,\"itemsPurchased\":26,\"killingSprees\":3,\"kills\":16,\"lane\":\"BOTTOM\",\"largestCriticalStrike\":470,\"largestKillingSpree\":8,\"largestMultiKill\":2,\"longestTimeSpentLiving\":601,\"magicDamageDealt\":50077,\"magicDamageDealtToChampions\":16234,\"magicDamageTaken\":12944,\"missions\":{\"playerScore0\":0,\"playerScore1\":0,\"playerScore10\":0,\"playerScore11\":0,\"playerScore2\":0,\"playerScore3\":0,\"playerScore4\":0,\"playerScore5\":0,\"playerScore6\":0,\"playerScore7\":0,\"playerScore8\":0,\"playerScore9\":0},\"needVisionPings\":0,\"neutralMinionsKilled\":4,\"nexusKills\":0,\"nexusLost\":1,\"nexusTakedowns\":0,\"objectivesStolen\":0,\"objectivesStolenAssists\":0,\"onMyWayPings\":8,\"participantId\":4,\"pentaKills\":0,\"perks\":{\"statPerks\":{\"defense\":5002,\"flex\":5008,\"offense\":5005},\"styles\":[{\"description\":\"primaryStyle\",\"selections\":[{\"perk\":8008,\"var1\":85,\"var2\":11,\"var3\":0},{\"perk\":9111,\"var1\":1662,\"var2\":460,\"var3\":0},{\"perk\":9103,\"var1\":22,\"var2\":10,\"var3\":0},{\"perk\":8299,\"var1\":603,\"var2\":0,\"var3\":0}],\"style\":8000},{\"description\":\"subStyle\",\"selections\":[{\"perk\":8429,\"var1\":66,\"var2\":12,\"var3\":13},{\"perk\":8451,\"var1\":237,\"var2\":0,\"var3\":0}],\"style\":8400}]},\"physicalDamageDealt\":114625,\"physicalDamageDealtToChampions\":17832,\"physicalDamageTaken\":20511,\"placement\":0,\"playerAugment1\":0,\"playerAugment2\":0,\"playerAugment3\":0,\"playerAugment4\":0,\"playerScore0\":0,\"playerScore1\":0,\"playerScore10\":0,\"playerScore11\":0,\"playerScore2\":0,\"playerScore3\":0,\"playerScore4\":0,\"playerScore5\":0,\"playerScore6\":0,\"playerScore7\":0,\"playerScore8\":0,\"playerScore9\":0,\"playerSubteamId\":0,\"profileIcon\":5468,\"pushPings\":0,\"puuid\":\"RPYtYTe4r08QikX2qNCALO5q3n9NU3d6FWeaNparmHEuCgcPaLtX-ag_uuM9lWBt2hLoU14OqcDJqA\",\"quadraKills\":0,\"riotIdGameName\":\"49 3 enjoyers\",\"riotIdTagline\":\"EUW\",\"role\":\"CARRY\",\"sightWardsBoughtInGame\":0,\"spell1Casts\":21,\"spell2Casts\":31,\"spell3Casts\":17,\"spell4Casts\":31,\"subteamPlacement\":0,\"summoner1Casts\":4,\"summoner1Id\":4,\"summoner2Casts\":3,\"summoner2Id\":3,\"summonerId\":\"RLzpVRRhKRkOE5ehG7eY2u9QJl6dVNXu8U8vNeWK2nOmCIlG\",\"summonerLevel\":280,\"summonerName\":\"49 3 enjoyers\",\"teamEarlySurrendered\":false,\"teamId\":100,\"teamPosition\":\"BOTTOM\",\"timeCCingOthers\":11,\"timePlayed\":2171,\"totalAllyJungleMinionsKilled\":4,\"totalDamageDealt\":179814,\"totalDamageDealtToChampions\":37891,\"totalDamageShieldedOnTeammates\":0,\"totalDamageTaken\":35067,\"totalEnemyJungleMinionsKilled\":0,\"totalHeal\":12768,\"totalHealsOnTeammates\":0,\"totalMinionsKilled\":219,\"totalTimeCCDealt\":296,\"totalTimeSpentDead\":150,\"totalUnitsHealed\":1,\"tripleKills\":0,\"trueDamageDealt\":15112,\"trueDamageDealtToChampions\":3824,\"trueDamageTaken\":1610,\"turretKills\":0,\"turretTakedowns\":0,\"turretsLost\":9,\"unrealKills\":0,\"visionClearedPings\":0,\"visionScore\":17,\"visionWardsBoughtInGame\":0,\"wardsKilled\":3,\"wardsPlaced\":9,\"win\":false},{\"allInPings\":1,\"assistMePings\":2,\"assists\":17,\"baronKills\":0,\"basicPings\":0,\"bountyLevel\":0,\"challenges\":{\"12AssistStreakCount\":1,\"abilityUses\":143,\"acesBefore15Minutes\":0,\"alliedJungleMonsterKills\":0,\"baronBuffGoldAdvantageOverThreshold\":1,\"baronTakedowns\":0,\"blastConeOppositeOpponentCount\":0,\"bountyGold\":0,\"buffsStolen\":0,\"completeSupportQuestInTime\":0,\"controlWardTimeCoverageInRiverOrEnemyHalf\":0.11474506965186144,\"controlWardsPlaced\":3,\"damagePerMinute\":204.9043691769809,\"damageTakenOnTeamPercentage\":0.15807235102790168,\"dancedWithRiftHerald\":0,\"deathsByEnemyChamps\":11,\"dodgeSkillShotsSmallWindow\":0,\"doubleAces\":0,\"dragonTakedowns\":0,\"earliestBaron\":1692.8634494,\"earlyLaningPhaseGoldExpAdvantage\":0,\"effectiveHealAndShielding\":4915.3681640625,\"elderDragonKillsWithOpposingSoul\":0,\"elderDragonMultikills\":0,\"enemyChampionImmobilizations\":25,\"enemyJungleMonsterKills\":0,\"epicMonsterKillsNearEnemyJungler\":0,\"epicMonsterKillsWithin30SecondsOfSpawn\":0,\"epicMonsterSteals\":0,\"epicMonsterStolenWithoutSmite\":0,\"firstTurretKilled\":0,\"flawlessAces\":0,\"fullTeamTakedown\":0,\"gameLength\":2171.8168219,\"getTakedownsInAllLanesEarlyJungleAsLaner\":0,\"goldPerMinute\":259.6835838520908,\"hadOpenNexus\":0,\"highestWardKills\":1,\"immobilizeAndKillWithAlly\":9,\"initialBuffCount\":0,\"initialCrabCount\":0,\"jungleCsBefore10Minutes\":0,\"junglerTakedownsNearDamagedEpicMonster\":0,\"kTurretsDestroyedBeforePlatesFall\":0,\"kda\":1.6363636363636365,\"killAfterHiddenWithAlly\":3,\"killParticipation\":0.45,\"killedChampTookFullTeamDamageSurvived\":0,\"killingSprees\":0,\"killsNearEnemyTurret\":1,\"killsOnOtherLanesEarlyJungleAsLaner\":0,\"killsOnRecentlyHealedByAramPack\":0,\"killsUnderOwnTurret\":0,\"killsWithHelpFromEpicMonster\":0,\"knockEnemyIntoTeamAndKill\":0,\"landSkillShotsEarlyGame\":3,\"laneMinionsFirst10Minutes\":16,\"laningPhaseGoldExpAdvantage\":0,\"legendaryCount\":0,\"legendaryItemUsed\":[3002,3050,8020],\"lostAnInhibitor\":0,\"maxCsAdvantageOnLaneOpponent\":9,\"maxKillDeficit\":0,\"maxLevelLeadLaneOpponent\":1,\"mejaisFullStackInTime\":0,\"moreEnemyJungleThanOpponent\":0,\"multiKillOneSpell\":0,\"multiTurretRiftHeraldCount\":0,\"multikills\":0,\"multikillsAfterAggressiveFlash\":0,\"outerTurretExecutesBefore10Minutes\":0,\"outnumberedKills\":0,\"outnumberedNexusKill\":0,\"perfectDragonSoulsTaken\":0,\"perfectGame\":0,\"pickKillWithAlly\":16,\"playedChampSelectPosition\":1,\"poroExplosions\":0,\"quickCleanse\":0,\"quickFirstTurret\":0,\"quickSoloKills\":0,\"riftHeraldTakedowns\":0,\"saveAllyFromDeath\":0,\"scuttleCrabKills\":0,\"shortestTimeToAceFromFirstTakedown\":28.05149090000009,\"skillshotsDodged\":22,\"skillshotsHit\":23,\"snowballsHit\":0,\"soloBaronKills\":0,\"soloKills\":0,\"stealthWardsPlaced\":20,\"survivedSingleDigitHpCount\":0,\"survivedThreeImmobilizesInFight\":1,\"takedownOnFirstTurret\":0,\"takedowns\":18,\"takedownsAfterGainingLevelAdvantage\":0,\"takedownsBeforeJungleMinionSpawn\":0,\"takedownsFirstXMinutes\":5,\"takedownsInAlcove\":0,\"takedownsInEnemyFountain\":0,\"teamBaronKills\":1,\"teamDamagePercentage\":0.062244421978388025,\"teamElderDragonKills\":0,\"teamRiftHeraldKills\":1,\"tookLargeDamageSurvived\":0,\"turretPlatesTaken\":0,\"turretTakedowns\":0,\"turretsTakenWithRiftHerald\":0,\"twentyMinionsIn3SecondsCount\":0,\"twoWardsOneSweeperCount\":1,\"unseenRecalls\":0,\"visionScoreAdvantageLaneOpponent\":0.20998787879943848,\"visionScorePerMinute\":2.3370462890380455,\"wardTakedowns\":15,\"wardTakedownsBefore20M\":5,\"wardsGuarded\":2},\"champExperience\":12302,\"champLevel\":14,\"championId\":497,\"championName\":\"Rakan\",\"championTransform\":0,\"commandPings\":12,\"consumablesPurchased\":6,\"damageDealtToBuildings\":0,\"damageDealtToObjectives\":0,\"damageDealtToTurrets\":0,\"damageSelfMitigated\":36928,\"dangerPings\":0,\"deaths\":11,\"detectorWardsPlaced\":3,\"doubleKills\":0,\"dragonKills\":0,\"eligibleForProgression\":true,\"enemyMissingPings\":11,\"enemyVisionPings\":0,\"firstBloodAssist\":false,\"firstBloodKill\":false,\"firstTowerAssist\":false,\"firstTowerKill\":false,\"gameEndedInEarlySurrender\":false,\"gameEndedInSurrender\":false,\"getBackPings\":0,\"goldEarned\":9399,\"goldSpent\":9100,\"holdPings\":0,\"individualPosition\":\"UTILITY\",\"inhibitorKills\":0,\"inhibitorTakedowns\":0,\"inhibitorsLost\":1,\"item0\":3158,\"item1\":3002,\"item2\":3869,\"item3\":3050,\"item4\":8020,\"item5\":2055,\"item6\":3364,\"itemsPurchased\":20,\"killingSprees\":0,\"kills\":1,\"lane\":\"BOTTOM\",\"largestCriticalStrike\":0,\"largestKillingSpree\":0,\"largestMultiKill\":1,\"longestTimeSpentLiving\":371,\"magicDamageDealt\":13153,\"magicDamageDealtToChampions\":5187,\"magicDamageTaken\":20292,\"missions\":{\"playerScore0\":0,\"playerScore1\":0,\"playerScore10\":0,\"playerScore11\":0,\"playerScore2\":0,\"playerScore3\":0,\"playerScore4\":0,\"playerScore5\":0,\"playerScore6\":0,\"playerScore7\":0,\"playerScore8\":0,\"playerScore9\":0},\"needVisionPings\":0,\"neutralMinionsKilled\":0,\"nexusKills\":0,\"nexusLost\":1,\"nexusTakedowns\":0,\"objectivesStolen\":0,\"objectivesStolenAssists\":0,\"onMyWayPings\":1,\"participantId\":5,\"pentaKills\":0,\"perks\":{\"statPerks\":{\"defense\":5002,\"flex\":5008,\"offense\":5008},\"styles\":[{\"description\":\"primaryStyle\",\"selections\":[{\"perk\":8465,\"var1\":3231,\"var2\":0,\"var3\":0},{\"perk\":8446,\"var1\":0,\"var2\":0,\"var3\":0},{\"perk\":8473,\"var1\":982,\"var2\":0,\"var3\":0},{\"perk\":8453,\"var1\":923,\"var2\":919,\"var3\":0}],\"style\":8400},{\"description\":\"subStyle\",\"selections\":[{\"perk\":8234,\"var1\":12124,\"var2\":0,\"var3\":0},{\"perk\":8275,\"var1\":10,\"var2\":0,\"var3\":0}],\"style\":8200}]},\"physicalDamageDealt\":6444,\"physicalDamageDealtToChampions\":1121,\"physicalDamageTaken\":15213,\"placement\":0,\"playerAugment1\":0,\"playerAugment2\":0,\"playerAugment3\":0,\"playerAugment4\":0,\"playerScore0\":0,\"playerScore1\":0,\"playerScore10\":0,\"playerScore11\":0,\"playerScore2\":0,\"playerScore3\":0,\"playerScore4\":0,\"playerScore5\":0,\"playerScore6\":0,\"playerScore7\":0,\"playerScore8\":0,\"playerScore9\":0,\"playerSubteamId\":0,\"profileIcon\":6455,\"pushPings\":0,\"puuid\":\"1MXlsiEgwnRYgQf3VmSvbxmEYZm3H_8-FGwa1he4WrWL_Uew-19s-gjqIX95yDcwbOR5gTvhFi7riw\",\"quadraKills\":0,\"riotIdGameName\":\"DOLLEX ENJOYER\",\"riotIdTagline\":\"EUW\",\"role\":\"SUPPORT\",\"sightWardsBoughtInGame\":0,\"spell1Casts\":41,\"spell2Casts\":45,\"spell3Casts\":48,\"spell4Casts\":9,\"subteamPlacement\":0,\"summoner1Casts\":6,\"summoner1Id\":14,\"summoner2Casts\":4,\"summoner2Id\":4,\"summonerId\":\"R2zJW-tMOSeILg5PbgRqS9bOdlhgAwli-JLUN1T5c40WATg\",\"summonerLevel\":556,\"summonerName\":\"DOLLEX ENJOYER\",\"teamEarlySurrendered\":false,\"teamId\":100,\"teamPosition\":\"UTILITY\",\"timeCCingOthers\":28,\"timePlayed\":2171,\"totalAllyJungleMinionsKilled\":0,\"totalDamageDealt\":23781,\"totalDamageDealtToChampions\":7416,\"totalDamageShieldedOnTeammates\":3795,\"totalDamageTaken\":36966,\"totalEnemyJungleMinionsKilled\":0,\"totalHeal\":7783,\"totalHealsOnTeammates\":1120,\"totalMinionsKilled\":39,\"totalTimeCCDealt\":113,\"totalTimeSpentDead\":311,\"totalUnitsHealed\":4,\"tripleKills\":0,\"trueDamageDealt\":4184,\"trueDamageDealtToChampions\":1108,\"trueDamageTaken\":1460,\"turretKills\":0,\"turretTakedowns\":0,\"turretsLost\":9,\"unrealKills\":0,\"visionClearedPings\":0,\"visionScore\":84,\"visionWardsBoughtInGame\":4,\"wardsKilled\":15,\"wardsPlaced\":23,\"win\":false},{\"allInPings\":0,\"assistMePings\":0,\"assists\":15,\"baronKills\":0,\"basicPings\":0,\"bountyLevel\":0,\"challenges\":{\"12AssistStreakCount\":1,\"abilityUses\":270,\"acesBefore15Minutes\":0,\"alliedJungleMonsterKills\":0,\"baronTakedowns\":0,\"blastConeOppositeOpponentCount\":0,\"bountyGold\":0,\"buffsStolen\":0,\"completeSupportQuestInTime\":0,\"controlWardTimeCoverageInRiverOrEnemyHalf\":0.492817729749255,\"controlWardsPlaced\":1,\"damagePerMinute\":883.3930879453973,\"damageTakenOnTeamPercentage\":0.2795421942612048,\"dancedWithRiftHerald\":0,\"deathsByEnemyChamps\":4,\"dodgeSkillShotsSmallWindow\":0,\"doubleAces\":0,\"dragonTakedowns\":1,\"earliestDragonTakedown\":1431.3826772,\"earlyLaningPhaseGoldExpAdvantage\":0,\"effectiveHealAndShielding\":0,\"elderDragonKillsWithOpposingSoul\":0,\"elderDragonMultikills\":0,\"enemyChampionImmobilizations\":96,\"enemyJungleMonsterKills\":0,\"epicMonsterKillsNearEnemyJungler\":0,\"epicMonsterKillsWithin30SecondsOfSpawn\":0,\"epicMonsterSteals\":0,\"epicMonsterStolenWithoutSmite\":0,\"firstTurretKilled\":1,\"firstTurretKilledTime\":702.0483415,\"flawlessAces\":0,\"fullTeamTakedown\":2,\"gameLength\":2171.8168219,\"getTakedownsInAllLanesEarlyJungleAsLaner\":0,\"goldPerMinute\":317.0395896741074,\"hadOpenNexus\":1,\"immobilizeAndKillWithAlly\":8,\"initialBuffCount\":0,\"initialCrabCount\":0,\"jungleCsBefore10Minutes\":0,\"junglerTakedownsNearDamagedEpicMonster\":0,\"kTurretsDestroyedBeforePlatesFall\":0,\"kda\":4,\"killAfterHiddenWithAlly\":1,\"killParticipation\":0.42105263157894735,\"killedChampTookFullTeamDamageSurvived\":0,\"killingSprees\":0,\"killsNearEnemyTurret\":0,\"killsOnOtherLanesEarlyJungleAsLaner\":0,\"killsOnRecentlyHealedByAramPack\":0,\"killsUnderOwnTurret\":0,\"killsWithHelpFromEpicMonster\":0,\"knockEnemyIntoTeamAndKill\":5,\"landSkillShotsEarlyGame\":6,\"laneMinionsFirst10Minutes\":74,\"laningPhaseGoldExpAdvantage\":0,\"legendaryCount\":0,\"legendaryItemUsed\":[3068,2502,3110],\"lostAnInhibitor\":1,\"maxCsAdvantageOnLaneOpponent\":24,\"maxKillDeficit\":8,\"maxLevelLeadLaneOpponent\":1,\"mejaisFullStackInTime\":0,\"moreEnemyJungleThanOpponent\":0,\"multiKillOneSpell\":0,\"multiTurretRiftHeraldCount\":0,\"multikills\":0,\"multikillsAfterAggressiveFlash\":0,\"outerTurretExecutesBefore10Minutes\":0,\"outnumberedKills\":1,\"outnumberedNexusKill\":0,\"perfectDragonSoulsTaken\":0,\"perfectGame\":0,\"pickKillWithAlly\":15,\"playedChampSelectPosition\":1,\"poroExplosions\":0,\"quickCleanse\":0,\"quickFirstTurret\":0,\"quickSoloKills\":0,\"riftHeraldTakedowns\":0,\"saveAllyFromDeath\":0,\"scuttleCrabKills\":0,\"skillshotsDodged\":6,\"skillshotsHit\":54,\"snowballsHit\":0,\"soloBaronKills\":0,\"soloKills\":0,\"soloTurretsLategame\":1,\"stealthWardsPlaced\":12,\"survivedSingleDigitHpCount\":0,\"survivedThreeImmobilizesInFight\":4,\"takedownOnFirstTurret\":0,\"takedowns\":16,\"takedownsAfterGainingLevelAdvantage\":0,\"takedownsBeforeJungleMinionSpawn\":0,\"takedownsFirstXMinutes\":2,\"takedownsInAlcove\":0,\"takedownsInEnemyFountain\":0,\"teamBaronKills\":0,\"teamDamagePercentage\":0.1811212621042531,\"teamElderDragonKills\":0,\"teamRiftHeraldKills\":0,\"tookLargeDamageSurvived\":1,\"turretPlatesTaken\":4,\"turretTakedowns\":2,\"turretsTakenWithRiftHerald\":0,\"twentyMinionsIn3SecondsCount\":0,\"twoWardsOneSweeperCount\":0,\"unseenRecalls\":0,\"visionScoreAdvantageLaneOpponent\":-0.1750907301902771,\"visionScorePerMinute\":0.567509950253036,\"wardTakedowns\":0,\"wardTakedownsBefore20M\":0,\"wardsGuarded\":0},\"champExperience\":17518,\"champLevel\":17,\"championId\":516,\"championName\":\"Ornn\",\"championTransform\":0,\"commandPings\":2,\"consumablesPurchased\":2,\"damageDealtToBuildings\":4385,\"damageDealtToObjectives\":4964,\"damageDealtToTurrets\":4385,\"damageSelfMitigated\":53435,\"dangerPings\":0,\"deaths\":4,\"detectorWardsPlaced\":1,\"doubleKills\":0,\"dragonKills\":0,\"eligibleForProgression\":true,\"enemyMissingPings\":10,\"enemyVisionPings\":4,\"firstBloodAssist\":false,\"firstBloodKill\":false,\"firstTowerAssist\":false,\"firstTowerKill\":false,\"gameEndedInEarlySurrender\":false,\"gameEndedInSurrender\":false,\"getBackPings\":2,\"goldEarned\":11475,\"goldSpent\":10775,\"holdPings\":0,\"individualPosition\":\"TOP\",\"inhibitorKills\":0,\"inhibitorTakedowns\":1,\"inhibitorsLost\":1,\"item0\":3110,\"item1\":3068,\"item2\":3047,\"item3\":7034,\"item4\":1031,\"item5\":3076,\"item6\":3340,\"itemsPurchased\":18,\"killingSprees\":0,\"kills\":1,\"lane\":\"TOP\",\"largestCriticalStrike\":3,\"largestKillingSpree\":0,\"largestMultiKill\":1,\"longestTimeSpentLiving\":858,\"magicDamageDealt\":73884,\"magicDamageDealtToChampions\":21596,\"magicDamageTaken\":22938,\"missions\":{\"playerScore0\":0,\"playerScore1\":0,\"playerScore10\":0,\"playerScore11\":0,\"playerScore2\":0,\"playerScore3\":0,\"playerScore4\":0,\"playerScore5\":0,\"playerScore6\":0,\"playerScore7\":0,\"playerScore8\":0,\"playerScore9\":0},\"needVisionPings\":0,\"neutralMinionsKilled\":0,\"nexusKills\":0,\"nexusLost\":0,\"nexusTakedowns\":1,\"objectivesStolen\":0,\"objectivesStolenAssists\":0,\"onMyWayPings\":0,\"participantId\":6,\"pentaKills\":0,\"perks\":{\"statPerks\":{\"defense\":5001,\"flex\":5002,\"offense\":5007},\"styles\":[{\"description\":\"primaryStyle\",\"selections\":[{\"perk\":8437,\"var1\":2428,\"var2\":1848,\"var3\":0},{\"perk\":8446,\"var1\":2252,\"var2\":0,\"var3\":0},{\"perk\":8473,\"var1\":868,\"var2\":0,\"var3\":0},{\"perk\":8451,\"var1\":290,\"var2\":0,\"var3\":0}],\"style\":8400},{\"description\":\"subStyle\",\"selections\":[{\"perk\":8345,\"var1\":3,\"var2\":0,\"var3\":0},{\"perk\":8304,\"var1\":12,\"var2\":0,\"var3\":0}],\"style\":8300}]},\"physicalDamageDealt\":77751,\"physicalDamageDealtToChampions\":10379,\"physicalDamageTaken\":15606,\"placement\":0,\"playerAugment1\":0,\"playerAugment2\":0,\"playerAugment3\":0,\"playerAugment4\":0,\"playerScore0\":0,\"playerScore1\":0,\"playerScore10\":0,\"playerScore11\":0,\"playerScore2\":0,\"playerScore3\":0,\"playerScore4\":0,\"playerScore5\":0,\"playerScore6\":0,\"playerScore7\":0,\"playerScore8\":0,\"playerScore9\":0,\"playerSubteamId\":0,\"profileIcon\":1296,\"pushPings\":0,\"puuid\":\"dxoUWrKBlQB9xP7tDH3nR4yF8FwOpBnMgXP-GIE6n80nHNuaw8ZTVDJxX8Xdw7ZE8d6c-9MnifVJrw\",\"quadraKills\":0,\"riotIdGameName\":\"hatsune miku\",\"riotIdTagline\":\"999\",\"role\":\"SOLO\",\"sightWardsBoughtInGame\":0,\"spell1Casts\":112,\"spell2Casts\":78,\"spell3Casts\":57,\"spell4Casts\":23,\"subteamPlacement\":0,\"summoner1Casts\":4,\"summoner1Id\":4,\"summoner2Casts\":5,\"summoner2Id\":12,\"summonerId\":\"fzni3JgU1zkhM2CsetTCLDRMVOsMm-Z6mx2mMgSwdFvvFZk\",\"summonerLevel\":564,\"summonerName\":\"inugami korone\",\"teamEarlySurrendered\":false,\"teamId\":200,\"teamPosition\":\"TOP\",\"timeCCingOthers\":66,\"timePlayed\":2171,\"totalAllyJungleMinionsKilled\":0,\"totalDamageDealt\":163460,\"totalDamageDealtToChampions\":31976,\"totalDamageShieldedOnTeammates\":0,\"totalDamageTaken\":40539,\"totalEnemyJungleMinionsKilled\":0,\"totalHeal\":7480,\"totalHealsOnTeammates\":0,\"totalMinionsKilled\":205,\"totalTimeCCDealt\":942,\"totalTimeSpentDead\":188,\"totalUnitsHealed\":1,\"tripleKills\":0,\"trueDamageDealt\":11824,\"trueDamageDealtToChampions\":0,\"trueDamageTaken\":1994,\"turretKills\":1,\"turretTakedowns\":2,\"turretsLost\":8,\"unrealKills\":0,\"visionClearedPings\":0,\"visionScore\":20,\"visionWardsBoughtInGame\":1,\"wardsKilled\":0,\"wardsPlaced\":13,\"win\":true},{\"allInPings\":0,\"assistMePings\":1,\"assists\":8,\"baronKills\":0,\"basicPings\":0,\"bountyLevel\":0,\"challenges\":{\"12AssistStreakCount\":0,\"abilityUses\":365,\"acesBefore15Minutes\":0,\"alliedJungleMonsterKills\":92,\"baronTakedowns\":0,\"blastConeOppositeOpponentCount\":0,\"bountyGold\":0,\"buffsStolen\":0,\"completeSupportQuestInTime\":0,\"controlWardsPlaced\":1,\"damagePerMinute\":744.1104720844689,\"damageTakenOnTeamPercentage\":0.2417350230149732,\"dancedWithRiftHerald\":0,\"deathsByEnemyChamps\":10,\"dodgeSkillShotsSmallWindow\":0,\"doubleAces\":0,\"dragonTakedowns\":2,\"earliestDragonTakedown\":1105.2737872999999,\"earlyLaningPhaseGoldExpAdvantage\":0,\"effectiveHealAndShielding\":0,\"elderDragonKillsWithOpposingSoul\":0,\"elderDragonMultikills\":0,\"enemyChampionImmobilizations\":18,\"enemyJungleMonsterKills\":15,\"epicMonsterKillsNearEnemyJungler\":0,\"epicMonsterKillsWithin30SecondsOfSpawn\":0,\"epicMonsterSteals\":1,\"epicMonsterStolenWithoutSmite\":0,\"firstTurretKilled\":1,\"firstTurretKilledTime\":702.0483415,\"flawlessAces\":0,\"fullTeamTakedown\":2,\"gameLength\":2171.8168219,\"goldPerMinute\":351.6985306744345,\"hadOpenNexus\":1,\"immobilizeAndKillWithAlly\":4,\"initialBuffCount\":2,\"initialCrabCount\":2,\"jungleCsBefore10Minutes\":68.50000008940697,\"junglerKillsEarlyJungle\":0,\"junglerTakedownsNearDamagedEpicMonster\":0,\"kTurretsDestroyedBeforePlatesFall\":0,\"kda\":1.5,\"killAfterHiddenWithAlly\":1,\"killParticipation\":0.39473684210526316,\"killedChampTookFullTeamDamageSurvived\":0,\"killingSprees\":0,\"killsNearEnemyTurret\":1,\"killsOnLanersEarlyJungleAsJungler\":0,\"killsOnRecentlyHealedByAramPack\":0,\"killsUnderOwnTurret\":0,\"killsWithHelpFromEpicMonster\":1,\"knockEnemyIntoTeamAndKill\":0,\"landSkillShotsEarlyGame\":3,\"laneMinionsFirst10Minutes\":0,\"laningPhaseGoldExpAdvantage\":0,\"legendaryCount\":0,\"legendaryItemUsed\":[4646,6655,3116],\"lostAnInhibitor\":1,\"maxCsAdvantageOnLaneOpponent\":30.19999998807907,\"maxKillDeficit\":8,\"maxLevelLeadLaneOpponent\":1,\"mejaisFullStackInTime\":0,\"moreEnemyJungleThanOpponent\":-47.50000008940697,\"multiKillOneSpell\":0,\"multiTurretRiftHeraldCount\":0,\"multikills\":0,\"multikillsAfterAggressiveFlash\":0,\"outerTurretExecutesBefore10Minutes\":0,\"outnumberedKills\":4,\"outnumberedNexusKill\":0,\"perfectDragonSoulsTaken\":0,\"perfectGame\":0,\"pickKillWithAlly\":13,\"playedChampSelectPosition\":1,\"poroExplosions\":0,\"quickCleanse\":0,\"quickFirstTurret\":0,\"quickSoloKills\":0,\"riftHeraldTakedowns\":0,\"saveAllyFromDeath\":0,\"scuttleCrabKills\":5,\"shortestTimeToAceFromFirstTakedown\":23.94701550000036,\"skillshotsDodged\":12,\"skillshotsHit\":28,\"snowballsHit\":0,\"soloBaronKills\":0,\"soloKills\":2,\"stealthWardsPlaced\":14,\"survivedSingleDigitHpCount\":0,\"survivedThreeImmobilizesInFight\":6,\"takedownOnFirstTurret\":0,\"takedowns\":15,\"takedownsAfterGainingLevelAdvantage\":0,\"takedownsBeforeJungleMinionSpawn\":0,\"takedownsFirstXMinutes\":3,\"takedownsInAlcove\":0,\"takedownsInEnemyFountain\":0,\"teamBaronKills\":0,\"teamDamagePercentage\":0.15256427709026973,\"teamElderDragonKills\":0,\"teamRiftHeraldKills\":0,\"tookLargeDamageSurvived\":0,\"turretPlatesTaken\":0,\"turretTakedowns\":0,\"turretsTakenWithRiftHerald\":0,\"twentyMinionsIn3SecondsCount\":0,\"twoWardsOneSweeperCount\":0,\"unseenRecalls\":0,\"visionScoreAdvantageLaneOpponent\":1.8206024169921875,\"visionScorePerMinute\":1.1325905132627154,\"wardTakedowns\":1,\"wardTakedownsBefore20M\":0,\"wardsGuarded\":0},\"champExperience\":15901,\"champLevel\":16,\"championId\":63,\"championName\":\"Brand\",\"championTransform\":0,\"commandPings\":3,\"consumablesPurchased\":2,\"damageDealtToBuildings\":0,\"damageDealtToObjectives\":33202,\"damageDealtToTurrets\":0,\"damageSelfMitigated\":18605,\"dangerPings\":0,\"deaths\":10,\"detectorWardsPlaced\":1,\"doubleKills\":0,\"dragonKills\":2,\"eligibleForProgression\":true,\"enemyMissingPings\":6,\"enemyVisionPings\":2,\"firstBloodAssist\":false,\"firstBloodKill\":false,\"firstTowerAssist\":false,\"firstTowerKill\":false,\"gameEndedInEarlySurrender\":false,\"gameEndedInSurrender\":false,\"getBackPings\":0,\"goldEarned\":12730,\"goldSpent\":12500,\"holdPings\":0,\"individualPosition\":\"JUNGLE\",\"inhibitorKills\":0,\"inhibitorTakedowns\":0,\"inhibitorsLost\":1,\"item0\":4646,\"item1\":3116,\"item2\":7013,\"item3\":3020,\"item4\":4630,\"item5\":0,\"item6\":3340,\"itemsPurchased\":22,\"killingSprees\":1,\"kills\":7,\"lane\":\"JUNGLE\",\"largestCriticalStrike\":0,\"largestKillingSpree\":2,\"largestMultiKill\":1,\"longestTimeSpentLiving\":498,\"magicDamageDealt\":205003,\"magicDamageDealtToChampions\":23188,\"magicDamageTaken\":12642,\"missions\":{\"playerScore0\":0,\"playerScore1\":0,\"playerScore10\":0,\"playerScore11\":0,\"playerScore2\":0,\"playerScore3\":0,\"playerScore4\":0,\"playerScore5\":0,\"playerScore6\":0,\"playerScore7\":0,\"playerScore8\":0,\"playerScore9\":0},\"needVisionPings\":0,\"neutralMinionsKilled\":184,\"nexusKills\":0,\"nexusLost\":0,\"nexusTakedowns\":0,\"objectivesStolen\":1,\"objectivesStolenAssists\":0,\"onMyWayPings\":1,\"participantId\":7,\"pentaKills\":0,\"perks\":{\"statPerks\":{\"defense\":5002,\"flex\":5008,\"offense\":5007},\"styles\":[{\"description\":\"primaryStyle\",\"selections\":[{\"perk\":8128,\"var1\":1443,\"var2\":20,\"var3\":0},{\"perk\":8126,\"var1\":1440,\"var2\":0,\"var3\":0},{\"perk\":8138,\"var1\":30,\"var2\":0,\"var3\":0},{\"perk\":8105,\"var1\":13,\"var2\":5,\"var3\":0}],\"style\":8100},{\"description\":\"subStyle\",\"selections\":[{\"perk\":8347,\"var1\":0,\"var2\":0,\"var3\":0},{\"perk\":8304,\"var1\":9,\"var2\":4,\"var3\":5}],\"style\":8300}]},\"physicalDamageDealt\":15187,\"physicalDamageDealtToChampions\":532,\"physicalDamageTaken\":21111,\"placement\":0,\"playerAugment1\":0,\"playerAugment2\":0,\"playerAugment3\":0,\"playerAugment4\":0,\"playerScore0\":0,\"playerScore1\":0,\"playerScore10\":0,\"playerScore11\":0,\"playerScore2\":0,\"playerScore3\":0,\"playerScore4\":0,\"playerScore5\":0,\"playerScore6\":0,\"playerScore7\":0,\"playerScore8\":0,\"playerScore9\":0,\"playerSubteamId\":0,\"profileIcon\":5368,\"pushPings\":1,\"puuid\":\"n0eI8uzwTTAg6dQgpQTQN-LLfdU3_SKHszG0sGs1UiJx1l611YAjlQGLr6HENdlC1ZZYQ9ZiTfGUzw\",\"quadraKills\":0,\"riotIdGameName\":\"Not Simon\",\"riotIdTagline\":\"EUW\",\"role\":\"NONE\",\"sightWardsBoughtInGame\":0,\"spell1Casts\":135,\"spell2Casts\":116,\"spell3Casts\":97,\"spell4Casts\":17,\"subteamPlacement\":0,\"summoner1Casts\":5,\"summoner1Id\":4,\"summoner2Casts\":21,\"summoner2Id\":11,\"summonerId\":\"aSaFsPEmtoVFz6SQzGIjsGoZHn4Otw67YxDWTE8bA84W-Wgl\",\"summonerLevel\":341,\"summonerName\":\"Not Simon\",\"teamEarlySurrendered\":false,\"teamId\":200,\"teamPosition\":\"JUNGLE\",\"timeCCingOthers\":42,\"timePlayed\":2171,\"totalAllyJungleMinionsKilled\":132,\"totalDamageDealt\":301034,\"totalDamageDealtToChampions\":26934,\"totalDamageShieldedOnTeammates\":0,\"totalDamageTaken\":35056,\"totalEnemyJungleMinionsKilled\":12,\"totalHeal\":11539,\"totalHealsOnTeammates\":0,\"totalMinionsKilled\":29,\"totalTimeCCDealt\":407,\"totalTimeSpentDead\":355,\"totalUnitsHealed\":1,\"tripleKills\":0,\"trueDamageDealt\":80844,\"trueDamageDealtToChampions\":3213,\"trueDamageTaken\":1302,\"turretKills\":0,\"turretTakedowns\":0,\"turretsLost\":8,\"unrealKills\":0,\"visionClearedPings\":0,\"visionScore\":40,\"visionWardsBoughtInGame\":2,\"wardsKilled\":1,\"wardsPlaced\":15,\"win\":true},{\"allInPings\":1,\"assistMePings\":6,\"assists\":8,\"baronKills\":0,\"basicPings\":0,\"bountyLevel\":3,\"challenges\":{\"12AssistStreakCount\":0,\"abilityUses\":416,\"acesBefore15Minutes\":0,\"alliedJungleMonsterKills\":1,\"baronTakedowns\":0,\"blastConeOppositeOpponentCount\":0,\"bountyGold\":0,\"buffsStolen\":0,\"completeSupportQuestInTime\":0,\"controlWardsPlaced\":0,\"damagePerMinute\":834.5631648284361,\"damageTakenOnTeamPercentage\":0.18904003129520264,\"dancedWithRiftHerald\":0,\"deathsByEnemyChamps\":12,\"dodgeSkillShotsSmallWindow\":0,\"doubleAces\":0,\"dragonTakedowns\":0,\"earlyLaningPhaseGoldExpAdvantage\":0,\"effectiveHealAndShielding\":0,\"elderDragonKillsWithOpposingSoul\":0,\"elderDragonMultikills\":0,\"enemyChampionImmobilizations\":22,\"enemyJungleMonsterKills\":0,\"epicMonsterKillsNearEnemyJungler\":0,\"epicMonsterKillsWithin30SecondsOfSpawn\":0,\"epicMonsterSteals\":0,\"epicMonsterStolenWithoutSmite\":0,\"firstTurretKilled\":1,\"firstTurretKilledTime\":702.0483415,\"flawlessAces\":0,\"fullTeamTakedown\":2,\"gameLength\":2171.8168219,\"getTakedownsInAllLanesEarlyJungleAsLaner\":0,\"goldPerMinute\":441.17126011772694,\"hadOpenNexus\":1,\"immobilizeAndKillWithAlly\":6,\"initialBuffCount\":0,\"initialCrabCount\":0,\"jungleCsBefore10Minutes\":0,\"junglerTakedownsNearDamagedEpicMonster\":0,\"kTurretsDestroyedBeforePlatesFall\":0,\"kda\":1.4166666666666667,\"killAfterHiddenWithAlly\":2,\"killParticipation\":0.4473684210526316,\"killedChampTookFullTeamDamageSurvived\":0,\"killingSprees\":2,\"killsNearEnemyTurret\":0,\"killsOnOtherLanesEarlyJungleAsLaner\":0,\"killsOnRecentlyHealedByAramPack\":0,\"killsUnderOwnTurret\":0,\"killsWithHelpFromEpicMonster\":1,\"knockEnemyIntoTeamAndKill\":5,\"landSkillShotsEarlyGame\":5,\"laneMinionsFirst10Minutes\":56,\"laningPhaseGoldExpAdvantage\":0,\"legendaryCount\":0,\"legendaryItemUsed\":[6699,3004,6694,3814],\"lostAnInhibitor\":1,\"maxCsAdvantageOnLaneOpponent\":6,\"maxKillDeficit\":8,\"maxLevelLeadLaneOpponent\":1,\"mejaisFullStackInTime\":0,\"moreEnemyJungleThanOpponent\":0,\"multiKillOneSpell\":0,\"multiTurretRiftHeraldCount\":0,\"multikills\":1,\"multikillsAfterAggressiveFlash\":0,\"outerTurretExecutesBefore10Minutes\":0,\"outnumberedKills\":0,\"outnumberedNexusKill\":0,\"perfectDragonSoulsTaken\":0,\"perfectGame\":0,\"pickKillWithAlly\":15,\"playedChampSelectPosition\":1,\"poroExplosions\":0,\"quickCleanse\":0,\"quickFirstTurret\":0,\"quickSoloKills\":0,\"riftHeraldTakedowns\":0,\"saveAllyFromDeath\":0,\"scuttleCrabKills\":0,\"shortestTimeToAceFromFirstTakedown\":23.94701550000036,\"skillshotsDodged\":20,\"skillshotsHit\":60,\"snowballsHit\":0,\"soloBaronKills\":0,\"soloKills\":1,\"soloTurretsLategame\":2,\"stealthWardsPlaced\":10,\"survivedSingleDigitHpCount\":0,\"survivedThreeImmobilizesInFight\":0,\"takedownOnFirstTurret\":0,\"takedowns\":17,\"takedownsAfterGainingLevelAdvantage\":0,\"takedownsBeforeJungleMinionSpawn\":0,\"takedownsFirstXMinutes\":3,\"takedownsInAlcove\":0,\"takedownsInEnemyFountain\":0,\"teamBaronKills\":0,\"teamDamagePercentage\":0.17110970844362008,\"teamElderDragonKills\":0,\"teamRiftHeraldKills\":0,\"teleportTakedowns\":2,\"tookLargeDamageSurvived\":0,\"turretPlatesTaken\":0,\"turretTakedowns\":4,\"turretsTakenWithRiftHerald\":0,\"twentyMinionsIn3SecondsCount\":0,\"twoWardsOneSweeperCount\":0,\"unseenRecalls\":0,\"visionScoreAdvantageLaneOpponent\":-0.10975134372711182,\"visionScorePerMinute\":0.4909879933352252,\"wardTakedowns\":0,\"wardTakedownsBefore20M\":0,\"wardsGuarded\":1},\"champExperience\":17450,\"champLevel\":17,\"championId\":126,\"championName\":\"Jayce\",\"championTransform\":0,\"commandPings\":7,\"consumablesPurchased\":1,\"damageDealtToBuildings\":11431,\"damageDealtToObjectives\":12751,\"damageDealtToTurrets\":11431,\"damageSelfMitigated\":21356,\"dangerPings\":0,\"deaths\":12,\"detectorWardsPlaced\":0,\"doubleKills\":1,\"dragonKills\":0,\"eligibleForProgression\":true,\"enemyMissingPings\":3,\"enemyVisionPings\":1,\"firstBloodAssist\":false,\"firstBloodKill\":false,\"firstTowerAssist\":false,\"firstTowerKill\":false,\"gameEndedInEarlySurrender\":false,\"gameEndedInSurrender\":false,\"getBackPings\":0,\"goldEarned\":15969,\"goldSpent\":13550,\"holdPings\":0,\"individualPosition\":\"MIDDLE\",\"inhibitorKills\":0,\"inhibitorTakedowns\":1,\"inhibitorsLost\":1,\"item0\":3047,\"item1\":6699,\"item2\":3042,\"item3\":6694,\"item4\":3814,\"item5\":0,\"item6\":3340,\"itemsPurchased\":17,\"killingSprees\":3,\"kills\":9,\"lane\":\"MIDDLE\",\"largestCriticalStrike\":0,\"largestKillingSpree\":3,\"largestMultiKill\":2,\"longestTimeSpentLiving\":307,\"magicDamageDealt\":12852,\"magicDamageDealtToChampions\":3513,\"magicDamageTaken\":13300,\"missions\":{\"playerScore0\":0,\"playerScore1\":0,\"playerScore10\":0,\"playerScore11\":0,\"playerScore2\":0,\"playerScore3\":0,\"playerScore4\":0,\"playerScore5\":0,\"playerScore6\":0,\"playerScore7\":0,\"playerScore8\":0,\"playerScore9\":0},\"needVisionPings\":1,\"neutralMinionsKilled\":4,\"nexusKills\":0,\"nexusLost\":0,\"nexusTakedowns\":1,\"objectivesStolen\":0,\"objectivesStolenAssists\":0,\"onMyWayPings\":0,\"participantId\":8,\"pentaKills\":0,\"perks\":{\"statPerks\":{\"defense\":5003,\"flex\":5008,\"offense\":5008},\"styles\":[{\"description\":\"primaryStyle\",\"selections\":[{\"perk\":8369,\"var1\":1057,\"var2\":1038,\"var3\":0},{\"perk\":8304,\"var1\":10,\"var2\":3,\"var3\":0},{\"perk\":8345,\"var1\":3,\"var2\":0,\"var3\":0},{\"perk\":8347,\"var1\":0,\"var2\":0,\"var3\":0}],\"style\":8300},{\"description\":\"subStyle\",\"selections\":[{\"perk\":8444,\"var1\":1251,\"var2\":0,\"var3\":0},{\"perk\":8242,\"var1\":137,\"var2\":0,\"var3\":0}],\"style\":8400}]},\"physicalDamageDealt\":132976,\"physicalDamageDealtToChampions\":25260,\"physicalDamageTaken\":12930,\"placement\":0,\"playerAugment1\":0,\"playerAugment2\":0,\"playerAugment3\":0,\"playerAugment4\":0,\"playerScore0\":0,\"playerScore1\":0,\"playerScore10\":0,\"playerScore11\":0,\"playerScore2\":0,\"playerScore3\":0,\"playerScore4\":0,\"playerScore5\":0,\"playerScore6\":0,\"playerScore7\":0,\"playerScore8\":0,\"playerScore9\":0,\"playerSubteamId\":0,\"profileIcon\":5382,\"pushPings\":1,\"puuid\":\"6sHKShM4yhPnIMrhUHQjuWVk9gJFJmlgEguUYma7NQxX7KP0RSmsUWY13hq6IKaDa6P12x-2DV4p4w\",\"quadraKills\":0,\"riotIdGameName\":\"Poli\",\"riotIdTagline\":\"2469\",\"role\":\"SOLO\",\"sightWardsBoughtInGame\":0,\"spell1Casts\":142,\"spell2Casts\":66,\"spell3Casts\":94,\"spell4Casts\":114,\"subteamPlacement\":0,\"summoner1Casts\":6,\"summoner1Id\":4,\"summoner2Casts\":5,\"summoner2Id\":12,\"summonerId\":\"6mIria3VyGwD6uwjO_CmhcGSXqn5jpcc41KkaJ41-aHZDnFlRZasU5pGUQ\",\"summonerLevel\":408,\"summonerName\":\"aPoly\",\"teamEarlySurrendered\":false,\"teamId\":200,\"teamPosition\":\"MIDDLE\",\"timeCCingOthers\":19,\"timePlayed\":2171,\"totalAllyJungleMinionsKilled\":4,\"totalDamageDealt\":147664,\"totalDamageDealtToChampions\":30208,\"totalDamageShieldedOnTeammates\":0,\"totalDamageTaken\":27414,\"totalEnemyJungleMinionsKilled\":0,\"totalHeal\":1418,\"totalHealsOnTeammates\":0,\"totalMinionsKilled\":186,\"totalTimeCCDealt\":201,\"totalTimeSpentDead\":387,\"totalUnitsHealed\":1,\"tripleKills\":0,\"trueDamageDealt\":1836,\"trueDamageDealtToChampions\":1434,\"trueDamageTaken\":1184,\"turretKills\":2,\"turretTakedowns\":4,\"turretsLost\":8,\"unrealKills\":0,\"visionClearedPings\":0,\"visionScore\":17,\"visionWardsBoughtInGame\":0,\"wardsKilled\":0,\"wardsPlaced\":11,\"win\":true},{\"allInPings\":1,\"assistMePings\":5,\"assists\":12,\"baronKills\":0,\"basicPings\":0,\"bountyLevel\":3,\"challenges\":{\"12AssistStreakCount\":0,\"abilityUses\":139,\"acesBefore15Minutes\":0,\"alliedJungleMonsterKills\":2,\"baronTakedowns\":0,\"blastConeOppositeOpponentCount\":0,\"bountyGold\":1275,\"buffsStolen\":0,\"completeSupportQuestInTime\":0,\"controlWardTimeCoverageInRiverOrEnemyHalf\":0.5595428580099442,\"controlWardsPlaced\":2,\"damagePerMinute\":1215.0142013088714,\"damageTakenOnTeamPercentage\":0.17481700222913404,\"dancedWithRiftHerald\":0,\"deathsByEnemyChamps\":7,\"dodgeSkillShotsSmallWindow\":0,\"doubleAces\":0,\"dragonTakedowns\":1,\"earliestDragonTakedown\":1431.3826772,\"earlyLaningPhaseGoldExpAdvantage\":0,\"effectiveHealAndShielding\":0,\"elderDragonKillsWithOpposingSoul\":0,\"elderDragonMultikills\":0,\"enemyChampionImmobilizations\":11,\"enemyJungleMonsterKills\":0,\"epicMonsterKillsNearEnemyJungler\":0,\"epicMonsterKillsWithin30SecondsOfSpawn\":0,\"epicMonsterSteals\":0,\"epicMonsterStolenWithoutSmite\":0,\"firstTurretKilled\":1,\"firstTurretKilledTime\":702.0483415,\"flawlessAces\":0,\"fullTeamTakedown\":2,\"gameLength\":2171.8168219,\"getTakedownsInAllLanesEarlyJungleAsLaner\":0,\"goldPerMinute\":498.2095326084646,\"hadOpenNexus\":1,\"highestChampionDamage\":1,\"immobilizeAndKillWithAlly\":3,\"initialBuffCount\":0,\"initialCrabCount\":0,\"jungleCsBefore10Minutes\":0,\"junglerTakedownsNearDamagedEpicMonster\":0,\"kTurretsDestroyedBeforePlatesFall\":1,\"kda\":3.142857142857143,\"killAfterHiddenWithAlly\":5,\"killParticipation\":0.5789473684210527,\"killedChampTookFullTeamDamageSurvived\":0,\"killingSprees\":1,\"killsNearEnemyTurret\":1,\"killsOnOtherLanesEarlyJungleAsLaner\":1,\"killsOnRecentlyHealedByAramPack\":0,\"killsUnderOwnTurret\":3,\"killsWithHelpFromEpicMonster\":0,\"knockEnemyIntoTeamAndKill\":0,\"landSkillShotsEarlyGame\":6,\"laneMinionsFirst10Minutes\":61,\"laningPhaseGoldExpAdvantage\":1,\"legendaryCount\":0,\"legendaryItemUsed\":[3095,3031,3036,3072],\"lostAnInhibitor\":1,\"maxCsAdvantageOnLaneOpponent\":41.75,\"maxKillDeficit\":8,\"maxLevelLeadLaneOpponent\":2,\"mejaisFullStackInTime\":0,\"moreEnemyJungleThanOpponent\":0,\"multiKillOneSpell\":0,\"multiTurretRiftHeraldCount\":0,\"multikills\":2,\"multikillsAfterAggressiveFlash\":0,\"outerTurretExecutesBefore10Minutes\":0,\"outnumberedKills\":0,\"outnumberedNexusKill\":0,\"perfectDragonSoulsTaken\":0,\"perfectGame\":0,\"pickKillWithAlly\":20,\"playedChampSelectPosition\":1,\"poroExplosions\":0,\"quickCleanse\":0,\"quickFirstTurret\":0,\"quickSoloKills\":0,\"riftHeraldTakedowns\":0,\"saveAllyFromDeath\":0,\"scuttleCrabKills\":1,\"shortestTimeToAceFromFirstTakedown\":23.94701550000036,\"skillshotsDodged\":16,\"skillshotsHit\":32,\"snowballsHit\":0,\"soloBaronKills\":0,\"soloKills\":1,\"stealthWardsPlaced\":5,\"survivedSingleDigitHpCount\":0,\"survivedThreeImmobilizesInFight\":2,\"takedownOnFirstTurret\":0,\"takedowns\":22,\"takedownsAfterGainingLevelAdvantage\":0,\"takedownsBeforeJungleMinionSpawn\":0,\"takedownsFirstXMinutes\":5,\"takedownsInAlcove\":2,\"takedownsInEnemyFountain\":0,\"teamBaronKills\":0,\"teamDamagePercentage\":0.24911323013346479,\"teamElderDragonKills\":0,\"teamRiftHeraldKills\":0,\"tookLargeDamageSurvived\":0,\"turretPlatesTaken\":7,\"turretTakedowns\":6,\"turretsTakenWithRiftHerald\":0,\"twentyMinionsIn3SecondsCount\":0,\"twoWardsOneSweeperCount\":0,\"unseenRecalls\":0,\"visionScoreAdvantageLaneOpponent\":1.1951689720153809,\"visionScorePerMinute\":1.0317343732823,\"wardTakedowns\":2,\"wardTakedownsBefore20M\":0,\"wardsGuarded\":0},\"champExperience\":18016,\"champLevel\":17,\"championId\":51,\"championName\":\"Caitlyn\",\"championTransform\":0,\"commandPings\":15,\"consumablesPurchased\":3,\"damageDealtToBuildings\":11620,\"damageDealtToObjectives\":33888,\"damageDealtToTurrets\":11620,\"damageSelfMitigated\":14652,\"dangerPings\":0,\"deaths\":7,\"detectorWardsPlaced\":2,\"doubleKills\":2,\"dragonKills\":0,\"eligibleForProgression\":true,\"enemyMissingPings\":0,\"enemyVisionPings\":1,\"firstBloodAssist\":false,\"firstBloodKill\":false,\"firstTowerAssist\":true,\"firstTowerKill\":false,\"gameEndedInEarlySurrender\":false,\"gameEndedInSurrender\":false,\"getBackPings\":0,\"goldEarned\":18033,\"goldSpent\":16210,\"holdPings\":0,\"individualPosition\":\"BOTTOM\",\"inhibitorKills\":1,\"inhibitorTakedowns\":1,\"inhibitorsLost\":1,\"item0\":6670,\"item1\":7040,\"item2\":3006,\"item3\":3031,\"item4\":3036,\"item5\":3072,\"item6\":3363,\"itemsPurchased\":25,\"killingSprees\":3,\"kills\":10,\"lane\":\"BOTTOM\",\"largestCriticalStrike\":2290,\"largestKillingSpree\":3,\"largestMultiKill\":2,\"longestTimeSpentLiving\":534,\"magicDamageDealt\":9538,\"magicDamageDealtToChampions\":1959,\"magicDamageTaken\":10914,\"missions\":{\"playerScore0\":0,\"playerScore1\":0,\"playerScore10\":0,\"playerScore11\":0,\"playerScore2\":0,\"playerScore3\":0,\"playerScore4\":0,\"playerScore5\":0,\"playerScore6\":0,\"playerScore7\":0,\"playerScore8\":0,\"playerScore9\":0},\"needVisionPings\":0,\"neutralMinionsKilled\":8,\"nexusKills\":1,\"nexusLost\":0,\"nexusTakedowns\":1,\"objectivesStolen\":0,\"objectivesStolenAssists\":0,\"onMyWayPings\":3,\"participantId\":9,\"pentaKills\":0,\"perks\":{\"statPerks\":{\"defense\":5002,\"flex\":5008,\"offense\":5005},\"styles\":[{\"description\":\"primaryStyle\",\"selections\":[{\"perk\":8008,\"var1\":88,\"var2\":12,\"var3\":0},{\"perk\":8009,\"var1\":2107,\"var2\":0,\"var3\":0},{\"perk\":9103,\"var1\":22,\"var2\":30,\"var3\":0},{\"perk\":8014,\"var1\":1078,\"var2\":0,\"var3\":0}],\"style\":8000},{\"description\":\"subStyle\",\"selections\":[{\"perk\":8233,\"var1\":22,\"var2\":50,\"var3\":0},{\"perk\":8236,\"var1\":28,\"var2\":0,\"var3\":0}],\"style\":8200}]},\"physicalDamageDealt\":260406,\"physicalDamageDealtToChampions\":41696,\"physicalDamageTaken\":13251,\"placement\":0,\"playerAugment1\":0,\"playerAugment2\":0,\"playerAugment3\":0,\"playerAugment4\":0,\"playerScore0\":0,\"playerScore1\":0,\"playerScore10\":0,\"playerScore11\":0,\"playerScore2\":0,\"playerScore3\":0,\"playerScore4\":0,\"playerScore5\":0,\"playerScore6\":0,\"playerScore7\":0,\"playerScore8\":0,\"playerScore9\":0,\"playerSubteamId\":0,\"profileIcon\":6271,\"pushPings\":0,\"puuid\":\"Gw-DlJXWkCliGKvzx7SxAltlyLYR3pSMN7qNmDFtE3qK9a1V3wXwltB8gxsb985Bw4WQtrefPYc6Cg\",\"quadraKills\":0,\"riotIdGameName\":\"Heyxler\",\"riotIdTagline\":\"187\",\"role\":\"CARRY\",\"sightWardsBoughtInGame\":0,\"spell1Casts\":60,\"spell2Casts\":47,\"spell3Casts\":21,\"spell4Casts\":11,\"subteamPlacement\":0,\"summoner1Casts\":6,\"summoner1Id\":4,\"summoner2Casts\":7,\"summoner2Id\":6,\"summonerId\":\"-qzmNly6ihP4GwUnssjThDcodgKufnQNHvlvPO3hBTx9tyE\",\"summonerLevel\":835,\"summonerName\":\"Heyxler\",\"teamEarlySurrendered\":false,\"teamId\":200,\"teamPosition\":\"BOTTOM\",\"timeCCingOthers\":21,\"timePlayed\":2171,\"totalAllyJungleMinionsKilled\":2,\"totalDamageDealt\":278541,\"totalDamageDealtToChampions\":43979,\"totalDamageShieldedOnTeammates\":0,\"totalDamageTaken\":25352,\"totalEnemyJungleMinionsKilled\":0,\"totalHeal\":10838,\"totalHealsOnTeammates\":0,\"totalMinionsKilled\":248,\"totalTimeCCDealt\":94,\"totalTimeSpentDead\":239,\"totalUnitsHealed\":1,\"tripleKills\":0,\"trueDamageDealt\":8597,\"trueDamageDealtToChampions\":324,\"trueDamageTaken\":1186,\"turretKills\":4,\"turretTakedowns\":6,\"turretsLost\":8,\"unrealKills\":0,\"visionClearedPings\":0,\"visionScore\":37,\"visionWardsBoughtInGame\":2,\"wardsKilled\":2,\"wardsPlaced\":15,\"win\":true},{\"allInPings\":0,\"assistMePings\":0,\"assists\":12,\"baronKills\":0,\"basicPings\":0,\"bountyLevel\":1,\"challenges\":{\"12AssistStreakCount\":0,\"abilityUses\":416,\"acesBefore15Minutes\":0,\"alliedJungleMonsterKills\":0,\"baronTakedowns\":0,\"blastConeOppositeOpponentCount\":0,\"bountyGold\":500,\"buffsStolen\":0,\"completeSupportQuestInTime\":1,\"controlWardsPlaced\":0,\"damagePerMinute\":1200.2762525660314,\"damageTakenOnTeamPercentage\":0.11486574919948535,\"dancedWithRiftHerald\":0,\"deathsByEnemyChamps\":7,\"dodgeSkillShotsSmallWindow\":0,\"doubleAces\":0,\"dragonTakedowns\":1,\"earliestDragonTakedown\":1431.3826772,\"earlyLaningPhaseGoldExpAdvantage\":0,\"effectiveHealAndShielding\":3291.0478515625,\"elderDragonKillsWithOpposingSoul\":0,\"elderDragonMultikills\":0,\"enemyChampionImmobilizations\":33,\"enemyJungleMonsterKills\":1,\"epicMonsterKillsNearEnemyJungler\":0,\"epicMonsterKillsWithin30SecondsOfSpawn\":0,\"epicMonsterSteals\":0,\"epicMonsterStolenWithoutSmite\":0,\"fasterSupportQuestCompletion\":1,\"firstTurretKilled\":1,\"firstTurretKilledTime\":702.0483415,\"flawlessAces\":0,\"fullTeamTakedown\":2,\"gameLength\":2171.8168219,\"getTakedownsInAllLanesEarlyJungleAsLaner\":0,\"goldPerMinute\":451.3850229228211,\"hadOpenNexus\":1,\"immobilizeAndKillWithAlly\":6,\"initialBuffCount\":0,\"initialCrabCount\":0,\"jungleCsBefore10Minutes\":0,\"junglerTakedownsNearDamagedEpicMonster\":0,\"kTurretsDestroyedBeforePlatesFall\":1,\"kda\":3.2857142857142856,\"killAfterHiddenWithAlly\":5,\"killParticipation\":0.6052631578947368,\"killedChampTookFullTeamDamageSurvived\":0,\"killingSprees\":1,\"killsNearEnemyTurret\":1,\"killsOnOtherLanesEarlyJungleAsLaner\":0,\"killsOnRecentlyHealedByAramPack\":0,\"killsUnderOwnTurret\":4,\"killsWithHelpFromEpicMonster\":1,\"knockEnemyIntoTeamAndKill\":0,\"landSkillShotsEarlyGame\":4,\"laneMinionsFirst10Minutes\":14,\"laningPhaseGoldExpAdvantage\":0,\"legendaryCount\":0,\"legendaryItemUsed\":[6655,4645,3089,4646],\"lostAnInhibitor\":1,\"maxCsAdvantageOnLaneOpponent\":103,\"maxKillDeficit\":8,\"maxLevelLeadLaneOpponent\":4,\"mejaisFullStackInTime\":0,\"moreEnemyJungleThanOpponent\":0,\"multiKillOneSpell\":0,\"multiTurretRiftHeraldCount\":0,\"multikills\":0,\"multikillsAfterAggressiveFlash\":0,\"outerTurretExecutesBefore10Minutes\":0,\"outnumberedKills\":1,\"outnumberedNexusKill\":0,\"perfectDragonSoulsTaken\":0,\"perfectGame\":0,\"pickKillWithAlly\":20,\"playedChampSelectPosition\":1,\"poroExplosions\":0,\"quickCleanse\":0,\"quickFirstTurret\":0,\"quickSoloKills\":1,\"riftHeraldTakedowns\":0,\"saveAllyFromDeath\":0,\"scuttleCrabKills\":0,\"skillshotsDodged\":12,\"skillshotsHit\":39,\"snowballsHit\":0,\"soloBaronKills\":0,\"soloKills\":3,\"stealthWardsPlaced\":35,\"survivedSingleDigitHpCount\":0,\"survivedThreeImmobilizesInFight\":4,\"takedownOnFirstTurret\":1,\"takedowns\":23,\"takedownsAfterGainingLevelAdvantage\":0,\"takedownsBeforeJungleMinionSpawn\":0,\"takedownsFirstXMinutes\":7,\"takedownsInAlcove\":0,\"takedownsInEnemyFountain\":0,\"teamBaronKills\":0,\"teamDamagePercentage\":0.2460915222283923,\"teamElderDragonKills\":0,\"teamRiftHeraldKills\":0,\"tookLargeDamageSurvived\":0,\"turretPlatesTaken\":5,\"turretTakedowns\":4,\"turretsTakenWithRiftHerald\":0,\"twentyMinionsIn3SecondsCount\":0,\"twoWardsOneSweeperCount\":0,\"unseenRecalls\":0,\"visionScoreAdvantageLaneOpponent\":-0.17354542016983032,\"visionScorePerMinute\":1.931462554821664,\"wardTakedowns\":2,\"wardTakedownsBefore20M\":0,\"wardsGuarded\":1},\"champExperience\":18901,\"champLevel\":18,\"championId\":99,\"championName\":\"Lux\",\"championTransform\":0,\"commandPings\":3,\"consumablesPurchased\":3,\"damageDealtToBuildings\":2406,\"damageDealtToObjectives\":4122,\"damageDealtToTurrets\":2406,\"damageSelfMitigated\":13347,\"dangerPings\":0,\"deaths\":7,\"detectorWardsPlaced\":0,\"doubleKills\":0,\"dragonKills\":0,\"eligibleForProgression\":true,\"enemyMissingPings\":0,\"enemyVisionPings\":0,\"firstBloodAssist\":false,\"firstBloodKill\":false,\"firstTowerAssist\":false,\"firstTowerKill\":false,\"gameEndedInEarlySurrender\":false,\"gameEndedInSurrender\":false,\"getBackPings\":2,\"goldEarned\":16338,\"goldSpent\":14800,\"holdPings\":0,\"individualPosition\":\"UTILITY\",\"inhibitorKills\":0,\"inhibitorTakedowns\":0,\"inhibitorsLost\":1,\"item0\":3871,\"item1\":7013,\"item2\":3020,\"item3\":4645,\"item4\":3089,\"item5\":4646,\"item6\":3364,\"itemsPurchased\":21,\"killingSprees\":3,\"kills\":11,\"lane\":\"BOTTOM\",\"largestCriticalStrike\":0,\"largestKillingSpree\":5,\"largestMultiKill\":1,\"longestTimeSpentLiving\":664,\"magicDamageDealt\":200183,\"magicDamageDealtToChampions\":39836,\"magicDamageTaken\":8148,\"missions\":{\"playerScore0\":0,\"playerScore1\":0,\"playerScore10\":0,\"playerScore11\":0,\"playerScore2\":0,\"playerScore3\":0,\"playerScore4\":0,\"playerScore5\":0,\"playerScore6\":0,\"playerScore7\":0,\"playerScore8\":0,\"playerScore9\":0},\"needVisionPings\":0,\"neutralMinionsKilled\":2,\"nexusKills\":0,\"nexusLost\":0,\"nexusTakedowns\":0,\"objectivesStolen\":0,\"objectivesStolenAssists\":0,\"onMyWayPings\":0,\"participantId\":10,\"pentaKills\":0,\"perks\":{\"statPerks\":{\"defense\":5002,\"flex\":5008,\"offense\":5008},\"styles\":[{\"description\":\"primaryStyle\",\"selections\":[{\"perk\":8128,\"var1\":1947,\"var2\":25,\"var3\":0},{\"perk\":8126,\"var1\":1752,\"var2\":0,\"var3\":0},{\"perk\":8138,\"var1\":30,\"var2\":0,\"var3\":0},{\"perk\":8106,\"var1\":5,\"var2\":0,\"var3\":0}],\"style\":8100},{\"description\":\"subStyle\",\"selections\":[{\"perk\":8226,\"var1\":250,\"var2\":1473,\"var3\":0},{\"perk\":8210,\"var1\":17,\"var2\":0,\"var3\":0}],\"style\":8200}]},\"physicalDamageDealt\":7978,\"physicalDamageDealtToChampions\":1880,\"physicalDamageTaken\":7675,\"placement\":0,\"playerAugment1\":0,\"playerAugment2\":0,\"playerAugment3\":0,\"playerAugment4\":0,\"playerScore0\":0,\"playerScore1\":0,\"playerScore10\":0,\"playerScore11\":0,\"playerScore2\":0,\"playerScore3\":0,\"playerScore4\":0,\"playerScore5\":0,\"playerScore6\":0,\"playerScore7\":0,\"playerScore8\":0,\"playerScore9\":0,\"playerSubteamId\":0,\"profileIcon\":7,\"pushPings\":0,\"puuid\":\"BUJmPYBwQjeaT-QBwg5v5FPdJh3rcoJaY7rjqq1PBuVNztGApND7ixjvwvg7d7GKvLUNtWoX3LDsbw\",\"quadraKills\":0,\"riotIdGameName\":\"Epic1ndi\",\"riotIdTagline\":\"EUW\",\"role\":\"SUPPORT\",\"sightWardsBoughtInGame\":0,\"spell1Casts\":93,\"spell2Casts\":49,\"spell3Casts\":241,\"spell4Casts\":33,\"subteamPlacement\":0,\"summoner1Casts\":6,\"summoner1Id\":3,\"summoner2Casts\":4,\"summoner2Id\":4,\"summonerId\":\"ncNTafaHc1l5SDpWl3HFsTtT1PsSJvSQQvxjYkkEEc2Qst8\",\"summonerLevel\":26,\"summonerName\":\"Epic1ndi\",\"teamEarlySurrendered\":false,\"teamId\":200,\"teamPosition\":\"UTILITY\",\"timeCCingOthers\":78,\"timePlayed\":2171,\"totalAllyJungleMinionsKilled\":0,\"totalDamageDealt\":211425,\"totalDamageDealtToChampions\":43446,\"totalDamageShieldedOnTeammates\":3291,\"totalDamageTaken\":16657,\"totalEnemyJungleMinionsKilled\":2,\"totalHeal\":1435,\"totalHealsOnTeammates\":0,\"totalMinionsKilled\":140,\"totalTimeCCDealt\":490,\"totalTimeSpentDead\":172,\"totalUnitsHealed\":1,\"tripleKills\":0,\"trueDamageDealt\":3263,\"trueDamageDealtToChampions\":1729,\"trueDamageTaken\":834,\"turretKills\":2,\"turretTakedowns\":4,\"turretsLost\":8,\"unrealKills\":0,\"visionClearedPings\":0,\"visionScore\":69,\"visionWardsBoughtInGame\":0,\"wardsKilled\":2,\"wardsPlaced\":36,\"win\":true}],\"platformId\":\"EUW1\",\"queueId\":400,\"teams\":[{\"bans\":[{\"championId\":360,\"pickTurn\":1},{\"championId\":121,\"pickTurn\":2},{\"championId\":53,\"pickTurn\":3},{\"championId\":55,\"pickTurn\":4},{\"championId\":24,\"pickTurn\":5}],\"objectives\":{\"baron\":{\"first\":true,\"kills\":1},\"champion\":{\"first\":true,\"kills\":40},\"dragon\":{\"first\":true,\"kills\":2},\"horde\":{\"first\":true,\"kills\":4},\"inhibitor\":{\"first\":true,\"kills\":1},\"riftHerald\":{\"first\":true,\"kills\":1},\"tower\":{\"first\":false,\"kills\":8}},\"teamId\":100,\"win\":false},{\"bans\":[{\"championId\":107,\"pickTurn\":6},{\"championId\":84,\"pickTurn\":7},{\"championId\":-1,\"pickTurn\":8},{\"championId\":81,\"pickTurn\":9},{\"championId\":48,\"pickTurn\":10}],\"objectives\":{\"baron\":{\"first\":false,\"kills\":0},\"champion\":{\"first\":false,\"kills\":38},\"dragon\":{\"first\":false,\"kills\":2},\"horde\":{\"first\":false,\"kills\":2},\"inhibitor\":{\"first\":false,\"kills\":1},\"riftHerald\":{\"first\":false,\"kills\":0},\"tower\":{\"first\":true,\"kills\":9}},\"teamId\":200,\"win\":true}],\"tournamentCode\":\"\"}}";
-    MatchDto matchDto;
-    {
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode jsonNode;
-            jsonNode = objectMapper.readTree(new URL("https://europe.api.riotgames.com/lol/match/v5/matches/EUW1_6760205418?api_key=RGAPI-7824e8d4-5ed0-4244-8b26-67ba3e260cc2"));
-            matchDto = objectMapper.treeToValue(jsonNode, MatchDto.class);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-    Match match = matchDto.toMatch();
+    static MatchDto matchDto;
+    static Match match;
     Summary summary = new Summary(summoner, leagues);
     Grade grade = new Grade(
             "F4btU20wCQOmkMlWn4QJm33f3jH-B5Nj-uPfNnyuLED3PT0DpQ_LLcB_IQ",
             "Belugafurtif",
-            0,
-            0
+            3.8f,
+            5
     );
 
+    @BeforeAll
+    public static void matchSetUp() throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = objectMapper.readTree(new URL("https://europe.api.riotgames.com/lol/match/v5/matches/EUW1_6760205418?api_key=RGAPI-7824e8d4-5ed0-4244-8b26-67ba3e260cc2"));
+        matchDto = objectMapper.readValue(jsonNode.toString(), MatchDto.class);
+        match = matchDto.toMatch();
+    }
+
     @Test
-    public void getSummonerByNameTest() {
+    public void getSummonerByNameNoGradeTest() {
         String apiUrl = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerDto.getName() + "?api_key=" + apiKey;
 
         Mockito.when(restTemplate.getForObject(apiUrl, SummonerDto.class)).thenReturn(summonerDto);
@@ -142,15 +148,276 @@ public class RiotApiServiceTests {
         assertEquals(summonerTest.getName(), summoner.getName());
         assertEquals(summonerTest.getProfileIconId(), summoner.getProfileIconId());
         assertEquals(summonerTest.getSummonerLevel(), summoner.getSummonerLevel());
+        assertEquals(summonerTest.getAverage(), summoner.getAverage());
+        assertEquals(summonerTest.getCardinal(), summoner.getCardinal());
+        assertEquals(summonerTest.getPuuid(), summoner.getPuuid());
         assertEquals(summonerTest.getId(), summoner.getId());
     }
 
     @Test
-    public void getRankDataTest() {
+    public void getSummonerByNameWithGradeTest() {
+        String apiUrl = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerDto.getName() + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, SummonerDto.class)).thenReturn(summonerDto);
+        Mockito.when(gradeRepository.findById(summoner.getId())).thenReturn(Optional.ofNullable(grade));
+
+        Summoner summonerTest = riotApiService.getSummonerByName(summonerDto.getName());
+
+        assertEquals(summonerTest.getName(), summoner.getName());
+        assertEquals(summonerTest.getProfileIconId(), summoner.getProfileIconId());
+        assertEquals(summonerTest.getSummonerLevel(), summoner.getSummonerLevel());
+        assertEquals(summonerTest.getAverage(), grade.getAverage());
+        assertEquals(summonerTest.getCardinal(), grade.getCardinal());
+        assertEquals(summonerTest.getPuuid(), summoner.getPuuid());
+        assertEquals(summonerTest.getId(), summoner.getId());
+    }
+
+    @Test
+    public void getSummonerByNameSummonerNullTest()  {
+        String apiUrl = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + "Belugafurti" + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, SummonerDto.class)).thenReturn(null);
+
+        assertThrows(SummonerNotFoundException.class, () -> riotApiService.getSummonerByName("Belugafurti"));
+    }
+
+    @Test
+    public void getSummonerByNameBadRequestTest() {
+        String apiUrl = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + "Belugafurtif" + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, SummonerDto.class)).thenThrow(HttpClientErrorException.BadRequest.class);
+
+        assertThrows(BadRequestException.class, () -> riotApiService.getSummonerByName("Belugafurtif"));
+    }
+
+    @Test
+    public void getSummonerByNameUnauthorizedTest() {
+        String apiUrl = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + "Belugafurtif" + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, SummonerDto.class)).thenThrow(HttpClientErrorException.Unauthorized.class);
+
+        assertThrows(BadRequestException.class, () -> riotApiService.getSummonerByName("Belugafurtif"));
+    }
+
+    @Test
+    public void getSummonerByNameForbiddenTest() {
+        String apiUrl = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + "Belugafurtif" + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, SummonerDto.class)).thenThrow(HttpClientErrorException.Forbidden.class);
+
+        assertThrows(BadRequestException.class, () -> riotApiService.getSummonerByName("Belugafurtif"));
+    }
+
+    @Test
+    public void getSummonerByNameNotFoundTest() {
+        String apiUrl = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + "Belugafurtif" + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, SummonerDto.class)).thenThrow(HttpClientErrorException.NotFound.class);
+
+        assertThrows(SummonerNotFoundException.class, () -> riotApiService.getSummonerByName("Belugafurtif"));
+    }
+
+    @Test
+    public void getSummonerByNameMethodNotAllowedTest() {
+        String apiUrl = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + "Belugafurtif" + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, SummonerDto.class)).thenThrow(HttpClientErrorException.MethodNotAllowed.class);
+
+        assertThrows(MethodNotAllowed.class, () -> riotApiService.getSummonerByName("Belugafurtif"));
+    }
+
+    @Test
+    public void getSummonerByNameUnsupportedMediaTypeTest() {
+        String apiUrl = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + "Belugafurtif" + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, SummonerDto.class)).thenThrow(HttpClientErrorException.UnsupportedMediaType.class);
+
+        assertThrows(UnsupportedMediaType.class, () -> riotApiService.getSummonerByName("Belugafurtif"));
+    }
+
+    @Test
+    public void getSummonerByNameTooManyRequestsTest() {
+        String apiUrl = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + "Belugafurtif" + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, SummonerDto.class)).thenThrow(HttpClientErrorException.TooManyRequests.class);
+
+        assertThrows(RateLimitExceededException.class, () -> riotApiService.getSummonerByName("Belugafurtif"));
+    }
+
+    @Test
+    public void getSummonerByNameInternalServerErrorTest() {
+        String apiUrl = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + "Belugafurtif" + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, SummonerDto.class)).thenThrow(HttpServerErrorException.InternalServerError.class);
+
+        assertThrows(InternalServerError.class, () -> riotApiService.getSummonerByName("Belugafurtif"));
+    }
+
+    @Test
+    public void getSummonerByNameBadGatewayTest() {
+        String apiUrl = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + "Belugafurtif" + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, SummonerDto.class)).thenThrow(HttpServerErrorException.BadGateway.class);
+
+        assertThrows(BadGateway.class, () -> riotApiService.getSummonerByName("Belugafurtif"));
+    }
+
+    @Test
+    public void getSummonerByNameServiceUnavailableTest() {
+        String apiUrl = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + "Belugafurtif" + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, SummonerDto.class)).thenThrow(HttpServerErrorException.ServiceUnavailable.class);
+
+        assertThrows(ServiceUnavailable.class, () -> riotApiService.getSummonerByName("Belugafurtif"));
+    }
+
+    @Test
+    public void getSummonerByNameGatewayTimeoutTest() {
+        String apiUrl = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + "Belugafurtif" + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, SummonerDto.class)).thenThrow(HttpServerErrorException.GatewayTimeout.class);
+
+        assertThrows(GatewayTimeout.class, () -> riotApiService.getSummonerByName("Belugafurtif"));
+    }
+
+    @Test
+    public void getMatchByIdTest() {
+        String apiUrl = "https://europe.api.riotgames.com/lol/match/v5/matches/" + match.getMatchId() + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, MatchDto.class)).thenReturn(matchDto);
+        Match matchTest = riotApiService.getMatchById(match.getMatchId());
+
+        assertEquals(matchTest.getMatchId(), match.getMatchId());
+        assertEquals(matchTest.getMetadata(), match.getMetadata());
+        assertEquals(matchTest.getParticipants(), match.getParticipants());
+        assertEquals(matchTest.getTeams(), match.getTeams());
+        assertEquals(matchTest.getDrafts(), match.getDrafts());
+
+        ArgumentCaptor<Match> matchCaptor = ArgumentCaptor.forClass(Match.class);
+        Mockito.verify(matchRepository).save(matchCaptor.capture());
+        Match matchSaved = matchCaptor.getValue();
+
+        assertEquals(matchSaved.getMatchId(), match.getMatchId());
+        assertEquals(matchSaved.getMetadata(), match.getMetadata());
+        assertEquals(matchSaved.getParticipants(), match.getParticipants());
+        assertEquals(matchSaved.getTeams(), match.getTeams());
+        assertEquals(matchSaved.getDrafts(), match.getDrafts());
+    }
+
+    @Test
+    public void getMatchByIdMatchNullTest()  {
+        String apiUrl = "https://europe.api.riotgames.com/lol/match/v5/matches/" + match.getMatchId() + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, MatchDto.class)).thenReturn(null);
+
+        assertThrows(MatchNotFoundException.class, () -> riotApiService.getMatchById(match.getMatchId()));
+    }
+
+    @Test
+    public void getMatchByIdBadRequestTest() {
+        String apiUrl = "https://europe.api.riotgames.com/lol/match/v5/matches/" + match.getMatchId() + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, MatchDto.class)).thenThrow(HttpClientErrorException.BadRequest.class);
+
+        assertThrows(BadRequestException.class, () -> riotApiService.getMatchById(match.getMatchId()));
+    }
+
+    @Test
+    public void getMatchByIdUnauthorizedTest() {
+        String apiUrl = "https://europe.api.riotgames.com/lol/match/v5/matches/" + match.getMatchId() + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, MatchDto.class)).thenThrow(HttpClientErrorException.Unauthorized.class);
+
+        assertThrows(BadRequestException.class, () -> riotApiService.getMatchById(match.getMatchId()));
+    }
+
+    @Test
+    public void getMatchByIdForbiddenTest() {
+        String apiUrl = "https://europe.api.riotgames.com/lol/match/v5/matches/" + match.getMatchId() + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, MatchDto.class)).thenThrow(HttpClientErrorException.Forbidden.class);
+
+        assertThrows(BadRequestException.class, () -> riotApiService.getMatchById(match.getMatchId()));
+    }
+
+    @Test
+    public void getMatchByIdNotFoundTest() {
+        String apiUrl = "https://europe.api.riotgames.com/lol/match/v5/matches/" + match.getMatchId() + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, MatchDto.class)).thenThrow(HttpClientErrorException.NotFound.class);
+
+        assertThrows(MatchNotFoundException.class, () -> riotApiService.getMatchById(match.getMatchId()));
+    }
+
+    @Test
+    public void getMatchByIdMethodNotAllowedTest() {
+        String apiUrl = "https://europe.api.riotgames.com/lol/match/v5/matches/" + match.getMatchId() + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, MatchDto.class)).thenThrow(HttpClientErrorException.MethodNotAllowed.class);
+
+        assertThrows(MethodNotAllowed.class, () -> riotApiService.getMatchById(match.getMatchId()));
+    }
+
+    @Test
+    public void getMatchByIdUnsupportedMediaTypeTest() {
+        String apiUrl = "https://europe.api.riotgames.com/lol/match/v5/matches/" + match.getMatchId() + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, MatchDto.class)).thenThrow(HttpClientErrorException.UnsupportedMediaType.class);
+
+        assertThrows(UnsupportedMediaType.class, () -> riotApiService.getMatchById(match.getMatchId()));
+    }
+
+    @Test
+    public void getMatchByIdTooManyRequestsTest() {
+        String apiUrl = "https://europe.api.riotgames.com/lol/match/v5/matches/" + match.getMatchId() + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, MatchDto.class)).thenThrow(HttpClientErrorException.TooManyRequests.class);
+
+        assertThrows(RateLimitExceededException.class, () -> riotApiService.getMatchById(match.getMatchId()));
+    }
+
+    @Test
+    public void getMatchByIdInternalServerErrorTest() {
+        String apiUrl = "https://europe.api.riotgames.com/lol/match/v5/matches/" + match.getMatchId() + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, MatchDto.class)).thenThrow(HttpServerErrorException.InternalServerError.class);
+
+        assertThrows(InternalServerError.class, () -> riotApiService.getMatchById(match.getMatchId()));
+    }
+
+    @Test
+    public void getMatchByIdBadGatewayTest() {
+        String apiUrl = "https://europe.api.riotgames.com/lol/match/v5/matches/" + match.getMatchId() + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, MatchDto.class)).thenThrow(HttpServerErrorException.BadGateway.class);
+
+        assertThrows(BadGateway.class, () -> riotApiService.getMatchById(match.getMatchId()));
+    }
+
+    @Test
+    public void getMatchByIdServiceUnavailableTest() {
+        String apiUrl = "https://europe.api.riotgames.com/lol/match/v5/matches/" + match.getMatchId() + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, MatchDto.class)).thenThrow(HttpServerErrorException.ServiceUnavailable.class);
+
+        assertThrows(ServiceUnavailable.class, () -> riotApiService.getMatchById(match.getMatchId()));
+    }
+
+    @Test
+    public void getMatchByIdGatewayTimeoutTest() {
+        String apiUrl = "https://europe.api.riotgames.com/lol/match/v5/matches/" + match.getMatchId() + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, MatchDto.class)).thenThrow(HttpServerErrorException.GatewayTimeout.class);
+
+        assertThrows(GatewayTimeout.class, () -> riotApiService.getMatchById(match.getMatchId()));
+    }
+
+    @Test
+    public void getRankByIdTest() {
         String apiUrl = "https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/" + summonerDto.getId() + "?api_key="+apiKey;
 
         Mockito.when(restTemplate.getForObject(apiUrl, LeagueDto[].class)).thenReturn(leagueDtos);
-        ArrayList<League> leaguesTest = riotApiService.getRankData(summonerDto.getId());
+        ArrayList<League> leaguesTest = riotApiService.getRankById(summonerDto.getId());
 
         assertEquals(leaguesTest.get(0).getLeagueId(), leagues.get(0).getLeagueId());
         assertEquals(leaguesTest.get(0).getSummonerId(), leagues.get(0).getSummonerId());
@@ -174,27 +441,191 @@ public class RiotApiServiceTests {
     }
 
     @Test
-    public void getMatchById() {
-        String apiUrl = "https://europe.api.riotgames.com/lol/match/v5/matches/" + match.getMatchId() + "?api_key=" + apiKey;
+    public void getRankByIdPartialLeaguesTest1() {
+        LeagueDto[] leagueDto1 = new LeagueDto[]{this.leagueDto1};
+        ArrayList<League> leagues1 = new ArrayList<>(List.of(league1));
+        String apiUrl = "https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/" + summonerDto.getId() + "?api_key=" + apiKey;
 
-        Mockito.when(restTemplate.getForObject(apiUrl, MatchDto.class)).thenReturn(matchDto);
-        Match matchTest = riotApiService.getMatchById(match.getMatchId());
+        Mockito.when(restTemplate.getForObject(apiUrl, LeagueDto[].class)).thenReturn(leagueDto1);
+        ArrayList<League> leaguesTest = riotApiService.getRankById(summonerDto.getId());
 
-        assertEquals(matchTest.getMatchId(), match.getMatchId());
-        assertEquals(matchTest.getMetadata(), match.getMetadata());
-        assertEquals(matchTest.getParticipants(), match.getParticipants());
-        assertEquals(matchTest.getTeams(), match.getTeams());
-        assertEquals(matchTest.getDrafts(), match.getDrafts());
+        assertEquals(leaguesTest.get(0).getLeagueId(), leagues1.get(0).getLeagueId());
+        assertEquals(leaguesTest.get(0).getSummonerId(), leagues1.get(0).getSummonerId());
+        assertEquals(leaguesTest.get(0).getSummonerName(), leagues1.get(0).getSummonerName());
+        assertEquals(leaguesTest.get(0).getQueueType(), leagues1.get(0).getQueueType());
+        assertEquals(leaguesTest.get(0).getTier(), leagues1.get(0).getTier());
+        assertEquals(leaguesTest.get(0).getRank(), leagues1.get(0).getRank());
+        assertEquals(leaguesTest.get(0).getLeaguePoints(), leagues1.get(0).getLeaguePoints());
+        assertEquals(leaguesTest.get(0).getWins(), leagues1.get(0).getWins());
+        assertEquals(leaguesTest.get(0).getLosses(), leagues1.get(0).getLosses());
+
+        assertEquals(leaguesTest.get(1).getLeagueId(), "");
+        assertEquals(leaguesTest.get(1).getSummonerId(), leagues1.get(0).getSummonerId());
+        assertEquals(leaguesTest.get(1).getSummonerName(), "");
+        assertEquals(leaguesTest.get(1).getQueueType(), "RANKED_SOLO_5x5");
+        assertEquals(leaguesTest.get(1).getTier(), "UNRANKED");
+        assertEquals(leaguesTest.get(1).getRank(), "");
+        assertEquals(leaguesTest.get(1).getLeaguePoints(), 0);
+        assertEquals(leaguesTest.get(1).getWins(), 0);
+        assertEquals(leaguesTest.get(1).getLosses(), 0);
     }
 
     @Test
-    public void getSummaryTest() {
+    public void getRankByIdPartialLeaguesTest2() {
+        LeagueDto[] leagueDto2 = new LeagueDto[]{this.leagueDto2};
+        ArrayList<League> leagues2 = new ArrayList<>(List.of(league2));
+        String apiUrl = "https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/" + summonerDto.getId() + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, LeagueDto[].class)).thenReturn(leagueDto2);
+        ArrayList<League> leaguesTest = riotApiService.getRankById(summonerDto.getId());
+
+        assertEquals(leaguesTest.get(0).getLeagueId(), leagues2.get(0).getLeagueId());
+        assertEquals(leaguesTest.get(0).getSummonerId(), leagues2.get(0).getSummonerId());
+        assertEquals(leaguesTest.get(0).getSummonerName(), leagues2.get(0).getSummonerName());
+        assertEquals(leaguesTest.get(0).getQueueType(), leagues2.get(0).getQueueType());
+        assertEquals(leaguesTest.get(0).getTier(), leagues2.get(0).getTier());
+        assertEquals(leaguesTest.get(0).getRank(), leagues2.get(0).getRank());
+        assertEquals(leaguesTest.get(0).getLeaguePoints(), leagues2.get(0).getLeaguePoints());
+        assertEquals(leaguesTest.get(0).getWins(), leagues2.get(0).getWins());
+        assertEquals(leaguesTest.get(0).getLosses(), leagues2.get(0).getLosses());
+
+        assertEquals(leaguesTest.get(1).getLeagueId(), "");
+        assertEquals(leaguesTest.get(1).getSummonerId(), leagues2.get(0).getSummonerId());
+        assertEquals(leaguesTest.get(1).getSummonerName(), "");
+        assertEquals(leaguesTest.get(1).getQueueType(), "RANKED_FLEX_SR");
+        assertEquals(leaguesTest.get(1).getTier(), "UNRANKED");
+        assertEquals(leaguesTest.get(1).getRank(), "");
+        assertEquals(leaguesTest.get(1).getLeaguePoints(), 0);
+        assertEquals(leaguesTest.get(1).getWins(), 0);
+        assertEquals(leaguesTest.get(1).getLosses(), 0);
+    }
+
+    @Test
+    public void getRankByIdEmptyLeagueTest() {
+        String apiUrl = "https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/" + summonerDto.getId() + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, LeagueDto[].class)).thenReturn(new LeagueDto[]{});
+        ArrayList<League> leaguesTest = riotApiService.getRankById(summonerDto.getId());
+
+        assertEquals(leaguesTest.size(), 0);
+    }
+
+    @Test
+    public void getRankByIdMatchNullTest()  {
+        String apiUrl = "https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/" + summonerDto.getId() + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, LeagueDto[].class)).thenReturn(null);
+
+        assertThrows(LeaguesNotFoundException.class, () -> riotApiService.getRankById(summonerDto.getId()));
+    }
+
+    @Test
+    public void getRankByIdBadRequestTest() {
+        String apiUrl = "https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/" + summonerDto.getId() + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, LeagueDto[].class)).thenThrow(HttpClientErrorException.BadRequest.class);
+
+        assertThrows(BadRequestException.class, () -> riotApiService.getRankById(summonerDto.getId()));
+    }
+
+    @Test
+    public void getRankByIdUnauthorizedTest() {
+        String apiUrl = "https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/" + summonerDto.getId() + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, LeagueDto[].class)).thenThrow(HttpClientErrorException.Unauthorized.class);
+
+        assertThrows(BadRequestException.class, () -> riotApiService.getRankById(summonerDto.getId()));
+    }
+
+    @Test
+    public void getRankByIdForbiddenTest() {
+        String apiUrl = "https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/" + summonerDto.getId() + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, LeagueDto[].class)).thenThrow(HttpClientErrorException.Forbidden.class);
+
+        assertThrows(BadRequestException.class, () -> riotApiService.getRankById(summonerDto.getId()));
+    }
+
+    @Test
+    public void getRankByIdNotFoundTest() {
+        String apiUrl = "https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/" + summonerDto.getId() + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, LeagueDto[].class)).thenThrow(HttpClientErrorException.NotFound.class);
+
+        assertThrows(LeaguesNotFoundException.class, () -> riotApiService.getRankById(summonerDto.getId()));
+    }
+
+    @Test
+    public void getRankByIdMethodNotAllowedTest() {
+        String apiUrl = "https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/" + summonerDto.getId() + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, LeagueDto[].class)).thenThrow(HttpClientErrorException.MethodNotAllowed.class);
+
+        assertThrows(MethodNotAllowed.class, () -> riotApiService.getRankById(summonerDto.getId()));
+    }
+
+    @Test
+    public void getRankByIdUnsupportedMediaTypeTest() {
+        String apiUrl = "https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/" + summonerDto.getId() + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, LeagueDto[].class)).thenThrow(HttpClientErrorException.UnsupportedMediaType.class);
+
+        assertThrows(UnsupportedMediaType.class, () -> riotApiService.getRankById(summonerDto.getId()));
+    }
+
+    @Test
+    public void getRankByIdTooManyRequestsTest() {
+        String apiUrl = "https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/" + summonerDto.getId() + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, LeagueDto[].class)).thenThrow(HttpClientErrorException.TooManyRequests.class);
+
+        assertThrows(RateLimitExceededException.class, () -> riotApiService.getRankById(summonerDto.getId()));
+    }
+
+    @Test
+    public void getRankByIdInternalServerErrorTest() {
+        String apiUrl = "https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/" + summonerDto.getId() + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, LeagueDto[].class)).thenThrow(HttpServerErrorException.InternalServerError.class);
+
+        assertThrows(InternalServerError.class, () -> riotApiService.getRankById(summonerDto.getId()));
+    }
+
+    @Test
+    public void getRankByIdBadGatewayTest() {
+        String apiUrl = "https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/" + summonerDto.getId() + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, LeagueDto[].class)).thenThrow(HttpServerErrorException.BadGateway.class);
+
+        assertThrows(BadGateway.class, () -> riotApiService.getRankById(summonerDto.getId()));
+    }
+
+    @Test
+    public void getRankByIdServiceUnavailableTest() {
+        String apiUrl = "https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/" + summonerDto.getId() + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, LeagueDto[].class)).thenThrow(HttpServerErrorException.ServiceUnavailable.class);
+
+        assertThrows(ServiceUnavailable.class, () -> riotApiService.getRankById(summonerDto.getId()));
+    }
+
+    @Test
+    public void getRankByIdGatewayTimeoutTest() {
+        String apiUrl = "https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/" + summonerDto.getId() + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrl, LeagueDto[].class)).thenThrow(HttpServerErrorException.GatewayTimeout.class);
+
+        assertThrows(GatewayTimeout.class, () -> riotApiService.getRankById(summonerDto.getId()));
+    }
+
+    @Test
+    public void getSummaryByNameTest() {
         String apiUrlSummoner = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerDto.getName() + "?api_key=" + apiKey;
         Mockito.when(restTemplate.getForObject(apiUrlSummoner, SummonerDto.class)).thenReturn(summonerDto);
 
         String apiUrl = "https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/" + summonerDto.getId() + "?api_key=" + apiKey;
         Mockito.when(restTemplate.getForObject(apiUrl, LeagueDto[].class)).thenReturn(leagueDtos);
-        Summary summaryTest = riotApiService.getSummary(summonerDto.getName());
+        Summary summaryTest = riotApiService.getSummaryByName(summonerDto.getName());
 
         assertEquals(summaryTest.getSummonerId(), summary.getSummonerId());
         assertEquals(summaryTest.getSummonerName(), summary.getSummonerName());
@@ -207,12 +638,199 @@ public class RiotApiServiceTests {
         assertEquals(summaryTest.getCardinal(), summary.getCardinal());
     }
 
-    /*@Test
-    public void postGradeTest() {
+    @Test
+    public void getSummaryByNameBadRequestTest() {
+        String apiUrlSummoner = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerDto.getName() + "?api_key=" + apiKey;
+        Mockito.when(restTemplate.getForObject(apiUrlSummoner, SummonerDto.class)).thenThrow(HttpClientErrorException.BadRequest.class);
+
+        assertThrows(BadRequestException.class, () -> riotApiService.getSummaryByName(summonerDto.getName()));
+    }
+
+    @Test
+    public void getSummaryByNameSummonerNotFoundTest() {
+        String apiUrlSummoner = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerDto.getName() + "?api_key=" + apiKey;
+        Mockito.when(restTemplate.getForObject(apiUrlSummoner, SummonerDto.class)).thenThrow(HttpClientErrorException.NotFound.class);
+
+        assertThrows(SummonerNotFoundException.class, () -> riotApiService.getSummaryByName(summonerDto.getName()));
+    }
+
+    @Test
+    public void getSummaryByNameRankNotFoundTest() {
         String apiUrlSummoner = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerDto.getName() + "?api_key=" + apiKey;
         Mockito.when(restTemplate.getForObject(apiUrlSummoner, SummonerDto.class)).thenReturn(summonerDto);
 
-        Mockito.when(gradeRepository.findById(summonerDto.getId())).thenReturn(null);
-        riotApiService.postGrade("Belugafurtif", 5);
-    }*/
+        String apiUrl = "https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/" + summonerDto.getId() + "?api_key=" + apiKey;
+        Mockito.when(restTemplate.getForObject(apiUrl, LeagueDto[].class)).thenThrow(HttpClientErrorException.NotFound.class);
+
+        assertThrows(LeaguesNotFoundException.class, () -> riotApiService.getSummaryByName(summonerDto.getName()));
+    }
+
+    @Test
+    public void getSummaryByNameMethodNotAllowedTest() {
+        String apiUrlSummoner = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerDto.getName() + "?api_key=" + apiKey;
+        Mockito.when(restTemplate.getForObject(apiUrlSummoner, SummonerDto.class)).thenThrow(HttpClientErrorException.MethodNotAllowed.class);
+
+        assertThrows(MethodNotAllowed.class, () -> riotApiService.getSummaryByName(summonerDto.getName()));
+    }
+
+    @Test
+    public void getSummaryByNameUnsupportedMediaTypeTest() {
+        String apiUrlSummoner = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerDto.getName() + "?api_key=" + apiKey;
+        Mockito.when(restTemplate.getForObject(apiUrlSummoner, SummonerDto.class)).thenThrow(HttpClientErrorException.UnsupportedMediaType.class);
+
+        assertThrows(UnsupportedMediaType.class, () -> riotApiService.getSummaryByName(summonerDto.getName()));
+    }
+
+    @Test
+    public void getSummaryByNameRateLimitExceededTest() {
+        String apiUrlSummoner = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerDto.getName() + "?api_key=" + apiKey;
+        Mockito.when(restTemplate.getForObject(apiUrlSummoner, SummonerDto.class)).thenThrow(HttpClientErrorException.TooManyRequests.class);
+
+        assertThrows(RateLimitExceededException.class, () -> riotApiService.getSummaryByName(summonerDto.getName()));
+    }
+
+    @Test
+    public void getSummaryByNameInternalServerErrorTest() {
+        String apiUrlSummoner = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerDto.getName() + "?api_key=" + apiKey;
+        Mockito.when(restTemplate.getForObject(apiUrlSummoner, SummonerDto.class)).thenThrow(HttpServerErrorException.InternalServerError.class);
+
+        assertThrows(InternalServerError.class, () -> riotApiService.getSummaryByName(summonerDto.getName()));
+    }
+
+    @Test
+    public void getSummaryByNameBadGatewayTest() {
+        String apiUrlSummoner = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerDto.getName() + "?api_key=" + apiKey;
+        Mockito.when(restTemplate.getForObject(apiUrlSummoner, SummonerDto.class)).thenThrow(HttpServerErrorException.BadGateway.class);
+
+        assertThrows(BadGateway.class, () -> riotApiService.getSummaryByName(summonerDto.getName()));
+    }
+
+    @Test
+    public void getSummaryByNameServiceUnavailableTest() {
+        String apiUrlSummoner = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerDto.getName() + "?api_key=" + apiKey;
+        Mockito.when(restTemplate.getForObject(apiUrlSummoner, SummonerDto.class)).thenThrow(HttpServerErrorException.ServiceUnavailable.class);
+
+        assertThrows(ServiceUnavailable.class, () -> riotApiService.getSummaryByName(summonerDto.getName()));
+    }
+
+    @Test
+    public void getSummaryByNameGatewayTimeoutTest() {
+        String apiUrlSummoner = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerDto.getName() + "?api_key=" + apiKey;
+        Mockito.when(restTemplate.getForObject(apiUrlSummoner, SummonerDto.class)).thenThrow(HttpServerErrorException.GatewayTimeout.class);
+
+        assertThrows(GatewayTimeout.class, () -> riotApiService.getSummaryByName(summonerDto.getName()));
+    }
+
+    @Test
+    public void postGradeNonEmptyTest() {
+        int note = 5;
+        Grade oldGrade = new Grade(grade.getId(), grade.getSummonerName(), grade.getAverage(), grade.getCardinal());
+        String apiUrlSummoner = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerDto.getName() + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrlSummoner, SummonerDto.class)).thenReturn(summonerDto);
+        Mockito.when(gradeRepository.findById(summonerDto.getId())).thenReturn(Optional.of(oldGrade));
+
+        riotApiService.postGrade("Belugafurtif", note);
+
+        ArgumentCaptor<Grade> gradeCaptor = ArgumentCaptor.forClass(Grade.class);
+        Mockito.verify(gradeRepository).save(gradeCaptor.capture());
+        Grade newGrade = gradeCaptor.getValue();
+
+        assertEquals(newGrade.getId(), grade.getId());
+        assertEquals(newGrade.getSummonerName(), grade.getSummonerName());
+        assertEquals(newGrade.getAverage(), (grade.getAverage()*grade.getCardinal() + note)/(grade.getCardinal() + 1));
+        assertEquals(newGrade.getCardinal(), grade.getCardinal() + 1);
+    }
+
+    @Test
+    public void postGradeEmptyTest() {
+        int note = 5;
+        String apiUrlSummoner = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerDto.getName() + "?api_key=" + apiKey;
+
+        Mockito.when(restTemplate.getForObject(apiUrlSummoner, SummonerDto.class)).thenReturn(summonerDto);
+        Mockito.when(gradeRepository.findById(summonerDto.getId())).thenReturn(Optional.empty());
+
+        riotApiService.postGrade("Belugafurtif", note);
+
+        ArgumentCaptor<Grade> gradeCaptor = ArgumentCaptor.forClass(Grade.class);
+        Mockito.verify(gradeRepository).save(gradeCaptor.capture());
+        Grade newGrade = gradeCaptor.getValue();
+
+        assertEquals(newGrade.getId(), summonerDto.getId());
+        assertEquals(newGrade.getSummonerName(), summonerDto.getName());
+        assertEquals(newGrade.getAverage(), note);
+        assertEquals(newGrade.getCardinal(), 1);
+    }
+
+    @Test
+    public void postGradeBadRequestTest() {
+        String apiUrlSummoner = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerDto.getName() + "?api_key=" + apiKey;
+        Mockito.when(restTemplate.getForObject(apiUrlSummoner, SummonerDto.class)).thenThrow(HttpClientErrorException.BadRequest.class);
+
+        assertThrows(BadRequestException.class, () -> riotApiService.postGrade("Belugafurtif", 5));
+    }
+
+    @Test
+    public void postGradeSummonerNotFoundTest() {
+        String apiUrlSummoner = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerDto.getName() + "?api_key=" + apiKey;
+        Mockito.when(restTemplate.getForObject(apiUrlSummoner, SummonerDto.class)).thenThrow(HttpClientErrorException.NotFound.class);
+
+        assertThrows(SummonerNotFoundException.class, () -> riotApiService.postGrade("Belugafurtif", 5));
+    }
+
+    @Test
+    public void postGradeMethodNotAllowedTest() {
+        String apiUrlSummoner = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerDto.getName() + "?api_key=" + apiKey;
+        Mockito.when(restTemplate.getForObject(apiUrlSummoner, SummonerDto.class)).thenThrow(HttpClientErrorException.MethodNotAllowed.class);
+
+        assertThrows(MethodNotAllowed.class, () -> riotApiService.postGrade("Belugafurtif", 5));
+    }
+
+    @Test
+    public void postGradeUnsupportedMediaTypeTest() {
+        String apiUrlSummoner = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerDto.getName() + "?api_key=" + apiKey;
+        Mockito.when(restTemplate.getForObject(apiUrlSummoner, SummonerDto.class)).thenThrow(HttpClientErrorException.UnsupportedMediaType.class);
+
+        assertThrows(UnsupportedMediaType.class, () -> riotApiService.postGrade("Belugafurtif", 5));
+    }
+
+    @Test
+    public void postGradeRateLimitExceededTest() {
+        String apiUrlSummoner = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerDto.getName() + "?api_key=" + apiKey;
+        Mockito.when(restTemplate.getForObject(apiUrlSummoner, SummonerDto.class)).thenThrow(HttpClientErrorException.TooManyRequests.class);
+
+        assertThrows(RateLimitExceededException.class, () -> riotApiService.postGrade("Belugafurtif", 5));
+    }
+
+    @Test
+    public void postGradeInternalServerErrorTest() {
+        String apiUrlSummoner = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerDto.getName() + "?api_key=" + apiKey;
+        Mockito.when(restTemplate.getForObject(apiUrlSummoner, SummonerDto.class)).thenThrow(HttpServerErrorException.InternalServerError.class);
+
+        assertThrows(InternalServerError.class, () -> riotApiService.postGrade("Belugafurtif", 5));
+    }
+
+    @Test
+    public void postGradeBadGatewayTest() {
+        String apiUrlSummoner = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerDto.getName() + "?api_key=" + apiKey;
+        Mockito.when(restTemplate.getForObject(apiUrlSummoner, SummonerDto.class)).thenThrow(HttpServerErrorException.BadGateway.class);
+
+        assertThrows(BadGateway.class, () -> riotApiService.postGrade("Belugafurtif", 5));
+    }
+
+    @Test
+    public void postGradeServiceUnavailableTest() {
+        String apiUrlSummoner = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerDto.getName() + "?api_key=" + apiKey;
+        Mockito.when(restTemplate.getForObject(apiUrlSummoner, SummonerDto.class)).thenThrow(HttpServerErrorException.ServiceUnavailable.class);
+
+        assertThrows(ServiceUnavailable.class, () -> riotApiService.postGrade("Belugafurtif", 5));
+    }
+
+    @Test
+    public void postGradeGatewayTimeoutTest() {
+        String apiUrlSummoner = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerDto.getName() + "?api_key=" + apiKey;
+        Mockito.when(restTemplate.getForObject(apiUrlSummoner, SummonerDto.class)).thenThrow(HttpServerErrorException.GatewayTimeout.class);
+
+        assertThrows(GatewayTimeout.class, () -> riotApiService.postGrade("Belugafurtif", 5));
+    }
 }

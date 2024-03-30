@@ -39,7 +39,7 @@ public class frontend {
     @GetMapping("/summoner_page/{summonerName}")
     public String getSummonerData(@PathVariable String summonerName, Model model) {
         try {
-            Summary summary = riotApiService.getSummary(summonerName);
+            Summary summary = riotApiService.getSummaryByName(summonerName);
             model.addAttribute("summoner", summary);
             return "summoner";
         }
