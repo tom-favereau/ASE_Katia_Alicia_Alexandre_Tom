@@ -151,9 +151,9 @@ public class AseProjectApplication {
 
     @GetMapping("/lastMatches/{summonerName}")
     public ResponseEntity<ArrayList<String>> getLastMatches(@PathVariable String summonerName) {
-        ArrayList<Match> matches = riotApiService.getMatches(summonerName, 0, 0, 0, "", 0, 20);
+        ArrayList<Match> matchesFutures = riotApiService.getMatches(summonerName, null, null, null, null, null, 100);
         ArrayList<String> matchIds = new ArrayList<>();
-        for (Match match : matches) {
+        for (Match match : matchesFutures) {
             matchIds.add(match.getMatchId());
         }
         return new ResponseEntity<>(matchIds, HttpStatus.OK);

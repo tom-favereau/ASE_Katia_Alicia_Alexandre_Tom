@@ -1,17 +1,32 @@
 package com.project.ase_project.service;
 
-import java.util.*;
-import java.io.IOException;
-import java.net.URL;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
+import com.project.ase_project.exception.*;
 import com.project.ase_project.model.clean.MostPlayedChampions.ChampionsPlayed;
 import com.project.ase_project.model.clean.MostPlayedGameModes.GameModesPlayed;
+import com.project.ase_project.model.clean.grade.Grade;
+import com.project.ase_project.model.clean.league.League;
+import com.project.ase_project.model.clean.match.Match;
 import com.project.ase_project.model.clean.match.Metadata;
 import com.project.ase_project.model.clean.match.Participant;
+import com.project.ase_project.model.clean.summary.Summary;
+import com.project.ase_project.model.clean.summoner.Summoner;
+import com.project.ase_project.model.ddragon.champion.Champion;
+import com.project.ase_project.model.ddragon.maps.LOLMap;
+import com.project.ase_project.model.ddragon.queue.LOLQueue;
+import com.project.ase_project.model.dto.league.LeagueDto;
+import com.project.ase_project.model.dto.match.MatchDto;
+import com.project.ase_project.model.dto.summoner.SummonerDto;
+import com.project.ase_project.repository.*;
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.Bucket;
+import io.github.bucket4j.ConsumptionProbe;
+import io.github.bucket4j.Refill;
+import jakarta.annotation.PostConstruct;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,27 +36,15 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import jakarta.annotation.PostConstruct;
-
-import lombok.Getter;
-
-import com.project.ase_project.repository.*;
-
-import com.project.ase_project.exception.*;
-
-import com.project.ase_project.model.ddragon.champion.Champion;
-import com.project.ase_project.model.ddragon.maps.LOLMap;
-import com.project.ase_project.model.ddragon.queue.LOLQueue;
-
-import com.project.ase_project.model.dto.summoner.SummonerDto;
-import com.project.ase_project.model.dto.match.MatchDto;
-import com.project.ase_project.model.dto.league.LeagueDto;
-
-import com.project.ase_project.model.clean.grade.Grade;
-import com.project.ase_project.model.clean.summary.Summary;
-import com.project.ase_project.model.clean.league.League;
-import com.project.ase_project.model.clean.match.Match;
-import com.project.ase_project.model.clean.summoner.Summoner;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class RiotApiService {
@@ -82,6 +85,16 @@ public class RiotApiService {
         private float kda;
     }
 
+    @AllArgsConstructor
+    @Getter
+    @Setter
+    @ToString
+    private static class Season {
+        private int seasonNumber;
+        private Long startTime;
+        private Long endTime;
+    }
+
     @Value("${riot.api.key}")
     private String apiKey;
 
@@ -94,6 +107,8 @@ public class RiotApiService {
     private final MapRepository mapRepository;
     @Getter
     private final QueueRepository queueRepository;
+    private HashMap<Integer, Season> seasons;
+    private final Bucket bucket;
 
     @Autowired
     public RiotApiService(RestTemplate restTemplate, MatchRepository matchRepository, GradeRepository gradeRepository,
@@ -104,6 +119,10 @@ public class RiotApiService {
         this.championRepository = championRepository;
         this.mapRepository = mapRepository;
         this.queueRepository = queueRepository;
+        this.bucket = Bucket.builder()
+                .addLimit(Bandwidth.classic(20, Refill.intervally(20, Duration.ofSeconds(1))))
+                .addLimit(Bandwidth.classic(100, Refill.intervally(100, Duration.ofMinutes(2))))
+                .build();
     }
 
     /*
@@ -116,20 +135,27 @@ public class RiotApiService {
         String apiUrl = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerName + "?api_key="+apiKey;
         try {
             SummonerDto summonerDto = restTemplate.getForObject(apiUrl, SummonerDto.class);
-            if (summonerDto != null) {
-                Summoner summoner = summonerDto.toSummoner();
-                Optional<Grade> grade = gradeRepository.findById(summoner.getId());
-                if (grade.isEmpty()) {
-                    summoner.setAverage(0);
-                    summoner.setCardinal(0);
-                } else {
-                    summoner.setAverage(grade.get().getAverage());
-                    summoner.setCardinal(grade.get().getCardinal());
+            ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
+            if (probe.isConsumed()) {
+                if (summonerDto != null) {
+                    Summoner summoner = summonerDto.toSummoner();
+                    Optional<Grade> grade = gradeRepository.findById(summoner.getId());
+                    if (grade.isEmpty()) {
+                        summoner.setAverage(0);
+                        summoner.setCardinal(0);
+                    } else {
+                        summoner.setAverage(grade.get().getAverage());
+                        summoner.setCardinal(grade.get().getCardinal());
+                    }
+                    return summoner;
                 }
-                return summoner;
-            }
-            else {
-                throw new SummonerNotFoundException("Erreur 404 : Le joueur " + summonerName + " n'existe pas.");
+                else {
+                    throw new SummonerNotFoundException("Erreur 404 : Le joueur " + summonerName + " n'existe pas.");
+                }
+            } else {
+                System.out.println("Rate limit exceeded, waiting for " + probe.getNanosToWaitForRefill() / 1000000 + "ms");
+                TimeUnit.MILLISECONDS.sleep(probe.getNanosToWaitForRefill() / 1000000);
+                return getSummonerByName(summonerName);
             }
         } catch (HttpClientErrorException.BadRequest e) {
             throw new BadRequestException("Erreur 400 : Bad request");
@@ -150,7 +176,12 @@ public class RiotApiService {
             throw new UnsupportedMediaType("Erreur 415 : Unsupported media type");
         }
         catch (HttpClientErrorException.TooManyRequests e) {
-            throw new RateLimitExceededException("Erreur 429 : Too many requests");
+            try {
+                TimeUnit.SECONDS.sleep(10);
+                return getSummonerByName(summonerName);
+            } catch (InterruptedException ex) {
+                throw new RuntimeException(ex);
+            }
         }
         catch (HttpServerErrorException.InternalServerError e) {
             throw new InternalServerError("Erreur 500 : Internal server error");
@@ -163,21 +194,32 @@ public class RiotApiService {
         }
         catch (HttpServerErrorException.GatewayTimeout e) {
             throw new GatewayTimeout("Erreur 504 : Gateway timeout");
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 
     public Match getMatchById(String matchId) {
         String apiUrl = "https://europe.api.riotgames.com/lol/match/v5/matches/" + matchId + "?api_key="+apiKey;
         try {
-            MatchDto matchDto = restTemplate.getForObject(apiUrl, MatchDto.class);
-            if (matchDto != null) {
-                Match match = matchDto.toMatch();
-                matchRepository.save(match);
-                return match;
+            ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
+            if (probe.isConsumed()) {
+                MatchDto matchDto = restTemplate.getForObject(apiUrl, MatchDto.class);
+                if (matchDto != null) {
+                    Match match = matchDto.toMatch();
+                    matchRepository.save(match);
+                    return match;
+                }
+                else {
+                    System.out.println("Erreur 404 : Le match " + matchId + " n'existe pas.");
+                    throw new MatchNotFoundException("Erreur 404 : Le match " + matchId + " n'existe pas.");
+                }
+            } else {
+                System.out.println("Rate limit exceeded, waiting for " + probe.getNanosToWaitForRefill() / 1000000 + "ms");
+                TimeUnit.MILLISECONDS.sleep(probe.getNanosToWaitForRefill() / 1000000);
+                return getMatchById(matchId);
             }
-            else {
-                throw new MatchNotFoundException("Erreur 404 : Le match " + matchId + " n'existe pas.");
-            }
+
         } catch (HttpClientErrorException.BadRequest e) {
             throw new BadRequestException("Erreur 400 : Bad request");
         }
@@ -197,7 +239,12 @@ public class RiotApiService {
             throw new UnsupportedMediaType("Erreur 415 : Unsupported media type");
         }
         catch (HttpClientErrorException.TooManyRequests e) {
-            throw new RateLimitExceededException("Erreur 429 : Too many requests");
+            try {
+                TimeUnit.SECONDS.sleep(10);
+                return getMatchById(matchId);
+            } catch (InterruptedException ex) {
+                throw new RuntimeException(ex);
+            }
         }
         catch (HttpServerErrorException.InternalServerError e) {
             throw new InternalServerError("Erreur 500 : Internal server error");
@@ -210,6 +257,8 @@ public class RiotApiService {
         }
         catch (HttpServerErrorException.GatewayTimeout e) {
             throw new GatewayTimeout("Erreur 504 : Gateway timeout");
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -217,23 +266,30 @@ public class RiotApiService {
         String apiUrl = "https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/" + encryptedSummonerId + "?api_key="+apiKey;
         try {
             LeagueDto[] leaguesDto = restTemplate.getForObject(apiUrl, LeagueDto[].class);
-            if (leaguesDto == null) {
-                throw new LeaguesNotFoundException("Erreur 404 : Le joueur avec l'identifiant " + encryptedSummonerId + " n'a pas de classement.");
-            } else if (leaguesDto.length > 0) {
-                ArrayList<League> leagues = new ArrayList<>();
-                for (LeagueDto leagueDto : leaguesDto) {
-                    League league = leagueDto.toLeague();
-                    leagues.add(league);
+            ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
+            if (probe.isConsumed()) {
+                if (leaguesDto == null) {
+                    throw new LeaguesNotFoundException("Erreur 404 : Le joueur avec l'identifiant " + encryptedSummonerId + " n'a pas de classement.");
+                } else if (leaguesDto.length > 0) {
+                    ArrayList<League> leagues = new ArrayList<>();
+                    for (LeagueDto leagueDto : leaguesDto) {
+                        League league = leagueDto.toLeague();
+                        leagues.add(league);
+                    }
+                    if (leagues.size() == 1 && leagues.get(0).getQueueType().equals("RANKED_FLEX_SR")) {
+                        leagues.add(new League("", encryptedSummonerId, "", "RANKED_SOLO_5x5", "UNRANKED", "", 0, 0, 0));
+                    } else if (leagues.size() == 1 && leagues.get(0).getQueueType().equals("RANKED_SOLO_5x5")) {
+                        leagues.add(new League("", encryptedSummonerId, "", "RANKED_FLEX_SR", "UNRANKED", "", 0, 0, 0));
+                    }
+                    return leagues;
                 }
-                if (leagues.size() == 1 && leagues.get(0).getQueueType().equals("RANKED_FLEX_SR")) {
-                    leagues.add(new League("", encryptedSummonerId, "", "RANKED_SOLO_5x5", "UNRANKED", "", 0, 0, 0));
-                } else if (leagues.size() == 1 && leagues.get(0).getQueueType().equals("RANKED_SOLO_5x5")) {
-                    leagues.add(new League("", encryptedSummonerId, "", "RANKED_FLEX_SR", "UNRANKED", "", 0, 0, 0));
+                else {
+                    return new ArrayList<>();
                 }
-                return leagues;
-            }
-            else {
-                return new ArrayList<>();
+            } else {
+                System.out.println("Rate limit exceeded, waiting for " + probe.getNanosToWaitForRefill() / 1000000 + "ms");
+                TimeUnit.MILLISECONDS.sleep(probe.getNanosToWaitForRefill() / 1000000);
+                return getRankById(encryptedSummonerId);
             }
         } catch (HttpClientErrorException.BadRequest e) {
             throw new BadRequestException("Erreur 400 : Bad request");
@@ -254,7 +310,12 @@ public class RiotApiService {
             throw new UnsupportedMediaType("Erreur 415 : Unsupported media type");
         }
         catch (HttpClientErrorException.TooManyRequests e) {
-            throw new RateLimitExceededException("Erreur 429 : Too many requests");
+            try {
+                TimeUnit.SECONDS.sleep(10);
+                return getRankById(encryptedSummonerId);
+            } catch (InterruptedException ex) {
+                throw new RuntimeException(ex);
+            }
         }
         catch (HttpServerErrorException.InternalServerError e) {
             throw new InternalServerError("Erreur 500 : Internal server error");
@@ -267,15 +328,25 @@ public class RiotApiService {
         }
         catch (HttpServerErrorException.GatewayTimeout e) {
             throw new GatewayTimeout("Erreur 504 : Gateway timeout");
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
-    // TODO : getMatchById en parallèle
-    public ArrayList<Match> getMatches(String summonerName, long startTime, long endTime, int queue, String type, int start, int count) {
+    public ArrayList<Match> getMatches(String summonerName, Long startTime, Long endTime, Integer queue, String type, Integer start, Integer count) {
         Summoner summoner = getSummonerByName(summonerName);
-        String apiUrl = "https://europe.api.riotgames.com/lol/match/v5/matches/by-puuid/" + summoner.getPuuid() + "/ids?start=" + start + "&count=" + count + "&api_key=" + apiKey;
+        String apiUrl = "https://europe.api.riotgames.com/lol/match/v5/matches/by-puuid/" + summoner.getPuuid()
+                + "/ids?startTime=" + (startTime == null ? "" : startTime)
+                + "&endTime=" + (endTime == null ? "" : endTime)
+                + "&queue=" + (queue == null ? "" : queue)
+                + "&type=" + (type == null ? "" : type)
+                + "&start=" + (start == null ? "" : start)
+                + "&count=" + (count == null ? "" : count)
+                + "&api_key=" + apiKey;
+
         try {
             String[] matches = restTemplate.getForObject(apiUrl, String[].class);
             ArrayList<Match> matchList = new ArrayList<>();
+            ArrayList<CompletableFuture<Match>> matchFutures = new ArrayList<>();
             int counter = 0;
             if (matches != null) {
                 for (String match : matches){
@@ -283,12 +354,23 @@ public class RiotApiService {
                     if (matchEntity.isPresent()) {
                         matchList.add(matchEntity.get());
                     } else {
-                        matchList.add(getMatchById(match));
+                        CompletableFuture<Match> matchFuture = CompletableFuture.supplyAsync(() -> getMatchById(match));
+                        matchFutures.add(matchFuture);
                     }
-                    if (counter++ > count){
+                    if (count != null && counter++ > count){
                         break;
                     }
                 }
+                CompletableFuture<Void> allFutures = CompletableFuture.allOf(matchFutures.toArray(new CompletableFuture[0]));
+                allFutures.thenRun(() -> {
+                    for (CompletableFuture<Match> matchFuture : matchFutures) {
+                        try {
+                            matchList.add(matchFuture.get());
+                        } catch (Exception e) {
+                            throw new MatchNotFoundException("Erreur 404 : Le match n'existe pas.");
+                        }
+                    }
+                }).join();
             }
             return matchList;
         }
@@ -311,7 +393,12 @@ public class RiotApiService {
             throw new UnsupportedMediaType("Erreur 415 : Unsupported media type");
         }
         catch (HttpClientErrorException.TooManyRequests e) {
-            throw new RateLimitExceededException("Erreur 429 : Too many requests");
+            try {
+                TimeUnit.SECONDS.sleep(10);
+                return getMatches(summonerName, startTime, endTime, queue, type, start, count);
+            } catch (InterruptedException ex) {
+                throw new RuntimeException(ex);
+            }
         }
         catch (HttpServerErrorException.InternalServerError e) {
             throw new InternalServerError("Erreur 500 : Internal server error");
@@ -418,7 +505,7 @@ public class RiotApiService {
 
     public ChampionsPlayed getChampionsPlayedByName(String summonerName) {
         ChampionsPlayed championsPlayed = new ChampionsPlayed();
-        ArrayList<Match> matches = getMatches(summonerName, 0, 0, 0, "", 0, 20);
+        ArrayList<Match> matches = getMatches(summonerName, null, null, null, null, null, 100);
         HashMap<String, ChampionData> champions = new HashMap<>();
         int participantId = 0;
 
@@ -549,7 +636,7 @@ public class RiotApiService {
 
     public GameModesPlayed getGameModesPlayedByName(String summonerName) {
         GameModesPlayed gameModesPlayed = new GameModesPlayed();
-        ArrayList<Match> matches = getMatches(summonerName, 0, 0, 0, "", 0, 20);
+        ArrayList<Match> matches = getMatches(summonerName, null, null, null, null, null, 100);
         HashMap<String, GameModeData> gameModes = new HashMap<>();
         int participantId = 0;
 
@@ -691,10 +778,29 @@ public class RiotApiService {
      */
 
     @PostConstruct
-    public boolean initializeChampions() throws IOException {
+    public void setUpSeasons() {
+        seasons = new HashMap<>();
+        seasons.put(1, new Season(1, LocalDateTime.of(2010, 7, 13, 0, 0, 0).toEpochSecond(ZoneOffset.UTC), LocalDateTime.of(2011, 8, 23, 0, 0, 0).toEpochSecond(ZoneOffset.UTC)));
+        seasons.put(2, new Season(2, LocalDateTime.of(2011, 11, 29, 0, 0, 0).toEpochSecond(ZoneOffset.UTC), LocalDateTime.of(2012, 11, 12, 0, 0, 0).toEpochSecond(ZoneOffset.UTC)));
+        seasons.put(3, new Season(3, LocalDateTime.of(2013, 2, 1, 0, 0, 0).toEpochSecond(ZoneOffset.UTC), LocalDateTime.of(2013, 11, 11, 0, 0, 0).toEpochSecond(ZoneOffset.UTC)));
+        seasons.put(4, new Season(4, LocalDateTime.of(2014, 1, 10, 0, 0, 0).toEpochSecond(ZoneOffset.UTC), LocalDateTime.of(2014, 11, 11, 0, 0, 0).toEpochSecond(ZoneOffset.UTC)));
+        seasons.put(5, new Season(5, LocalDateTime.of(2015, 1, 21, 0, 0, 0).toEpochSecond(ZoneOffset.UTC), LocalDateTime.of(2015, 11, 11, 0, 0, 0).toEpochSecond(ZoneOffset.UTC)));
+        seasons.put(6, new Season(6, LocalDateTime.of(2016, 1, 20, 0, 0, 0).toEpochSecond(ZoneOffset.UTC), LocalDateTime.of(2016, 11, 8, 0, 0, 0).toEpochSecond(ZoneOffset.UTC)));
+        seasons.put(7, new Season(7, LocalDateTime.of(2016, 12, 8, 0, 0, 0).toEpochSecond(ZoneOffset.UTC), LocalDateTime.of(2017, 11, 7, 0, 0, 0).toEpochSecond(ZoneOffset.UTC)));
+        seasons.put(8, new Season(8, LocalDateTime.of(2018, 1, 16, 0, 0, 0).toEpochSecond(ZoneOffset.UTC), LocalDateTime.of(2018, 11, 12, 0, 0, 0).toEpochSecond(ZoneOffset.UTC)));
+        seasons.put(9, new Season(9, LocalDateTime.of(2019, 1, 23, 0, 0, 0).toEpochSecond(ZoneOffset.UTC), LocalDateTime.of(2019, 11, 19, 0, 0, 0).toEpochSecond(ZoneOffset.UTC)));
+        seasons.put(10, new Season(10, LocalDateTime.of(2020, 1, 10, 0, 0, 0).toEpochSecond(ZoneOffset.UTC), LocalDateTime.of(2020, 11, 10, 0, 0, 0).toEpochSecond(ZoneOffset.UTC)));
+        seasons.put(11, new Season(11, LocalDateTime.of(2021, 1, 8, 0, 0, 0).toEpochSecond(ZoneOffset.UTC), LocalDateTime.of(2021, 11, 15, 0, 0, 0).toEpochSecond(ZoneOffset.UTC)));
+        seasons.put(12, new Season(12, LocalDateTime.of(2022, 1, 7, 0, 0, 0).toEpochSecond(ZoneOffset.UTC), LocalDateTime.of(2022, 11, 14, 0, 0, 0).toEpochSecond(ZoneOffset.UTC)));
+        seasons.put(13, new Season(13, LocalDateTime.of(2023, 1, 11, 0, 0, 0).toEpochSecond(ZoneOffset.UTC), LocalDateTime.of(2024, 1, 9, 0, 0, 0).toEpochSecond(ZoneOffset.UTC)));
+        seasons.put(14, new Season(14, LocalDateTime.of(2024, 1, 10, 0, 0, 0).toEpochSecond(ZoneOffset.UTC), LocalDateTime.of(2025, 1, 8, 0, 0, 0).toEpochSecond(ZoneOffset.UTC)));
+    }
+
+    @PostConstruct
+    public boolean initializeChampions() throws IOException, URISyntaxException {
         String[] remove = new String[]{"blurb", "version", "title", "info", "tags", "partype", "stats"};
         //Getting raw json
-        JsonNode json = new ObjectMapper().readTree(new URL("https://ddragon.leagueoflegends.com/cdn/14.5.1/data/en_US/champion.json"));
+        JsonNode json = new ObjectMapper().readTree(new URI("https://ddragon.leagueoflegends.com/cdn/14.5.1/data/en_US/champion.json").toURL());
         JsonNode championJson = json.get("data");
         //Resetting the table if new maps have been added or if table is not initialized.
         boolean originalStateIsNotValid = championRepository.count() != championJson.size();
@@ -725,9 +831,9 @@ public class RiotApiService {
     }
 
     @PostConstruct
-    public boolean initializeMaps() throws IOException {
+    public boolean initializeMaps() throws IOException, URISyntaxException {
         //Getting raw json
-        JsonNode mapArrayJson = new ObjectMapper().readTree(new URL("https://static.developer.riotgames.com/docs/lol/maps.json"));
+        JsonNode mapArrayJson = new ObjectMapper().readTree(new URI("https://static.developer.riotgames.com/docs/lol/maps.json").toURL());
         //Resetting the table if new maps have been added or if table is not initialized.
         boolean originalStateIsNotValid = mapRepository.count() != mapArrayJson.size();
         if (originalStateIsNotValid) {
@@ -746,9 +852,9 @@ public class RiotApiService {
     }
 
     @PostConstruct
-    public boolean initializeQueues() throws IOException {
+    public boolean initializeQueues() throws IOException, URISyntaxException {
         //Getting raw json
-        JsonNode queueArrayJson = new ObjectMapper().readTree(new URL("https://static.developer.riotgames.com/docs/lol/queues.json"));
+        JsonNode queueArrayJson = new ObjectMapper().readTree(new URI("https://static.developer.riotgames.com/docs/lol/queues.json").toURL());
         //Resetting the table if new queues have been added or if table is not initialized.
         boolean originalStateIsNotValid = queueRepository.count() != queueArrayJson.size();
         if (originalStateIsNotValid) {
