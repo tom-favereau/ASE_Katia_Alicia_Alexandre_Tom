@@ -1,10 +1,7 @@
 package com.project.ase_project.model.dto.match;
 
 import com.project.ase_project.model.clean.match.*;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +16,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
+@EqualsAndHashCode
 public class MatchDto {
     private MetadataDto metadata;
     private InfoDto info;

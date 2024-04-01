@@ -1,6 +1,8 @@
 package com.project.ase_project;
 
 import com.project.ase_project.exception.*;
+import com.project.ase_project.model.clean.MostPlayedChampions.ChampionsPlayed;
+import com.project.ase_project.model.clean.MostPlayedGameModes.GameModesPlayed;
 import com.project.ase_project.model.clean.league.League;
 import com.project.ase_project.model.clean.match.Match;
 import com.project.ase_project.model.clean.summary.Summary;
@@ -12,12 +14,15 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.NoSuchElementException;
 
 
-@RestController
+@Controller
 @RequestMapping("/riot")
 @SpringBootApplication
 public class AseProjectApplication {
@@ -29,6 +34,12 @@ public class AseProjectApplication {
 
     @Autowired
     private RiotApiService riotApiService;
+
+    /*
+     *******************************************************************************************************************
+     *************************************************** PARTIE API ****************************************************
+     *******************************************************************************************************************
+     */
 
     // Exemple : http://localhost:8080/riot/summoners/Belugafurtif
     @GetMapping("/summoners/")
@@ -42,6 +53,7 @@ public class AseProjectApplication {
     }
     
     @GetMapping("/summoners/{summonerName}")
+    @ResponseBody
     public ResponseEntity<Summoner> getSummonerData(@PathVariable String summonerName) {
         try {
             Summoner summoner = riotApiService.getSummonerByName(summonerName);
@@ -77,6 +89,7 @@ public class AseProjectApplication {
     }
 
     @GetMapping("/rank/{encryptedSummonerId}")
+    @ResponseBody
     public ResponseEntity<ArrayList<League>> getRankData(@PathVariable String encryptedSummonerId) {
         try {
             ArrayList<League> rankList = riotApiService.getRankById(encryptedSummonerId);
@@ -112,6 +125,7 @@ public class AseProjectApplication {
     }
     
     @GetMapping("/matches/{matchId}")
+    @ResponseBody
     public ResponseEntity<Match> getMatchData(@PathVariable String matchId) {
         try {
             Match match = riotApiService.getMatchById(matchId);
@@ -135,6 +149,16 @@ public class AseProjectApplication {
         }
     }
 
+    @GetMapping("/lastMatches/{summonerName}")
+    public ResponseEntity<ArrayList<String>> getLastMatches(@PathVariable String summonerName) {
+        ArrayList<Match> matches = riotApiService.getMatches(summonerName, 0, 0, 0, "", 0, 20);
+        ArrayList<String> matchIds = new ArrayList<>();
+        for (Match match : matches) {
+            matchIds.add(match.getMatchId());
+        }
+        return new ResponseEntity<>(matchIds, HttpStatus.OK);
+    }
+
     // Exemple : http://localhost:8080/riot/summary/Belugafurtif
     @GetMapping("/summary/")
     public ResponseEntity<Summary> getEmptySummaryData() {
@@ -147,6 +171,7 @@ public class AseProjectApplication {
     }
 
     @GetMapping("/summary/{summonerName}")
+    @ResponseBody
     public ResponseEntity<Summary> getSummaryData(@PathVariable String summonerName) {
         try {
             Summary summary = riotApiService.getSummaryByName(summonerName);
@@ -196,6 +221,7 @@ public class AseProjectApplication {
     }
 
     @PostMapping("/grade/{summonerName}/{grade}")
+    @ResponseBody
     public ResponseEntity<String> postGradeData(@PathVariable String summonerName, @PathVariable String grade) {
         try {
             int note = Integer.parseInt(grade);
@@ -224,6 +250,88 @@ public class AseProjectApplication {
             throw new IllegalArgumentException("Erreur 400 : Veuillez préciser une note valide.");
         }
     }
+
+    // Exemple : http://localhost:8080/riot/championsPlayed/Belugafurtif
+    @GetMapping("/championsPlayed/")
+    public ResponseEntity<ChampionsPlayed> getEmptyChampionsPlayed() {
+        throw new IllegalArgumentException("Erreur 400 : Veuillez préciser un pseudo de joueur.");
+    }
+
+    @PostMapping("/championsPlayed/{summonerName}")
+    public ResponseEntity<ChampionsPlayed> postChampionsPlayed(@PathVariable String summonerName) {
+        throw new MethodNotAllowed("Erreur 405 : La méthode POST n'est pas autorisée pour cette route. Utilisez la méthode GET pour obtenir les champions joués par " + summonerName + ".");
+    }
+
+    @GetMapping("/championsPlayed/{summonerName}")
+    public ResponseEntity<ChampionsPlayed> getChampionsPlayed(@PathVariable String summonerName) {
+        try {
+            ChampionsPlayed championsPlayed = riotApiService.getChampionsPlayedByName(summonerName);
+            return new ResponseEntity<>(championsPlayed, HttpStatus.OK);
+        } catch (BadRequestException e) {
+            throw new BadRequestException(e.getMessage());
+        } catch (SummonerNotFoundException e) {
+            throw new SummonerNotFoundException(e.getMessage());
+        } catch (MatchNotFoundException e) {
+            throw new MatchNotFoundException(e.getMessage());
+        } catch (UnsupportedMediaType e) {
+            throw new UnsupportedMediaType(e.getMessage());
+        } catch (RateLimitExceededException e) {
+            throw new RateLimitExceededException(e.getMessage());
+        } catch (InternalServerError e) {
+            throw new InternalServerError(e.getMessage());
+        } catch (BadGateway e) {
+            throw new BadGateway(e.getMessage());
+        } catch (ServiceUnavailable e) {
+            throw new ServiceUnavailable(e.getMessage());
+        } catch (GatewayTimeout e) {
+            throw new GatewayTimeout(e.getMessage());
+        }
+    }
+
+    // Exemple : http://localhost:8080/riot/gameModesPlayed/Belugafurtif
+    @GetMapping("/gameModesPlayed/")
+    public ResponseEntity<GameModesPlayed> getEmptyGameModesPlayed() {
+        throw new IllegalArgumentException("Erreur 400 : Veuillez préciser un pseudo de joueur.");
+    }
+
+    @PostMapping("/gameModesPlayed/{summonerName}")
+    public ResponseEntity<GameModesPlayed> postGameModesPlayed(@PathVariable String summonerName) {
+        throw new MethodNotAllowed("Erreur 405 : La méthode POST n'est pas autorisée pour cette route. Utilisez la méthode GET pour obtenir les modes de jeu joués par " + summonerName + ".");
+    }
+
+    @GetMapping("/gameModesPlayed/{summonerName}")
+    public ResponseEntity<GameModesPlayed> getGameModesPlayed(@PathVariable String summonerName) {
+        try {
+            GameModesPlayed gameModesPlayed = riotApiService.getGameModesPlayedByName(summonerName);
+            return new ResponseEntity<>(gameModesPlayed, HttpStatus.OK);
+        } catch (BadRequestException e) {
+            throw new BadRequestException(e.getMessage());
+        } catch (SummonerNotFoundException e) {
+            throw new SummonerNotFoundException(e.getMessage());
+        } catch (MatchNotFoundException e) {
+            throw new MatchNotFoundException(e.getMessage());
+        } catch (NoSuchElementException e) {
+            throw new NoSuchElementException(e.getMessage());
+        } catch (UnsupportedMediaType e) {
+            throw new UnsupportedMediaType(e.getMessage());
+        } catch (RateLimitExceededException e) {
+            throw new RateLimitExceededException(e.getMessage());
+        } catch (InternalServerError e) {
+            throw new InternalServerError(e.getMessage());
+        } catch (BadGateway e) {
+            throw new BadGateway(e.getMessage());
+        } catch (ServiceUnavailable e) {
+            throw new ServiceUnavailable(e.getMessage());
+        } catch (GatewayTimeout e) {
+            throw new GatewayTimeout(e.getMessage());
+        }
+    }
+
+    /*
+     *******************************************************************************************************************
+     ******************************************** PARTIE EXCEPTIONS HANDLER ********************************************
+     *******************************************************************************************************************
+     */
 
     @ExceptionHandler(BadRequestException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)

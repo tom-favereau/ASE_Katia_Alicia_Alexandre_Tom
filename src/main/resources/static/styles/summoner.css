@@ -31,11 +31,37 @@
 #rating {
     position: absolute;
     right: 5%;
-    bottom: 10%;
+    top: 75%;
+    text-align: right;
+    align-items: center;
+}
+
+#rating p {
+    font-family: "Oxanium", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: <weight>;
+    font-style: normal;
+    font-size: 3rem;
+    color: white;
+}
+
+#rating #nb-votes {
+    font-style: italic;
+    font-size: 2rem;
+    padding-left: 20px;
+    color: lightgrey;
 }
 
 .star {
     width: 60px;
     height: auto;
     padding: 5px;
+}
+
+#info  p {
+    color: red;
+}
+
+#info > p > span {
+    color: white;
 }

@@ -10,13 +10,14 @@ import java.util.ArrayList;
 @Getter
 @Setter
 @ToString
+@EqualsAndHashCode
 public class Summary {
     public Summary(Summoner summoner, ArrayList<League> leagues) {
         this.summonerId = summoner.getId();
         this.summonerName = summoner.getName();
         this.summonerLevel = summoner.getSummonerLevel();
         this.profileIconId = summoner.getProfileIconId();
-        this.average = summoner.getAverage();
+        this.average = (float) (Math.round(summoner.getAverage() * 100.0) / 100.0);
         this.cardinal = summoner.getCardinal();
         if (leagues.isEmpty()) {
             this.rankFlex = "UNRANKED";
@@ -45,4 +46,8 @@ public class Summary {
     private String region;
     private float average;
     private int cardinal;
+
+    public String getProfileIconAddress() {
+        return "https://ddragon.leagueoflegends.com/cdn/14.5.1/img/profileicon/" + this.profileIconId + ".png";
+    }
 }

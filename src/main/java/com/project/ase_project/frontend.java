@@ -3,6 +3,7 @@ package com.project.ase_project;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.project.ase_project.model.clean.league.League;
 import com.project.ase_project.model.clean.match.Match;
+import com.project.ase_project.model.clean.summary.Summary;
 import com.project.ase_project.model.clean.summoner.Summoner;
 import com.project.ase_project.service.RiotApiService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,12 +39,12 @@ public class frontend {
     @GetMapping("/summoner_page/{summonerName}")
     public String getSummonerData(@PathVariable String summonerName, Model model) {
         try {
-            Summoner summoner = riotApiService.getSummonerByName(summonerName);
-            model.addAttribute("summoner", summoner);
+            Summary summary = riotApiService.getSummaryByName(summonerName);
+            model.addAttribute("summoner", summary);
             return "summoner";
         }
         catch (Exception e) {
-            model.addAttribute("summoner", summonerName);
+            model.addAttribute("summonerName", summonerName);
             return "not_found";
         }
     }
