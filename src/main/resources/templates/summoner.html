@@ -38,8 +38,7 @@
                 <img id="star4" class="star" src="https://upload.wikimedia.org/wikipedia/commons/1/1b/Yellow_Star_with_rounded_edges.svg" onclick="add_rating(4)"/>
                 <img id="star5" class="star" src="https://upload.wikimedia.org/wikipedia/commons/1/1b/Yellow_Star_with_rounded_edges.svg" onclick="add_rating(5)"/>
             </div>
-            <p><span th:text="${summoner.getAverage()}"></span> / 5</p>
-            <p id="nb-votes">(<span th:text="${summoner.getCardinal()}"></span> votes)</p>
+            <p><span th:text="${summoner.getAverage()}"></span> / 5 <span id="nb-votes">(<span th:text="${summoner.getCardinal()}"></span> votes)</span></p>
         </div>
     </div>
 
@@ -47,6 +46,6 @@
         var summonerName = "[[${summoner.getSummonerName()}]]";
         var summonerAvgRating = [[${summoner.getAverage()}]];
     </script>
-    <script type="text/javascript" th:src="@{/js/summoner.js}" th:inline="javascript"></script>
+    <script type="text/javascript" th:src="@{/js/summoner.js}"></script>
 </body>
 </html>
