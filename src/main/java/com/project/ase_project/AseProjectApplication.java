@@ -371,9 +371,17 @@ public class AseProjectApplication {
         try {
             Summary summary = riotApiService.getSummaryByName(summonerName);
             model.addAttribute("summoner", summary);
+
+            ChampionsPlayed championsPlayed = riotApiService.getChampionsPlayedByName(summonerName);
+            model.addAttribute("championsPlayed", championsPlayed);
+
+            GameModesPlayed gameModesPlayed = riotApiService.getGameModesPlayedByName(summonerName);
+            model.addAttribute("gameModesPlayed", gameModesPlayed);
+
             return "summoner";
         }
         catch (Exception e) {
+            e.printStackTrace();
             model.addAttribute("summonerName", summonerName);
             return "not_found";
         }

@@ -505,7 +505,7 @@ public class RiotApiService {
 
     public ChampionsPlayed getChampionsPlayedByName(String summonerName) {
         ChampionsPlayed championsPlayed = new ChampionsPlayed();
-        ArrayList<Match> matches = getMatches(summonerName, null, null, null, null, null, 100);
+        ArrayList<Match> matches = getMatches(summonerName, null, null, null, null, null, 20);
         HashMap<String, ChampionData> champions = new HashMap<>();
         int participantId = 0;
 
@@ -544,12 +544,13 @@ public class RiotApiService {
         }
         // Calcul des statistiques
         for (ChampionData championData : champions.values()) {
-            championData.winRate = ((float) championData.wins / championData.count);
+            championData.winRate = (float) (Math.round(((float) championData.wins / championData.count) * 100.0) / 100.0);
             if (championData.deaths == 0) {
                 championData.kda = Integer.MAX_VALUE;
             } else {
                 championData.kda = ((float) (championData.kills + championData.assists) / championData.deaths);
             }
+            championData.kda = (float) (Math.round(championData.kda * 100.0) / 100.0);
         }
         // Création de l'objet de retour
         // Summoner fields
@@ -636,7 +637,7 @@ public class RiotApiService {
 
     public GameModesPlayed getGameModesPlayedByName(String summonerName) {
         GameModesPlayed gameModesPlayed = new GameModesPlayed();
-        ArrayList<Match> matches = getMatches(summonerName, null, null, null, null, null, 100);
+        ArrayList<Match> matches = getMatches(summonerName, null, null, null, null, null, 20);
         HashMap<String, GameModeData> gameModes = new HashMap<>();
         int participantId = 0;
 
