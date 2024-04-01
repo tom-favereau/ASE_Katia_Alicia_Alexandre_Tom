@@ -30,107 +30,169 @@
             <p> Rank Solo: <span th:text="${summoner.getRankSolo()}"></span></p>
             <p> Region: <span th:text="${summoner.getRegion()}"></span></p>
             <div id="champions">
-                <div class="box">
-                    <p>Most played champion:</p>
-                    <div class="box-info">
-                        <div>
-                            <img class="champion-profile-icon" th:src="${championsPlayed.getMPProfileIconAddress()}"/>
+                <div>
+                    <div class="box">
+                        <p>Most played champion:</p>
+                        <div class="box-info">
+                            <div>
+                                <img class="champion-profile-icon" th:src="${championsPlayed.getMPProfileIconAddress()}"/>
+                            </div>
+                            <div>
+                                <p class="box-name" th:text="${championsPlayed.getMostPlayedChampionName()}"></p>
+                            </div>
+                            <div>
+                                <p>Played: <span th:text="${championsPlayed.getMostPlayedChampionCount()}"></span></p>
+                                <p>Winrate: <span th:text="${championsPlayed.getMostPlayedChampionWinRate()}"></span></p>
+                            </div>
+                            <div>
+                                <p><span th:text="${championsPlayed.getMostPlayedChampionKills()}"></span> /
+                                    <span th:text="${championsPlayed.getMostPlayedChampionDeaths()}"></span> /
+                                    <span th:text="${championsPlayed.getMostPlayedChampionAssists()}"></span></p>
+                                <p><span th:text="${championsPlayed.getMostPlayedChampionKDA()}"></span> KDA</p>
+                            </div>
                         </div>
-                        <div>
-                            <p class="box-name" th:text="${championsPlayed.getMostPlayedChampionName()}"></p>
-                        </div>
-                        <div>
-                            <p>Played: <span th:text="${championsPlayed.getMostPlayedChampionCount()}"></span></p>
-                            <p>Winrate: <span th:text="${championsPlayed.getMostPlayedChampionWinRate()}"></span></p>
-                        </div>
-                        <div>
-                            <p><span th:text="${championsPlayed.getMostPlayedChampionKills()}"></span> /
-                                <span th:text="${championsPlayed.getMostPlayedChampionDeaths()}"></span> /
-                                <span th:text="${championsPlayed.getMostPlayedChampionAssists()}"></span></p>
-                            <p><span th:text="${championsPlayed.getMostPlayedChampionKDA()}"></span> KDA</p>
+                    </div>
+                    <div class="box">
+                        <p>Second most played champion:</p>
+                        <div class="box-info">
+                            <div>
+                                <img class="champion-profile-icon" th:src="${championsPlayed.getSMPProfileIconAddress()}"/>
+                            </div>
+                            <div>
+                                <p class="box-name" th:text="${championsPlayed.getSecondMostPlayedChampionName()}"></p>
+                            </div>
+                            <div>
+                                <p>Played: <span th:text="${championsPlayed.getSecondMostPlayedChampionCount()}"></span></p>
+                                <p>Winrate: <span th:text="${championsPlayed.getSecondMostPlayedChampionWinRate()}"></span></p>
+                            </div>
+                            <div>
+                                <p><span th:text="${championsPlayed.getSecondMostPlayedChampionKills()}"></span> /
+                                    <span th:text="${championsPlayed.getSecondMostPlayedChampionDeaths()}"></span> /
+                                    <span th:text="${championsPlayed.getSecondMostPlayedChampionAssists()}"></span></p>
+                                <p><span th:text="${championsPlayed.getSecondMostPlayedChampionKDA()}"></span> KDA</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="box">
-                    <p>Second most played champion:</p>
-                    <div class="box-info">
-                        <div>
-                            <img class="champion-profile-icon" th:src="${championsPlayed.getSMPProfileIconAddress()}"/>
-                        </div>
-                        <div>
-                            <p class="box-name" th:text="${championsPlayed.getSecondMostPlayedChampionName()}"></p>
-                        </div>
-                        <div>
-                            <p>Played: <span th:text="${championsPlayed.getSecondMostPlayedChampionCount()}"></span></p>
-                            <p>Winrate: <span th:text="${championsPlayed.getSecondMostPlayedChampionWinRate()}"></span></p>
-                        </div>
-                        <div>
-                            <p><span th:text="${championsPlayed.getSecondMostPlayedChampionKills()}"></span> /
-                                <span th:text="${championsPlayed.getSecondMostPlayedChampionDeaths()}"></span> /
-                                <span th:text="${championsPlayed.getSecondMostPlayedChampionAssists()}"></span></p>
-                            <p><span th:text="${championsPlayed.getSecondMostPlayedChampionKDA()}"></span> KDA</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="box">
-                    <p>Best performing champion:</p>
-                    <div class="box-info">
-                        <div>
-                            <img class="champion-profile-icon" th:src="${championsPlayed.getBPProfileIconAddress()}"/>
-                        </div>
-                        <div>
-                            <p class="box-name" th:text="${championsPlayed.getBestPerformingChampionName()}"></p>
-                        </div>
-                        <div>
-                            <p>Played: <span th:text="${championsPlayed.getBestPerformingChampionCount()}"></span></p>
-                            <p>Winrate: <span th:text="${championsPlayed.getBestPerformingChampionWinRate()}"></span></p>
-                        </div>
-                        <div>
-                            <p><span th:text="${championsPlayed.getBestPerformingChampionKills()}"></span> /
-                                <span th:text="${championsPlayed.getBestPerformingChampionDeaths()}"></span> /
-                                <span th:text="${championsPlayed.getBestPerformingChampionAssists()}"></span></p>
-                            <p><span th:text="${championsPlayed.getBestPerformingChampionKDA()}"></span> KDA</p>
+                <div>
+                    <div class="box">
+                        <p>Best performing champion:</p>
+                        <div class="box-info">
+                            <div>
+                                <img class="champion-profile-icon" th:src="${championsPlayed.getBPProfileIconAddress()}"/>
+                            </div>
+                            <div>
+                                <p class="box-name" th:text="${championsPlayed.getBestPerformingChampionName()}"></p>
+                            </div>
+                            <div>
+                                <p>Played: <span th:text="${championsPlayed.getBestPerformingChampionCount()}"></span></p>
+                                <p>Winrate: <span th:text="${championsPlayed.getBestPerformingChampionWinRate()}"></span></p>
+                            </div>
+                            <div>
+                                <p><span th:text="${championsPlayed.getBestPerformingChampionKills()}"></span> /
+                                    <span th:text="${championsPlayed.getBestPerformingChampionDeaths()}"></span> /
+                                    <span th:text="${championsPlayed.getBestPerformingChampionAssists()}"></span></p>
+                                <p><span th:text="${championsPlayed.getBestPerformingChampionKDA()}"></span> KDA</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="box">
-                    <p>Worst performing champion:</p>
-                    <div class="box-info">
-                        <div>
-                            <img class="champion-profile-icon" th:src="${championsPlayed.getWPProfileIconAddress()}"/>
-                        </div>
-                        <div>
-                            <p class="box-name" th:text="${championsPlayed.getWorstPerformingChampionName()}"></p>
-                        </div>
-                        <div>
-                            <p>Played: <span th:text="${championsPlayed.getWorstPerformingChampionCount()}"></span></p>
-                            <p>Winrate: <span th:text="${championsPlayed.getWorstPerformingChampionWinRate()}"></span></p>
-                        </div>
-                        <div>
-                            <p><span th:text="${championsPlayed.getWorstPerformingChampionKills()}"></span> /
-                                <span th:text="${championsPlayed.getWorstPerformingChampionDeaths()}"></span> /
-                                <span th:text="${championsPlayed.getWorstPerformingChampionAssists()}"></span></p>
-                            <p><span th:text="${championsPlayed.getWorstPerformingChampionKDA()}"></span> KDA</p>
+                    <div class="box">
+                        <p>Worst performing champion:</p>
+                        <div class="box-info">
+                            <div>
+                                <img class="champion-profile-icon" th:src="${championsPlayed.getWPProfileIconAddress()}"/>
+                            </div>
+                            <div>
+                                <p class="box-name" th:text="${championsPlayed.getWorstPerformingChampionName()}"></p>
+                            </div>
+                            <div>
+                                <p>Played: <span th:text="${championsPlayed.getWorstPerformingChampionCount()}"></span></p>
+                                <p>Winrate: <span th:text="${championsPlayed.getWorstPerformingChampionWinRate()}"></span></p>
+                            </div>
+                            <div>
+                                <p><span th:text="${championsPlayed.getWorstPerformingChampionKills()}"></span> /
+                                    <span th:text="${championsPlayed.getWorstPerformingChampionDeaths()}"></span> /
+                                    <span th:text="${championsPlayed.getWorstPerformingChampionAssists()}"></span></p>
+                                <p><span th:text="${championsPlayed.getWorstPerformingChampionKDA()}"></span> KDA</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
             <div id="game-modes">
-                <div class="box">
-                    <p>Most played game mode:</p>
-                    <div class="box-info">
-                        <div>
-                            <p class="box-name" th:text="${gameModesPlayed.getMostPlayedGameModeName()}"></p>
+                <div>
+                    <div class="box">
+                        <p>Most played game mode:</p>
+                        <div class="box-info">
+                            <div>
+                                <p class="box-name" th:text="${gameModesPlayed.getMostPlayedGameModeName()}"></p>
+                            </div>
+                            <div>
+                                <p>Played: <span th:text="${gameModesPlayed.getMostPlayedGameModeCount()}"></span></p>
+                                <p>Winrate: <span th:text="${gameModesPlayed.getMostPlayedGameModeWinRate()}"></span></p>
+                            </div>
+                            <div>
+                                <p><span th:text="${gameModesPlayed.getMostPlayedGameModeKills()}"></span> /
+                                    <span th:text="${gameModesPlayed.getMostPlayedGameModeDeaths()}"></span> /
+                                    <span th:text="${gameModesPlayed.getMostPlayedGameModeAssists()}"></span></p>
+                                <p><span th:text="${gameModesPlayed.getMostPlayedGameModeKDA()}"></span> KDA</p>
+                            </div>
                         </div>
-                        <div>
-                            <p>Played: <span th:text="${gameModesPlayed.getMostPlayedGameModeCount()}"></span></p>
-                            <p>Winrate: <span th:text="${gameModesPlayed.getMostPlayedGameModeWinRate()}"></span></p>
+                    </div>
+                    <div class="box">
+                        <p>Second most played game mode:</p>
+                        <div class="box-info">
+                            <div>
+                                <p class="box-name" th:text="${gameModesPlayed.getSecondMostPlayedGameModeName()}"></p>
+                            </div>
+                            <div>
+                                <p>Played: <span th:text="${gameModesPlayed.getSecondMostPlayedGameModeCount()}"></span></p>
+                                <p>Winrate: <span th:text="${gameModesPlayed.getSecondMostPlayedGameModeWinRate()}"></span></p>
+                            </div>
+                            <div>
+                                <p><span th:text="${gameModesPlayed.getSecondMostPlayedGameModeKills()}"></span> /
+                                    <span th:text="${gameModesPlayed.getSecondMostPlayedGameModeDeaths()}"></span> /
+                                    <span th:text="${gameModesPlayed.getSecondMostPlayedGameModeAssists()}"></span></p>
+                                <p><span th:text="${gameModesPlayed.getSecondMostPlayedGameModeKDA()}"></span> KDA</p>
+                            </div>
                         </div>
-                        <div>
-                            <p><span th:text="${gameModesPlayed.getMostPlayedGameModeKills()}"></span> /
-                                <span th:text="${gameModesPlayed.getMostPlayedGameModeDeaths()}"></span> /
-                                <span th:text="${gameModesPlayed.getMostPlayedGameModeAssists()}"></span></p>
-                            <p><span th:text="${gameModesPlayed.getMostPlayedGameModeKDA()}"></span> KDA</p>
+                    </div>
+                </div>
+                <div>
+                    <div class="box">
+                        <p>Best performing game mode:</p>
+                        <div class="box-info">
+                            <div>
+                                <p class="box-name" th:text="${gameModesPlayed.getBestPerformingGameModeName()}"></p>
+                            </div>
+                            <div>
+                                <p>Played: <span th:text="${gameModesPlayed.getBestPerformingGameModeCount()}"></span></p>
+                                <p>Winrate: <span th:text="${gameModesPlayed.getBestPerformingGameModeWinRate()}"></span></p>
+                            </div>
+                            <div>
+                                <p><span th:text="${gameModesPlayed.getBestPerformingGameModeKills()}"></span> /
+                                    <span th:text="${gameModesPlayed.getBestPerformingGameModeDeaths()}"></span> /
+                                    <span th:text="${gameModesPlayed.getBestPerformingGameModeAssists()}"></span></p>
+                                <p><span th:text="${gameModesPlayed.getBestPerformingGameModeKDA()}"></span> KDA</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box">
+                        <p>Worst performing game mode:</p>
+                        <div class="box-info">
+                            <div>
+                                <p class="box-name" th:text="${gameModesPlayed.getWorstPerformingGameModeName()}"></p>
+                            </div>
+                            <div>
+                                <p>Played: <span th:text="${gameModesPlayed.getWorstPerformingGameModeCount()}"></span></p>
+                                <p>Winrate: <span th:text="${gameModesPlayed.getWorstPerformingGameModeWinRate()}"></span></p>
+                            </div>
+                            <div>
+                                <p><span th:text="${gameModesPlayed.getWorstPerformingGameModeKills()}"></span> /
+                                    <span th:text="${gameModesPlayed.getWorstPerformingGameModeDeaths()}"></span> /
+                                    <span th:text="${gameModesPlayed.getWorstPerformingGameModeAssists()}"></span></p>
+                                <p><span th:text="${gameModesPlayed.getWorstPerformingGameModeKDA()}"></span> KDA</p>
+                            </div>
                         </div>
                     </div>
                 </div>

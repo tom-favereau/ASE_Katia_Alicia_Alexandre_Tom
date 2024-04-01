@@ -682,11 +682,11 @@ public class RiotApiService {
         }
         // Calcul des statistiques
         for (GameModeData gameModeData : gameModes.values()) {
-            gameModeData.winRate = ((float) gameModeData.wins / gameModeData.count);
+            gameModeData.winRate = (float) (Math.round(((float) gameModeData.wins / gameModeData.count) * 100.0) / 100.0);
             if (gameModeData.deaths == 0) {
                 gameModeData.kda = Integer.MAX_VALUE;
             } else {
-                gameModeData.kda = ((float) (gameModeData.kills + gameModeData.assists) / gameModeData.deaths);
+                gameModeData.kda = (float) (Math.round(((float) (gameModeData.kills + gameModeData.assists) / gameModeData.deaths) * 100.0) / 100.0);
             }
         }
         // Création de l'objet de retour
