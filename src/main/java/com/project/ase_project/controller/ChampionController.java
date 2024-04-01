@@ -24,7 +24,7 @@ public class ChampionController {
     public Champion findChampionById(@PathVariable Integer id){
         Champion res = service.getChampionById(id);
         if (res == null){
-            throw new IllegalArgumentException("Erreur 400 : l'id n'est pas corect");
+            throw new IllegalArgumentException("Erreur 400 : l'id n'est pas correct.");
         } else {
             return res;
         }

@@ -24,7 +24,7 @@ public class QueueController {
     public LOLQueue findQueueById(@PathVariable Integer id){
         LOLQueue res = service.getQueueById(id);
         if (res == null){
-            throw new IllegalArgumentException("Erreur 400 : l'id n'est pas corect");
+            throw new IllegalArgumentException("Erreur 400 : l'id n'est pas correct.");
         } else {
             return res;
         }
@@ -32,6 +32,6 @@ public class QueueController {
 
     @GetMapping("/queues/")
     public Champion findQueueByIdException(){
-        throw new IllegalArgumentException("Erreur 400 : Veuillez préciser l'id d'un champion.");
+        throw new IllegalArgumentException("Erreur 400 : Veuillez préciser l'id d'une queue.");
     }
 }

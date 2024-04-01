@@ -24,7 +24,7 @@ public class MapController {
     public LOLMap findMapById(@PathVariable Integer id){
         LOLMap res = service.getMapById(id);
         if (res == null){
-            throw new IllegalArgumentException("Erreur 400 : l'id n'est pas corect");
+            throw new IllegalArgumentException("Erreur 400 : l'id n'est pas correct.");
         } else {
             return res;
         }
@@ -32,6 +32,6 @@ public class MapController {
 
     @GetMapping("/maps/")
     public Champion findMapByIdException(){
-        throw new IllegalArgumentException("Erreur 400 : Veuillez préciser l'id d'un champion.");
+        throw new IllegalArgumentException("Erreur 400 : Veuillez préciser l'id d'une map.");
     }
 }
