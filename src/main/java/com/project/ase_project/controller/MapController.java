@@ -22,7 +22,12 @@ public class MapController {
     }
     @GetMapping("/maps/{id}")
     public LOLMap findMapById(@PathVariable Integer id){
-        return service.getMapById(id);
+        LOLMap res = service.getMapById(id);
+        if (res == null){
+            throw new IllegalArgumentException("Erreur 400 : l'id n'est pas corect");
+        } else {
+            return res;
+        }
     }
 
     @GetMapping("/maps/")
