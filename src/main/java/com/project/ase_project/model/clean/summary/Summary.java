@@ -11,6 +11,7 @@ import java.util.ArrayList;
 @Setter
 @ToString
 @EqualsAndHashCode
+@NoArgsConstructor
 public class Summary {
     public Summary(Summoner summoner, ArrayList<League> leagues) {
         this.summonerId = summoner.getId();
@@ -46,6 +47,7 @@ public class Summary {
     private String region;
     private float average;
     private int cardinal;
+    private String profileIconAddress;
 
     public String getProfileIconAddress() {
         return "https://ddragon.leagueoflegends.com/cdn/14.5.1/img/profileicon/" + this.profileIconId + ".png";
