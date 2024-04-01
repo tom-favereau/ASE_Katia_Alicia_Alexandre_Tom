@@ -12,7 +12,7 @@
 #profile-image {
     position: absolute;
     right: 5%;
-    box-shadow: 0 0 100px 0px #ffffffaa;
+    box-shadow: 0 0 50px 0px #ffffffaa;
     height: 300px;
     width: auto;
 }
@@ -31,7 +31,7 @@
 #rating {
     position: absolute;
     right: 5%;
-    top: 75%;
+    top: 78%;
     text-align: right;
     align-items: center;
 }

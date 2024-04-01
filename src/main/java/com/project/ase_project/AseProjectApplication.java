@@ -379,6 +379,11 @@ public class AseProjectApplication {
         }
     }
 
+    @RequestMapping("favicon.ico")
+    String favicon() {
+        return "forward:/favicon.ico";
+    }
+
     /*
      *******************************************************************************************************************
      ******************************************** PARTIE EXCEPTIONS HANDLER ********************************************
