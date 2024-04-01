@@ -24,7 +24,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -85,9 +86,9 @@ class AseProjectApplicationTests {
     Summary summary = new Summary(summoner, leagues);
     
     @BeforeAll
-    public static void matchSetUp() throws IOException {
+    public static void matchSetUp() throws IOException, URISyntaxException {
         ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.readTree(new URL("https://europe.api.riotgames.com/lol/match/v5/matches/EUW1_6760205418?api_key=RGAPI-7824e8d4-5ed0-4244-8b26-67ba3e260cc2"));
+        JsonNode jsonNode = objectMapper.readTree(new URI("https://europe.api.riotgames.com/lol/match/v5/matches/EUW1_6760205418?api_key=RGAPI-7824e8d4-5ed0-4244-8b26-67ba3e260cc2").toURL());
         matchDto = objectMapper.readValue(jsonNode.toString(), MatchDto.class);
         match = matchDto.toMatch();
     }
@@ -177,7 +178,7 @@ class AseProjectApplicationTests {
     }
 
     @Test
-    public void testGetSummaryInternalServorError() throws Exception {
+    public void testGetSummaryInternalServerError() throws Exception {
         Mockito.when(riotApiService.getSummaryByName("afaureve")).thenThrow(InternalServerError.class);
 
         mockMvc.perform(MockMvcRequestBuilders
@@ -301,7 +302,7 @@ class AseProjectApplicationTests {
     }
 
     @Test
-    public void testGetSummonerInternalServorError() throws Exception {
+    public void testGetSummonerInternalServerError() throws Exception {
         Mockito.when(riotApiService.getSummonerByName("Belugafurtif")).thenThrow(InternalServerError.class);
 
         mockMvc.perform(MockMvcRequestBuilders
@@ -436,7 +437,7 @@ class AseProjectApplicationTests {
     }
 
     @Test
-    public void testGetRankInternalServorError() throws Exception {
+    public void testGetRankInternalServerError() throws Exception {
         Mockito.when(riotApiService.getRankById("F4btU20wCQOmkMlWn4QJm33f3jH-B5Nj-uPfNnyuLED3PT0DpQ_LLcB_IQ")).thenThrow(InternalServerError.class);
 
         mockMvc.perform(MockMvcRequestBuilders
@@ -554,7 +555,7 @@ class AseProjectApplicationTests {
     }
 
     @Test
-    public void testGetMatchInternalServorError() throws Exception {
+    public void testGetMatchInternalServerError() throws Exception {
         Mockito.when(riotApiService.getMatchById("EUW1_6760205418")).thenThrow(InternalServerError.class);
 
         mockMvc.perform(MockMvcRequestBuilders
@@ -671,7 +672,7 @@ class AseProjectApplicationTests {
                 .andExpect(result -> assertTrue(result.getResolvedException() instanceof RateLimitExceededException));
     }
     @Test
-    public void testPostGradeInternalServorError() throws Exception {
+    public void testPostGradeInternalServerError() throws Exception {
         Mockito.doThrow(InternalServerError.class).when(riotApiService).postGrade("Belugafurtif", 3);
 
         mockMvc.perform(MockMvcRequestBuilders

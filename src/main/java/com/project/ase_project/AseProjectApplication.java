@@ -8,6 +8,8 @@ import com.project.ase_project.model.clean.match.Match;
 import com.project.ase_project.model.clean.summary.Summary;
 import com.project.ase_project.model.clean.summoner.Summoner;
 import com.project.ase_project.service.RiotApiService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Generated;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -53,6 +55,8 @@ public class AseProjectApplication {
     }
     
     @GetMapping("/summoners/{summonerName}")
+    @Tag(name = "Summoner", description = "Methods for Summoner APIs")
+    @Operation(summary = "Get a summoner's info", description = "Get a summoner's in-game name, profile icon ID, level, rating, puuid, id and profile icon address.")
     @ResponseBody
     public ResponseEntity<Summoner> getSummonerData(@PathVariable String summonerName) {
         try {
@@ -89,6 +93,9 @@ public class AseProjectApplication {
     }
 
     @GetMapping("/rank/{encryptedSummonerId}")
+    @Tag(name = "Summoner")
+    @Operation(summary = "Get a summoner's rank", description = "Get a summoner's rank through their puuid, an array of" +
+            " played leagues during the season is returned.")
     @ResponseBody
     public ResponseEntity<ArrayList<League>> getRankData(@PathVariable String encryptedSummonerId) {
         try {
@@ -125,6 +132,8 @@ public class AseProjectApplication {
     }
     
     @GetMapping("/matches/{matchId}")
+    @Tag(name = "Matches", description = "Methods for Match APIs")
+    @Operation(summary = "Get a match by matchId", description = "Get a match's metadata and participants by ID.")
     @ResponseBody
     public ResponseEntity<Match> getMatchData(@PathVariable String matchId) {
         try {
@@ -150,10 +159,13 @@ public class AseProjectApplication {
     }
 
     @GetMapping("/lastMatches/{summonerName}")
+    @Tag(name = "Summoner")
+    @Operation(summary = "Get a summoner's last 20 matches", description = "Get a summoner's last 20 matches given by an array of matchIds.")
+    @ResponseBody
     public ResponseEntity<ArrayList<String>> getLastMatches(@PathVariable String summonerName) {
-        ArrayList<Match> matches = riotApiService.getMatches(summonerName, 0, 0, 0, "", 0, 20);
+        ArrayList<Match> matchesFutures = riotApiService.getMatches(summonerName, null, null, null, null, null, 100);
         ArrayList<String> matchIds = new ArrayList<>();
-        for (Match match : matches) {
+        for (Match match : matchesFutures) {
             matchIds.add(match.getMatchId());
         }
         return new ResponseEntity<>(matchIds, HttpStatus.OK);
@@ -171,6 +183,8 @@ public class AseProjectApplication {
     }
 
     @GetMapping("/summary/{summonerName}")
+    @Tag(name = "Summoner")
+    @Operation(summary = "Get a summoner's summary", description = "Get a summoner's summary: their basic info and ranks.")
     @ResponseBody
     public ResponseEntity<Summary> getSummaryData(@PathVariable String summonerName) {
         try {
@@ -221,6 +235,9 @@ public class AseProjectApplication {
     }
 
     @PostMapping("/grade/{summonerName}/{grade}")
+    @Tag(name = "Summoner")
+    @Operation(summary = "Post a rating for a summoner", description = "Post a rating for a given summoner by name. The" +
+            " grade is the interval [1, 5].")
     @ResponseBody
     public ResponseEntity<String> postGradeData(@PathVariable String summonerName, @PathVariable String grade) {
         try {
@@ -263,6 +280,11 @@ public class AseProjectApplication {
     }
 
     @GetMapping("/championsPlayed/{summonerName}")
+    @Tag(name = "Summoner")
+    @Operation(summary = "Get information about a summoner's most played champions and best champions", description = "Get the name and " +
+            "associated statistics of the most played, second-most played, best-performing and worst-performing champions" +
+            " by summoner given by their name.")
+    @ResponseBody
     public ResponseEntity<ChampionsPlayed> getChampionsPlayed(@PathVariable String summonerName) {
         try {
             ChampionsPlayed championsPlayed = riotApiService.getChampionsPlayedByName(summonerName);
@@ -300,6 +322,11 @@ public class AseProjectApplication {
     }
 
     @GetMapping("/gameModesPlayed/{summonerName}")
+    @Tag(name = "Summoner")
+    @Operation(summary = "Get information about a summoner's most played game modes and best game modes",
+            description = "Get the name and associated statistics of the most played, second-most played, " +
+                    "best-performing and worst-performing game modes by summoner given by their name.")
+    @ResponseBody
     public ResponseEntity<GameModesPlayed> getGameModesPlayed(@PathVariable String summonerName) {
         try {
             GameModesPlayed gameModesPlayed = riotApiService.getGameModesPlayedByName(summonerName);
@@ -333,6 +360,7 @@ public class AseProjectApplication {
      *******************************************************************************************************************
      */
 
+
     @GetMapping("/")
     public String homePage() {
         return "index";
@@ -341,14 +369,27 @@ public class AseProjectApplication {
     @GetMapping("/summoner_page/{summonerName}")
     public String getSummonerData(@PathVariable String summonerName, Model model) {
         try {
-            Summoner summoner = riotApiService.getSummonerByName(summonerName);
-            model.addAttribute("summoner", summoner);
+            Summary summary = riotApiService.getSummaryByName(summonerName);
+            model.addAttribute("summoner", summary);
+
+            ChampionsPlayed championsPlayed = riotApiService.getChampionsPlayedByName(summonerName);
+            model.addAttribute("championsPlayed", championsPlayed);
+
+            GameModesPlayed gameModesPlayed = riotApiService.getGameModesPlayedByName(summonerName);
+            model.addAttribute("gameModesPlayed", gameModesPlayed);
+
             return "summoner";
         }
         catch (Exception e) {
-            model.addAttribute("summoner", summonerName);
+            e.printStackTrace();
+            model.addAttribute("summonerName", summonerName);
             return "not_found";
         }
+    }
+
+    @RequestMapping("favicon.ico")
+    String favicon() {
+        return "forward:/favicon.ico";
     }
 
     /*

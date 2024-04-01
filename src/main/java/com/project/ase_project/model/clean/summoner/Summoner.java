@@ -22,8 +22,4 @@ public class Summoner {
     private String puuid;
     @Id
     private String id;
-
-    public String getProfileIconAddress() {
-        return "https://ddragon.leagueoflegends.com/cdn/14.5.1/img/profileicon/" + this.profileIconId + ".png";
-    }
 }

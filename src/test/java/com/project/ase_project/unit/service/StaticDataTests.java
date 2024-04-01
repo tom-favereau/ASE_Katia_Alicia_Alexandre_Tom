@@ -2,21 +2,17 @@ package com.project.ase_project.unit.service;
 
 import com.project.ase_project.repository.ChampionRepository;
 import com.project.ase_project.repository.MapRepository;
-import com.project.ase_project.repository.MatchRepository;
 import com.project.ase_project.repository.QueueRepository;
 import com.project.ase_project.service.RiotApiService;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
-import org.mockito.InjectMocks;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -47,7 +43,7 @@ public class StaticDataTests {
     }
 
     @Test
-    public void testChampionRepositoryInitialization() throws IOException {
+    public void testChampionRepositoryInitialization() throws IOException, URISyntaxException {
         // Assert that repository initialization logic has been executed
         assertFalse(championRepository.count() > 0);
         assertTrue(riotApiService.initializeChampions());
@@ -56,7 +52,7 @@ public class StaticDataTests {
     }
 
     @Test
-    public void testMapRepositoryInitialization() throws IOException {
+    public void testMapRepositoryInitialization() throws IOException, URISyntaxException {
         // Assert that repository initialization logic has been executed*
         assertFalse(mapRepository.count() > 0);
         assertTrue(riotApiService.initializeMaps());
@@ -65,7 +61,7 @@ public class StaticDataTests {
     }
 
     @Test
-    public void testQueueRepositoryInitialization() throws IOException {
+    public void testQueueRepositoryInitialization() throws IOException, URISyntaxException {
         // Assert that repository initialization logic has been executed
         assertFalse(queueRepository.count() > 0);
         assertTrue(riotApiService.initializeQueues());
