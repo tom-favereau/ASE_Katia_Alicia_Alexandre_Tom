@@ -110,6 +110,24 @@ public class AseProjectApplication {
         }
     }
 
+    @GetMapping("/summoners/{summonerName}/firstBaron")
+    public ResponseEntity<Float> getFirstBaron(@PathVariable String summonerName){
+        String puuid = riotApiService.getSummonerByName(summonerName).getPuuid();
+        return new ResponseEntity<>(riotApiService.firstBaron(puuid, 20), HttpStatus.OK);
+    }
+
+    @GetMapping("/summoners/{summonerName}/visionScore")
+    public ResponseEntity<Float> getVisionScore(@PathVariable String summonerName){
+        String puuid = riotApiService.getSummonerByName(summonerName).getPuuid();
+        return new ResponseEntity<>(riotApiService.visionScore(puuid, 20), HttpStatus.OK);
+    }
+
+    @GetMapping("/summoners/{summonerName}/firstTower")
+    public ResponseEntity<Float> getFirstTower(@PathVariable String summonerName){
+        String puuid = riotApiService.getSummonerByName(summonerName).getPuuid();
+        return new ResponseEntity<>(riotApiService.firstTower(puuid, 20), HttpStatus.OK);
+    }
+
 
     @GetMapping("/summoners/{summonerName}/lastMatches")
     public ResponseEntity<ArrayList<String>> getLastMatches(@PathVariable String summonerName) throws JsonProcessingException{

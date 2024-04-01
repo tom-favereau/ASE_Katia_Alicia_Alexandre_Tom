@@ -1,16 +1,18 @@
 package com.project.ase_project.service;
 
-import java.util.ArrayList;
+import java.util.*;
 import java.io.IOException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Iterator;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import com.project.ase_project.model.clean.match.Participant;
+import com.project.ase_project.model.clean.match.Team;
+import com.project.ase_project.model.dto.match.TeamDto;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -380,12 +382,195 @@ public class RiotApiService {
         }
     }
 
-    private float winrate(String puuid) throws JsonProcessingException{
-        ArrayList<String> matches = getMatches(puuid, 0, 0, 0, "", 0, 20);
-        for (String matchName : matches){
-            Match match = getMatchById(matchName);
+    public Hashtable<String, Float> winrate(String puuid, int count) throws JsonProcessingException{
+        ArrayList<String> matches = getMatches(puuid, 0, 0, 0, "", 0, count);
+        Hashtable<String, Integer> win = new Hashtable<>();
+        Hashtable<String, Integer> lose = new Hashtable<>();
+        for (String matchId : matches){
+            Match match = getMatchById(matchId);
+            List<Participant> participants = match.getParticipants();
+            for (Participant participant : participants){
+                if (participant.getPuuid().equals(puuid)){
+                    String championName = participant.getChampionName();
+                    if (participant.isWin()){
+                        Integer prev = win.get(championName);
+                        lose.put(championName, prev);
+                        win.put(championName, prev+1);
+                    } else{
+                        Integer prev = lose.get(championName);
+                        lose.put(championName, prev+1);
+                        win.put(championName, prev);
+                    }
+                }
+            }
         }
-
-        return 0;
+        Hashtable<String, Float> res = new Hashtable<>();
+        for (String championName : win.keySet()){
+            float w = win.get(championName);
+            float l = win.get(championName);
+            res.put(championName, w/(l+w));
+        }
+        return res;
     }
+
+    public float ratio(String puuid, int count){
+        ArrayList<String> matches = getMatches(puuid, 0, 0, 0, "", 0, count);
+        float kill = 0;
+        float death = 0;
+        for (String matchId : matches){
+            Match match = getMatchById(matchId);
+            List<Participant> participants = match.getParticipants();
+            for (Participant participant : participants){
+                if (participant.getPuuid().equals(puuid)){
+                    kill += participant.getKills();
+                    death += participant.getDeaths();
+                }
+            }
+        }
+        return kill/death;
+    }
+
+    public float visionScore(String puuid, int count){
+        ArrayList<String> matches = getMatches(puuid, 0, 0, 0, "", 0, count);
+        float res = 0;
+        for (String matchId : matches){
+            Match match = getMatchById(matchId);
+            List<Participant> participants = match.getParticipants();
+            for (Participant participant : participants){
+                if (participant.getPuuid().equals(puuid)){
+                    res += participant.getVisionScore();
+                }
+            }
+        }
+        return res/count;
+    }
+
+    public float firstBaron(String puuid, int count){
+        ArrayList<String> matches = getMatches(puuid, 0, 0, 0, "", 0, count);
+        float res = 0;
+        for (String matchId : matches){
+            Match match = getMatchById(matchId);
+            List<Participant> participants = match.getParticipants();
+            for (Participant participant : participants){
+                if (participant.getPuuid().equals(puuid)){
+                    int teamId = participant.getTeamId();
+                    List<Team> teams = match.getTeams();
+                    for (Team team : teams){
+                        if (team.getTeamId().equals(teamId) && team.isFirstBaron()){
+                            res += 1;
+                        }
+                    }
+                }
+            }
+        }
+        return res/count;
+    }
+
+
+    public float firstDragon(String puuid, int count){
+        ArrayList<String> matches = getMatches(puuid, 0, 0, 0, "", 0, count);
+        float res = 0;
+        for (String matchId : matches){
+            Match match = getMatchById(matchId);
+            List<Participant> participants = match.getParticipants();
+            for (Participant participant : participants){
+                if (participant.getPuuid().equals(puuid)){
+                    int teamId = participant.getTeamId();
+                    List<Team> teams = match.getTeams();
+                    for (Team team : teams){
+                        if (team.getTeamId().equals(teamId) && team.isFirstDragon()){
+                            res += 1;
+                        }
+                    }
+                }
+            }
+        }
+        return res/count;
+    }
+
+    public float firstInhibitor(String puuid, int count){
+        ArrayList<String> matches = getMatches(puuid, 0, 0, 0, "", 0, count);
+        float res = 0;
+        for (String matchId : matches){
+            Match match = getMatchById(matchId);
+            List<Participant> participants = match.getParticipants();
+            for (Participant participant : participants){
+                if (participant.getPuuid().equals(puuid)){
+                    int teamId = participant.getTeamId();
+                    List<Team> teams = match.getTeams();
+                    for (Team team : teams){
+                        if (team.getTeamId().equals(teamId) && team.isFirstInhibitor()){
+                            res += 1;
+                        }
+                    }
+                }
+            }
+        }
+        return res/count;
+    }
+
+    public float firstHorde(String puuid, int count){
+        ArrayList<String> matches = getMatches(puuid, 0, 0, 0, "", 0, count);
+        float res = 0;
+        for (String matchId : matches){
+            Match match = getMatchById(matchId);
+            List<Participant> participants = match.getParticipants();
+            for (Participant participant : participants){
+                if (participant.getPuuid().equals(puuid)){
+                    int teamId = participant.getTeamId();
+                    List<Team> teams = match.getTeams();
+                    for (Team team : teams){
+                        if (team.getTeamId().equals(teamId) && team.isFirstHorde()){
+                            res += 1;
+                        }
+                    }
+                }
+            }
+        }
+        return res/count;
+    }
+
+    public float firstTower(String puuid, int count){
+        ArrayList<String> matches = getMatches(puuid, 0, 0, 0, "", 0, count);
+        float res = 0;
+        for (String matchId : matches){
+            Match match = getMatchById(matchId);
+            List<Participant> participants = match.getParticipants();
+            for (Participant participant : participants){
+                if (participant.getPuuid().equals(puuid)){
+                    int teamId = participant.getTeamId();
+                    List<Team> teams = match.getTeams();
+                    for (Team team : teams){
+                        if (team.getTeamId().equals(teamId) && team.isFirstTower()){
+                            res += 1;
+                        }
+                    }
+                }
+            }
+        }
+        return res/count;
+    }
+
+    private float firstRiftHerald(String puuid, int count){
+        ArrayList<String> matches = getMatches(puuid, 0, 0, 0, "", 0, count);
+        float res = 0;
+        for (String matchId : matches){
+            Match match = getMatchById(matchId);
+            List<Participant> participants = match.getParticipants();
+            for (Participant participant : participants){
+                if (participant.getPuuid().equals(puuid)){
+                    int teamId = participant.getTeamId();
+                    List<Team> teams = match.getTeams();
+                    for (Team team : teams){
+                        if (team.getTeamId().equals(teamId) && team.isFirstRiftHerald()){
+                            res += 1;
+                        }
+                    }
+                }
+            }
+        }
+        return res/count;
+    }
+
+
 }
