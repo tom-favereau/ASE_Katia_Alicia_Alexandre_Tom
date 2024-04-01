@@ -9,7 +9,6 @@ import com.project.ase_project.model.clean.summary.Summary;
 import com.project.ase_project.model.clean.summoner.Summoner;
 import com.project.ase_project.service.RiotApiService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Generated;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -352,6 +351,31 @@ public class AseProjectApplication {
             throw new ServiceUnavailable(e.getMessage());
         } catch (GatewayTimeout e) {
             throw new GatewayTimeout(e.getMessage());
+        }
+    }
+
+    /*
+     *******************************************************************************************************************
+     ************************************************* PARTIE FRONTEND *************************************************
+     *******************************************************************************************************************
+     */
+
+
+    @GetMapping("/")
+    public String homePage() {
+        return "index";
+    }
+
+    @GetMapping("/summoner_page/{summonerName}")
+    public String getSummonerData(@PathVariable String summonerName, Model model) {
+        try {
+            Summary summary = riotApiService.getSummaryByName(summonerName);
+            model.addAttribute("summoner", summary);
+            return "summoner";
+        }
+        catch (Exception e) {
+            model.addAttribute("summonerName", summonerName);
+            return "not_found";
         }
     }
 
