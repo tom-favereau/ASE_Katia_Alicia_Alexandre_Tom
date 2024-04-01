@@ -22,7 +22,12 @@ public class ChampionController {
     }
     @GetMapping("/champions/{id}")
     public Champion findChampionById(@PathVariable Integer id){
-        return service.getChampionById(id);
+        Champion res = service.getChampionById(id);
+        if (res == null){
+            throw new IllegalArgumentException("Erreur 400 : l'id n'est pas corect");
+        } else {
+            return res;
+        }
     }
 
     @GetMapping("/champion/")
