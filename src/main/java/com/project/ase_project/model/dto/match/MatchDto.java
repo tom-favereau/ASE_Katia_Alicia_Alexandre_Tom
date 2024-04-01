@@ -48,10 +48,13 @@ public class MatchDto {
 
         // DRAFTS
         List<com.project.ase_project.model.clean.match.Draft> cleanDrafts = new ArrayList<>();
-        for (TeamDto team : info.getTeams()) {
-            cleanDrafts.add(getDraft(team, info));
+        if (this.getInfo().getQueueId() == 400 ||  this.getInfo().getQueueId() == 420 || this.getInfo().getQueueId() == 440) {
+            for (TeamDto team : info.getTeams()) {
+                cleanDrafts.add(getDraft(team, info));
+            }
+            match.setDrafts(cleanDrafts);
         }
-        match.setDrafts(cleanDrafts);
+
 
         return match;
     }

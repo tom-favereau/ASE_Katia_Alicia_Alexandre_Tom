@@ -7,7 +7,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -17,9 +18,9 @@ public class MatchDtoTests {
     static MatchDto matchDto2;
 
     @BeforeAll
-    public static void setUp() throws IOException {
+    public static void setUp() throws IOException, URISyntaxException {
         ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.readTree(new URL("https://europe.api.riotgames.com/lol/match/v5/matches/EUW1_6760205418?api_key=RGAPI-7824e8d4-5ed0-4244-8b26-67ba3e260cc2"));
+        JsonNode jsonNode = objectMapper.readTree(new URI("https://europe.api.riotgames.com/lol/match/v5/matches/EUW1_6760205418?api_key=RGAPI-7824e8d4-5ed0-4244-8b26-67ba3e260cc2").toURL());
         matchDto = objectMapper.readValue(jsonNode.toString(), MatchDto.class);
         matchDto2 = objectMapper.readValue(jsonNode.toString(), MatchDto.class);
     }

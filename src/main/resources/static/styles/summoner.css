@@ -12,30 +12,117 @@
 #profile-image {
     position: absolute;
     right: 5%;
-    box-shadow: 0 0 100px 0px #ffffffaa;
+    box-shadow: 0 0 50px 0px #ffffffaa;
     height: 300px;
     width: auto;
 }
 
 #info {
     position: absolute;
-    left: 15%;
+    left: 10%;
     font-family: "Oxanium", sans-serif;
     font-optical-sizing: auto;
     font-weight: <weight>;
     font-style: normal;
-    font-size: 2rem;
+    font-size: 1.52rem;
     color: white;
 }
 
 #rating {
     position: absolute;
     right: 5%;
-    bottom: 10%;
+    top: 78%;
+    text-align: right;
+    align-items: center;
+}
+
+#rating p {
+    font-family: "Oxanium", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: <weight>;
+    font-style: normal;
+    font-size: 3rem;
+    color: white;
+}
+
+#rating #nb-votes {
+    font-style: italic;
+    font-size: 2rem;
+    padding-left: 20px;
+    color: lightgrey;
 }
 
 .star {
     width: 60px;
     height: auto;
     padding: 5px;
+}
+
+#info > p {
+    color: red;
+}
+
+#info > p > span {
+    color: white;
+}
+
+#champions, #game-modes {
+    padding-top: 15px;
+    display: flex;
+    flex-direction: row;
+}
+
+.box {
+    width: 400px;
+    height: 60px;
+    padding: 8px;
+    border-radius: 10px;
+    margin-bottom: 5px;
+    margin-left: 6px
+}
+
+#champions .box {
+    background-color: #2060ff40;
+}
+
+#game-modes .box {
+    background-color: #50ff5020;
+}
+
+.box-info {
+    display: flex;
+    flex-direction: row;
+    padding-top: 5px;
+}
+
+.box p {
+    font-family: "Oxanium", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+    font-size: 0.8rem;
+    color: white;
+}
+
+.box > p {
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.champion-profile-icon {
+    width: 35px;
+    height: auto;
+    padding-right: 15px;
+    padding-left: 5px;
+}
+
+.box p {
+    padding-right: 15px;
+}
+
+.box .box-name {
+     font-size: 1.1rem;
+}
+
+#game-modes .box-name {
+    padding-left: 5px;
 }
