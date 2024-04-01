@@ -80,4 +80,20 @@ public class ChampionsPlayed {
     private int WorstPerformingChampionDeaths;
     private int WorstPerformingChampionAssists;
     private float WorstPerformingChampionKDA;
+
+    public String getMPProfileIconAddress() {
+        return "https://ddragon.leagueoflegends.com/cdn/14.6.1/img/champion/" + MostPlayedChampionName + ".png";
+    }
+
+    public String getSMPProfileIconAddress() {
+        return "https://ddragon.leagueoflegends.com/cdn/14.6.1/img/champion/" + SecondMostPlayedChampionName + ".png";
+    }
+
+    public String getBPProfileIconAddress() {
+        return "https://ddragon.leagueoflegends.com/cdn/14.6.1/img/champion/" + BestPerformingChampionName + ".png";
+    }
+
+    public String getWPProfileIconAddress() {
+        return "https://ddragon.leagueoflegends.com/cdn/14.6.1/img/champion/" + WorstPerformingChampionName + ".png";
+    }
 }
