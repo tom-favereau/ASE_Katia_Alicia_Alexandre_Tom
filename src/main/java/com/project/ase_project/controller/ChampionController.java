@@ -24,4 +24,9 @@ public class ChampionController {
     public Champion findChampionById(@PathVariable Integer id){
         return service.getChampionById(id);
     }
+
+    @GetMapping("/champion/")
+    public Champion findChampionByIdException(){
+        throw
+    }
 }
