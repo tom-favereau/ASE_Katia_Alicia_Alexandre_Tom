@@ -38,6 +38,7 @@ public class QueueController {
     }
 
     @GetMapping("/queues/")
+    @Operation(hidden=true)
     public LOLQueue findQueueByIdException(){
         throw new IllegalArgumentException("Erreur 400 : Veuillez préciser l'id d'une queue.");
     }

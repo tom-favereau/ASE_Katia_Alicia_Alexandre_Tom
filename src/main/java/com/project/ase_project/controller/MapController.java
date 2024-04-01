@@ -38,6 +38,7 @@ public class MapController {
     }
 
     @GetMapping("/maps/")
+    @Operation(hidden=true)
     public LOLMap findMapByIdException(){
         throw new IllegalArgumentException("Erreur 400 : Veuillez préciser l'id d'une map.");
     }
