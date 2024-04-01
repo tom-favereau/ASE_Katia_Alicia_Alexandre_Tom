@@ -1,6 +1,5 @@
 package com.project.ase_project.controller;
 
-import com.project.ase_project.model.ddragon.champion.Champion;
 import com.project.ase_project.model.ddragon.queue.LOLQueue;
 import com.project.ase_project.service.QueueService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +30,7 @@ public class QueueController {
     }
 
     @GetMapping("/queues/")
-    public Champion findQueueByIdException(){
+    public LOLQueue findQueueByIdException(){
         throw new IllegalArgumentException("Erreur 400 : Veuillez préciser l'id d'une queue.");
     }
 }
