@@ -2,6 +2,8 @@ package com.project.ase_project.controller;
 
 import com.project.ase_project.model.ddragon.queue.LOLQueue;
 import com.project.ase_project.service.QueueService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,10 +18,16 @@ public class QueueController {
     @Autowired
     private QueueService service;
     @GetMapping("/queues")
+    @Tag(name = "Queues", description = "Methods for Queue APIs")
+    @Operation(summary = "Get the list of all queues", description = "Get the list of all current" +
+            " queues.")
     public List<LOLQueue> findAllQueues(){
         return service.getQueues();
     }
     @GetMapping("/queues/{id}")
+    @Tag(name = "Queues")
+    @Operation(summary = "Get a queue's info", description = "Get a queue's info via its id: " +
+            "id, associated map and description.")
     public LOLQueue findQueueById(@PathVariable Integer id){
         LOLQueue res = service.getQueueById(id);
         if (res == null){
