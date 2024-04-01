@@ -1,5 +1,6 @@
 package com.project.ase_project.controller;
 
+import com.project.ase_project.model.ddragon.champion.Champion;
 import com.project.ase_project.model.ddragon.maps.LOLMap;
 import com.project.ase_project.service.MapService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,5 +23,10 @@ public class MapController {
     @GetMapping("/maps/{id}")
     public LOLMap findMapById(@PathVariable Integer id){
         return service.getMapById(id);
+    }
+
+    @GetMapping("/maps/")
+    public Champion findMapByIdException(){
+        throw new IllegalArgumentException("Erreur 400 : Veuillez préciser l'id d'un champion.");
     }
 }

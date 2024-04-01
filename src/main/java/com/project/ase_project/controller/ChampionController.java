@@ -27,6 +27,7 @@ public class ChampionController {
 
     @GetMapping("/champion/")
     public Champion findChampionByIdException(){
-        throw
+        throw new IllegalArgumentException("Erreur 400 : Veuillez préciser l'id d'un champion.");
     }
+
 }
