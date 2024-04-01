@@ -40,7 +40,7 @@ public class LOLMapTest {
 
     @Test
     public void testToString() {
-        String expected = "LOLQueue(queueId=0, map=Custom games, description=null)";
+        String expected = "LOLMap(mapId=1, mapName=Summoner's Rift, notes=Original Summer variant)";
         assertEquals(expected, LOLMap1.toString());
     }
 
