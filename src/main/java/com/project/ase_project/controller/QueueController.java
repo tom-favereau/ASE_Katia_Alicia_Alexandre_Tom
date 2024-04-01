@@ -22,7 +22,12 @@ public class QueueController {
     }
     @GetMapping("/queues/{id}")
     public LOLQueue findQueueById(@PathVariable Integer id){
-        return service.getQueueById(id);
+        LOLQueue res = service.getQueueById(id);
+        if (res == null){
+            throw new IllegalArgumentException("Erreur 400 : l'id n'est pas corect");
+        } else {
+            return res;
+        }
     }
 
     @GetMapping("/queues/")
