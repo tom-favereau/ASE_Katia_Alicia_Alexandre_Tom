@@ -8,6 +8,12 @@
 - Alicia SHAO
 - Alexandre TOMCZAK
 
+## API Riot
+Consumed API is RiotGames' API for League of Legends (documentation [here](https://developer.riotgames.com/docs/lol)).
+
+*THE SUMMONER NAME ENDPOINT USED IN THIS PROJECT IS GOING TO BE DELETED ON THE 22/04/24.
+THE PROJECT AS IT IS WILL NO LONGER WORK AFTER THIS DATE.*
+
 ## Running the project
 Run `AseProjectApplication.java` with IntelliJ to launch the project on port 8080.
 (`src/main/java/com/project/ase_project/AseProjectApplication.java`).
