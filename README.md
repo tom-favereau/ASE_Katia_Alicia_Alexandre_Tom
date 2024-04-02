@@ -77,12 +77,13 @@ block-beta
           r["compilation"]
   end
     space down2<[" "]>(down) space
-    db[("DB")]:3
+    calcul
     space:3
-    calcul space API/Web
+    db[("DB")]:3 space API/Web
     db --> calcul
     calcul --> db
     db --> API/Web
+    calcul --> API/Web
     m --> l 
     r --> m
 ```
