@@ -12,6 +12,7 @@ import lombok.*;
 @Getter
 @Setter
 @ToString
+
 public class Champion {
     @JsonProperty
     private String id;
