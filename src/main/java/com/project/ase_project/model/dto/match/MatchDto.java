@@ -41,10 +41,12 @@ public class MatchDto {
 
         // TEAMS
         List<com.project.ase_project.model.clean.match.Team> cleanTeams = new ArrayList<>();
-        for (TeamDto team : info.getTeams()) {
-            cleanTeams.add(getTeam(team));
+        if (this.getInfo().getQueueId() == 400 ||  this.getInfo().getQueueId() == 420 || this.getInfo().getQueueId() == 440) {
+            for (TeamDto team : info.getTeams()) {
+                cleanTeams.add(getTeam(team));
+            }
+            match.setTeams(cleanTeams);
         }
-        match.setTeams(cleanTeams);
 
         // DRAFTS
         List<com.project.ase_project.model.clean.match.Draft> cleanDrafts = new ArrayList<>();
