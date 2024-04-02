@@ -42,7 +42,7 @@ public class ChampionsSteps {
     public void championTheUserReceivesSQueue(String summoner) {
         if (summoner.equals("Belugafurtif")){
             ChampionsPlayed belugaGameModesPlayed = beluga.getBody();
-            assertEquals("no3DrNwBLS6OfHYxUK1LtMqQrKcxixwr6zCWY9K0uveQIr2jpaNfyvrLgg", belugaGameModesPlayed.getSummonerId());
+            assertEquals("Belugafurtif", belugaGameModesPlayed.getSummonerName());
             assertNotNull(belugaGameModesPlayed.getTotalKills());
             assertNotNull(belugaGameModesPlayed.getTotalGamesPlayed());
             assertNotNull(belugaGameModesPlayed.getTotalDeaths());
@@ -55,7 +55,7 @@ public class ChampionsSteps {
 
         } else if (summoner.equals("Razørk Activoo")){
             ChampionsPlayed razorkGameModesPlayed = razork.getBody();
-            assertEquals("4aub4MQ8S40beG-vh50-lfIWW0jo0jNVPLubsVZRqyUArdo", razorkGameModesPlayed.getSummonerId());
+            assertEquals("Razørk Activoo", razorkGameModesPlayed.getSummonerName());
             assertNotNull(razorkGameModesPlayed.getTotalKills());
             assertNotNull(razorkGameModesPlayed.getTotalGamesPlayed());
             assertNotNull(razorkGameModesPlayed.getTotalDeaths());
