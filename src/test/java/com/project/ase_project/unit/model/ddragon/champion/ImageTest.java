@@ -46,8 +46,8 @@ public class ImageTest {
 
     @Test
     public void testToString() {
-        String expected = "Champion(id=Vi, championKey=254, name=Vi, image=Image(fullImage=Vi.png, sprite=champion4.png, " +
-                "imageGroup=champion, x=336, y=96, w=48, h=48))";
+        String expected = "Image(fullImage=Vi.png, sprite=champion4.png, " +
+                "imageGroup=champion, x=336, y=96, w=48, h=48)";
         assertEquals(expected, ViImage_1.toString());
     }
 
