@@ -46,7 +46,7 @@ public class QueueSteps extends CucumberSpringConfiguration {
     public void queueTheUserReceivesSQueue(String summoner) {
         if (summoner.equals("Belugafurtif")){
             GameModesPlayed belugaGameModesPlayed = beluga.getBody();
-            assertEquals("", belugaGameModesPlayed.getSummonerId());
+            assertEquals("no3DrNwBLS6OfHYxUK1LtMqQrKcxixwr6zCWY9K0uveQIr2jpaNfyvrLgg", belugaGameModesPlayed.getSummonerId());
             assertNotNull(belugaGameModesPlayed.getTotalKills());
             assertNotNull(belugaGameModesPlayed.getTotalGamesPlayed());
             assertNotNull(belugaGameModesPlayed.getTotalDeaths());
@@ -59,7 +59,7 @@ public class QueueSteps extends CucumberSpringConfiguration {
 
         } else if (summoner.equals("Razørk Activoo")){
             GameModesPlayed razorkGameModesPlayed = razork.getBody();
-            assertEquals("", razorkGameModesPlayed.getSummonerId());
+            assertEquals("Dno8J85K7DTwnqSlFm64Nk_681yWe3BFSWsDuLJ5ayxpRhA", razorkGameModesPlayed.getSummonerId());
             assertNotNull(razorkGameModesPlayed.getTotalKills());
             assertNotNull(razorkGameModesPlayed.getTotalGamesPlayed());
             assertNotNull(razorkGameModesPlayed.getTotalDeaths());

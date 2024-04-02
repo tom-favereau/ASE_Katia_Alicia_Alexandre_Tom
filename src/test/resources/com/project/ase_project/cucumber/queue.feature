@@ -1,13 +1,13 @@
 Feature: the game modes played can be retrieved
   #Happy Path 1
   Scenario: user makes call to GET /riot/GameModesPlayed/Belugafurtif
-    When queue the user calls "/riot/GameModesPlayed/Belugafurtif"
+    When queue the user calls "/riot/gameModesPlayed/Belugafurtif"
     Then queue the user receives "Belugafurtif"'s queue
     And queue the response code status for "Belugafurtif" is 200
 
   #Happy Path 2
   Scenario: user makes call to GET /riot/queue/Razørk Activoo
-    When queue the user calls "/riot/queue/Razørk Activoo"
+    When queue the user calls "/riot/gameModesPlayed/Razørk Activoo"
     Then queue the user receives "Razørk Activoo"'s queue
     And queue the response code status for "Razørk Activoo" is 200
 
