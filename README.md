@@ -74,7 +74,7 @@ block-beta
   block:e:3
           l["requête"]
           m("traitement")
-          r["filtrage"]
+          r["compilation"]
   end
     space down2<[" "]>(down) space
     db[("DB")]:3
