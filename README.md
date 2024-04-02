@@ -11,15 +11,23 @@
 ## API Riot
 Consumed API is RiotGames' API for League of Legends (documentation [here](https://developer.riotgames.com/docs/lol)).
 
-*THE SUMMONER NAME ENDPOINT USED IN THIS PROJECT IS GOING TO BE DELETED ON THE 22/04/24.
-THE PROJECT AS IT IS WILL NO LONGER WORK AFTER THIS DATE.*
+**THE BY SUMMONER NAME ENDPOINT USED IN THIS PROJECT IS GOING TO BE DELETED ON THE 22/04/24.
+THE PROJECT AS IT IS WILL NO LONGER WORK AFTER THIS DATE.**
 
 ## Running the project
 Run `AseProjectApplication.java` with IntelliJ to launch the project on port 8080.
 (`src/main/java/com/project/ase_project/AseProjectApplication.java`).
 
+## Supabase limitations
+Our external database is supplied by Supabase.
+
 Do note that because of the limitations on requests imposed by Supabase, running the application
 on more than 2 computers at the same time is difficult. 
+
+Similarly, all the tests cannot be run at the same time, so either cucumber tests can be run, or unit tests can be run.
+
+**Please notify us about the timing of the reviewing process, because if there are no requests made on the database for more
+than a week, the database is automatically put in sleep mode by Supabase.**
 
 ## Documentation
 Once it's launched, documentation is available at [http://localhost:8080/docs](http://localhost:8080/docs).
@@ -33,7 +41,7 @@ UI drafts are in the `Brouillon UI.png` file.
 ### Features
 - GET: summoner summary
 - GET: statistics on champions played by a summoner
-- GET: statistics on gamemodes playeed by a summoner
+- GET: statistics on gamemodes played by a summoner
 - POST: a rating (from 1 to 5) for a summoner
 
 API endpoints are described in the documentation.
