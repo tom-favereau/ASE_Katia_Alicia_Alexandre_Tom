@@ -35,7 +35,7 @@
                         <p>Most played champion:</p>
                         <div class="box-info">
                             <div>
-                                <img class="champion-profile-icon" th:src="${championsPlayed.getMPProfileIconAddress()}"/>
+                                <img class="champion-profile-icon" th:src="${championsPlayed.getMPProfileIconAddress()}" onerror="this.style.display='none'"/>
                             </div>
                             <div>
                                 <p class="box-name" th:text="${championsPlayed.getMostPlayedChampionName()}"></p>
@@ -56,7 +56,7 @@
                         <p>Second most played champion:</p>
                         <div class="box-info">
                             <div>
-                                <img class="champion-profile-icon" th:src="${championsPlayed.getSMPProfileIconAddress()}"/>
+                                <img class="champion-profile-icon" th:src="${championsPlayed.getSMPProfileIconAddress()}" onerror="this.style.display='none'"/>
                             </div>
                             <div>
                                 <p class="box-name" th:text="${championsPlayed.getSecondMostPlayedChampionName()}"></p>
@@ -79,7 +79,7 @@
                         <p>Best performing champion:</p>
                         <div class="box-info">
                             <div>
-                                <img class="champion-profile-icon" th:src="${championsPlayed.getBPProfileIconAddress()}"/>
+                                <img class="champion-profile-icon" th:src="${championsPlayed.getBPProfileIconAddress()}" onerror="this.style.display='none'"/>
                             </div>
                             <div>
                                 <p class="box-name" th:text="${championsPlayed.getBestPerformingChampionName()}"></p>
@@ -100,7 +100,7 @@
                         <p>Worst performing champion:</p>
                         <div class="box-info">
                             <div>
-                                <img class="champion-profile-icon" th:src="${championsPlayed.getWPProfileIconAddress()}"/>
+                                <img class="champion-profile-icon" th:src="${championsPlayed.getWPProfileIconAddress()}" onerror="this.style.display='none'"/>
                             </div>
                             <div>
                                 <p class="box-name" th:text="${championsPlayed.getWorstPerformingChampionName()}"></p>
