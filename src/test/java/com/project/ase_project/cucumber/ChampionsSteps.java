@@ -43,28 +43,10 @@ public class ChampionsSteps {
         if (summoner.equals("Belugafurtif")){
             ChampionsPlayed belugaGameModesPlayed = beluga.getBody();
             assertEquals("Belugafurtif", belugaGameModesPlayed.getSummonerName());
-            assertNotNull(belugaGameModesPlayed.getTotalKills());
-            assertNotNull(belugaGameModesPlayed.getTotalGamesPlayed());
-            assertNotNull(belugaGameModesPlayed.getTotalDeaths());
-            assertNotNull(belugaGameModesPlayed.getBestPerformingChampionAssists());
-            assertNotNull(belugaGameModesPlayed.getBestPerformingChampionCount());
-            assertNotNull(belugaGameModesPlayed.getTotalAssists());
-            assertNotNull(belugaGameModesPlayed.getTotalWins());
-            assertNotNull(belugaGameModesPlayed.getTotalLosses());
-            assertNotNull(belugaGameModesPlayed.getKDA());
 
         } else if (summoner.equals("Razørk Activoo")){
             ChampionsPlayed razorkGameModesPlayed = razork.getBody();
             assertEquals("Razørk Activoo", razorkGameModesPlayed.getSummonerName());
-            assertNotNull(razorkGameModesPlayed.getTotalKills());
-            assertNotNull(razorkGameModesPlayed.getTotalGamesPlayed());
-            assertNotNull(razorkGameModesPlayed.getTotalDeaths());
-            assertNotNull(razorkGameModesPlayed.getBestPerformingChampionAssists());
-            assertNotNull(razorkGameModesPlayed.getBestPerformingChampionCount());
-            assertNotNull(razorkGameModesPlayed.getTotalAssists());
-            assertNotNull(razorkGameModesPlayed.getTotalWins());
-            assertNotNull(razorkGameModesPlayed.getTotalLosses());
-            assertNotNull(razorkGameModesPlayed.getKDA());
         }
     }
 

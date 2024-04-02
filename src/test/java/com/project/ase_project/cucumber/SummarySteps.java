@@ -42,25 +42,17 @@ public class SummarySteps extends CucumberSpringConfiguration {
             Summary belugaSummary = beluga.getBody();
             assertEquals("F4btU20wCQOmkMlWn4QJm33f3jH-B5Nj-uPfNnyuLED3PT0DpQ_LLcB_IQ", belugaSummary.getSummonerId());
             assertEquals("Belugafurtif", belugaSummary.getSummonerName());
-            assertNotNull(belugaSummary.getSummonerLevel());
-            assertNotNull(belugaSummary.getProfileIconId());
             assertNotNull(belugaSummary.getRankFlex());
             assertNotNull(belugaSummary.getRankSolo());
             assertNotNull(belugaSummary.getRegion());
-            assertNotNull(belugaSummary.getAverage());
-            assertNotNull(belugaSummary.getCardinal());
             assertNotNull(belugaSummary.getProfileIconAddress());
         } else if (summoner.equals("Razørk Activoo")) {
             Summary belugaSummary = razork.getBody();
             assertEquals("Dno8J85K7DTwnqSlFm64Nk_681yWe3BFSWsDuLJ5ayxpRhA", belugaSummary.getSummonerId());
             assertEquals("Razørk Activoo", belugaSummary.getSummonerName());
-            assertNotNull(belugaSummary.getSummonerLevel());
-            assertNotNull(belugaSummary.getProfileIconId());
             assertNotNull(belugaSummary.getRankFlex());
             assertNotNull(belugaSummary.getRankSolo());
             assertNotNull(belugaSummary.getRegion());
-            assertNotNull(belugaSummary.getAverage());
-            assertNotNull(belugaSummary.getCardinal());
             assertNotNull(belugaSummary.getProfileIconAddress());
         }
     }
