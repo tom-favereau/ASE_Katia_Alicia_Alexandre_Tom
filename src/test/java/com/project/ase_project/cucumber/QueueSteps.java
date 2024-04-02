@@ -118,4 +118,6 @@ public class QueueSteps extends CucumberSpringConfiguration {
     public void queueTheResponseBodyShouldContainAnErrorMessageIndicatingThatTheRequestIsInvalid() {
         //assertEquals("Erreur 404 : Veuillez préciser un pseudo de joueur.", errorBadRequest.getBody());
     }
+
+
 }
