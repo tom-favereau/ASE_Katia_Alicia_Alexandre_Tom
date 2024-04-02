@@ -230,7 +230,10 @@ public class RiotApiService {
             throw new BadRequestException("Erreur 403 : Forbidden");
         }
         catch (HttpClientErrorException.NotFound e) {
-            throw new MatchNotFoundException("Erreur 404 : Le match " + matchId + " n'existe pas.");
+            // Recently, Riot has introduced a new type of match that is listed in the match history but cannot be accessed.
+            // For this reason, we have to catch this exception and continue the program because there is no way for us to predict if a match is in this case.
+            System.out.println("Erreur 404 : Le match " + matchId + " n'existe pas.");
+            return null;
         }
         catch (HttpClientErrorException.MethodNotAllowed e) {
             throw new MethodNotAllowed("Erreur 405 : Method not allowed");
@@ -365,7 +368,9 @@ public class RiotApiService {
                 allFutures.thenRun(() -> {
                     for (CompletableFuture<Match> matchFuture : matchFutures) {
                         try {
-                            matchList.add(matchFuture.get());
+                            if (matchFuture.get() != null) {
+                                matchList.add(matchFuture.get());
+                            }
                         } catch (Exception e) {
                             throw new MatchNotFoundException("Erreur 404 : Le match n'existe pas.");
                         }
@@ -554,6 +559,9 @@ public class RiotApiService {
         }
         // Création de l'objet de retour
         // Summoner fields
+        if (matches.isEmpty()) {
+            return championsPlayed;
+        }
         championsPlayed.setSummonerId(matches.get(0).getParticipants().get(participantId).getSummonerId());
         championsPlayed.setSummonerName(summonerName);
 
@@ -691,6 +699,9 @@ public class RiotApiService {
         }
         // Création de l'objet de retour
         // Summoner fields
+        if (matches.isEmpty()) {
+            return gameModesPlayed;
+        }
         gameModesPlayed.setSummonerId(matches.get(0).getParticipants().get(participantId).getSummonerId());
         gameModesPlayed.setSummonerName(summonerName);
 
