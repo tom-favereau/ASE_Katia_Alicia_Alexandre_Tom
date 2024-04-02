@@ -1,9 +1,8 @@
 package com.project.ase_project.cucumber;
 
-
+import com.project.ase_project.model.clean.MostPlayedChampions.ChampionsPlayed;
 import com.project.ase_project.model.clean.MostPlayedGameModes.GameModesPlayed;
 import com.project.ase_project.model.clean.summary.Summary;
-import com.project.ase_project.model.clean.summoner.Summoner;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -14,57 +13,54 @@ import org.springframework.web.client.RestTemplate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class QueueSteps extends CucumberSpringConfiguration {
-    private ResponseEntity<GameModesPlayed> beluga;
-    private ResponseEntity<GameModesPlayed> razork;
+public class ChampionsSteps {
+    private ResponseEntity<ChampionsPlayed> beluga;
+    private ResponseEntity<ChampionsPlayed> razork;
     private ResponseEntity<String> errorNotFound;
     private ResponseEntity<String> errorBadRequest;
 
-
-    private ResponseEntity<GameModesPlayed> getGameModesPlayed(String url){
+    ResponseEntity<ChampionsPlayed> getResponseEntity(String url){
         String fullUrl = "http://localhost:8080" + url;
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<String> entity = new HttpEntity<>(headers);
-        return restTemplate.exchange(fullUrl, HttpMethod.GET, entity, GameModesPlayed.class);
+        return restTemplate.exchange(fullUrl, HttpMethod.GET, entity, ChampionsPlayed.class);
     }
 
-
-
-
-    @When("queue the user calls {string}")
-    public void queueTheUserCalls(String url) {
+    @When("champion the user calls {string}")
+    public void championTheUserCalls(String url) {
         if (url.contains("Belugafurtif")){
-            beluga = getGameModesPlayed(url);
+            beluga = getResponseEntity(url);
         } else if (url.contains("Razørk Activoo")) {
-            razork = getGameModesPlayed(url);
+            razork = getResponseEntity(url);
         }
     }
 
-    @Then("queue the user receives {string}'s queue")
-    public void queueTheUserReceivesSQueue(String summoner) {
+
+    @Then("champion the user receives {string}'s queue")
+    public void championTheUserReceivesSQueue(String summoner) {
         if (summoner.equals("Belugafurtif")){
-            GameModesPlayed belugaGameModesPlayed = beluga.getBody();
+            ChampionsPlayed belugaGameModesPlayed = beluga.getBody();
             assertEquals("no3DrNwBLS6OfHYxUK1LtMqQrKcxixwr6zCWY9K0uveQIr2jpaNfyvrLgg", belugaGameModesPlayed.getSummonerId());
             assertNotNull(belugaGameModesPlayed.getTotalKills());
             assertNotNull(belugaGameModesPlayed.getTotalGamesPlayed());
             assertNotNull(belugaGameModesPlayed.getTotalDeaths());
-            assertNotNull(belugaGameModesPlayed.getBestPerformingGameModeAssists());
-            assertNotNull(belugaGameModesPlayed.getMostPlayedGameModeAssists());
+            assertNotNull(belugaGameModesPlayed.getBestPerformingChampionAssists());
+            assertNotNull(belugaGameModesPlayed.getBestPerformingChampionCount());
             assertNotNull(belugaGameModesPlayed.getTotalAssists());
             assertNotNull(belugaGameModesPlayed.getTotalWins());
             assertNotNull(belugaGameModesPlayed.getTotalLosses());
             assertNotNull(belugaGameModesPlayed.getKDA());
 
         } else if (summoner.equals("Razørk Activoo")){
-            GameModesPlayed razorkGameModesPlayed = razork.getBody();
+            ChampionsPlayed razorkGameModesPlayed = razork.getBody();
             assertEquals("scvOdBRm0CgWGcFFpYOkZ4RTcgyT49gmNG16afYQADqGymo", razorkGameModesPlayed.getSummonerId());
             assertNotNull(razorkGameModesPlayed.getTotalKills());
             assertNotNull(razorkGameModesPlayed.getTotalGamesPlayed());
             assertNotNull(razorkGameModesPlayed.getTotalDeaths());
-            assertNotNull(razorkGameModesPlayed.getBestPerformingGameModeAssists());
-            assertNotNull(razorkGameModesPlayed.getMostPlayedGameModeAssists());
+            assertNotNull(razorkGameModesPlayed.getBestPerformingChampionAssists());
+            assertNotNull(razorkGameModesPlayed.getBestPerformingChampionCount());
             assertNotNull(razorkGameModesPlayed.getTotalAssists());
             assertNotNull(razorkGameModesPlayed.getTotalWins());
             assertNotNull(razorkGameModesPlayed.getTotalLosses());
@@ -72,8 +68,8 @@ public class QueueSteps extends CucumberSpringConfiguration {
         }
     }
 
-    @And("queue the response code status for {string} is {int}")
-    public void queueTheResponseCodeStatusForIs(String summoner, int code) {
+    @And("champion the response code status for {string} is {int}")
+    public void championTheResponseCodeStatusForIs(String summoner, int code) {
         if (summoner.equals("Belugafurtif")) {
             assertEquals(code, beluga.getStatusCode().value());
         } else if (summoner.equals("Razørk Activoo")) {
@@ -81,41 +77,43 @@ public class QueueSteps extends CucumberSpringConfiguration {
         }
     }
 
-    @When("queue a GET request is made to the endpoint {string} \\(where A does not exist)")
-    public void queueAGETRequestIsMadeToTheEndpointWhereADoesNotExist(String url) {
+    @When("champion a GET request is made to the endpoint {string} \\(where A does not exist)")
+    public void championAGETRequestIsMadeToTheEndpointWhereADoesNotExist(String url) {
         try {
-            getGameModesPlayed(url);
+            getResponseEntity(url);
         } catch (HttpClientErrorException ex) {
             errorNotFound = new ResponseEntity<>(ex.getResponseBodyAsString(), ex.getStatusCode());
         }
     }
 
-    @Then("queue the API should respond with a status code {int} \\(Not Found)")
-    public void queueTheAPIShouldRespondWithAStatusCodeNotFound(int code) {
+    @Then("champion the API should respond with a status code {int} \\(Not Found)")
+    public void championTheAPIShouldRespondWithAStatusCodeNotFound(int code) {
         assertEquals(code, errorNotFound.getStatusCode().value());
     }
 
-    @And("queue the response body should contain an error message indicating that the summoner was not found")
-    public void queueTheResponseBodyShouldContainAnErrorMessageIndicatingThatTheSummonerWasNotFound() {
+    @And("champion the response body should contain an error message indicating that the summoner was not found")
+    public void championTheResponseBodyShouldContainAnErrorMessageIndicatingThatTheSummonerWasNotFound() {
         //assertEquals("{\"timestamp\":\"2024-04-02T17:13:11.943+00:00\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/riot/queue/A\"}", errorNotFound.getBody());
     }
 
-    @When("queue an invalid request is made to the endpoint {string} \\(where the summoner Name is missing)")
-    public void queueAnInvalidRequestIsMadeToTheEndpointWhereTheSummonerNameIsMissing(String url) {
+    @When("champion an invalid request is made to the endpoint {string} \\(where the summoner Name is missing)")
+    public void championAnInvalidRequestIsMadeToTheEndpointWhereTheSummonerNameIsMissing(String url) {
         try {
-            getGameModesPlayed(url);
+            getResponseEntity(url);
         } catch (HttpClientErrorException ex) {
             errorBadRequest = new ResponseEntity<>(ex.getResponseBodyAsString(), ex.getStatusCode());
         }
     }
 
-    @Then("queue the API should respond with a status code {int} \\(Bad Request)")
-    public void queueTheAPIShouldRespondWithAStatusCodeBadRequest(int code) {
+    @Then("champion the API should respond with a status code {int} \\(Bad Request)")
+    public void championTheAPIShouldRespondWithAStatusCodeBadRequest(int code) {
         assertEquals(code, errorBadRequest.getStatusCode().value());
     }
 
-    @And("queue the response body should contain an error message indicating that the request is invalid")
-    public void queueTheResponseBodyShouldContainAnErrorMessageIndicatingThatTheRequestIsInvalid() {
+    @And("champion the response body should contain an error message indicating that the request is invalid")
+    public void championTheResponseBodyShouldContainAnErrorMessageIndicatingThatTheRequestIsInvalid() {
         //assertEquals("Erreur 404 : Veuillez préciser un pseudo de joueur.", errorBadRequest.getBody());
     }
+
+
 }
