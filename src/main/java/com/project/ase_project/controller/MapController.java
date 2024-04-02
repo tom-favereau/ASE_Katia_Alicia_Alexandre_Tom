@@ -19,15 +19,27 @@ public class MapController {
     private MapService service;
     @GetMapping("/maps")
     @Tag(name = "Maps", description = "Methods for Map APIs")
-    @Operation(summary = "Get the list of all maps", description = "Get the list of all current existing maps.")
+    @Operation(summary = "Get the list of all maps", description = "Get the list of all current" +
+            " maps.")
     public List<LOLMap> findAllMaps(){
         return service.getMaps();
     }
     @GetMapping("/maps/{id}")
     @Tag(name = "Maps")
-    @Operation(summary = "Get a map's info", description = "Get a map's info given by mapId: mapId, name and associated " +
-            "notes.")
+    @Operation(summary = "Get a map's info", description = "Get a map's info via its id: " +
+            "id, name, and associated notes.")
     public LOLMap findMapById(@PathVariable Integer id){
-        return service.getMapById(id);
+        LOLMap res = service.getMapById(id);
+        if (res == null){
+            throw new IllegalArgumentException("Erreur 400 : l'id n'est pas correct.");
+        } else {
+            return res;
+        }
+    }
+
+    @GetMapping("/maps/")
+    @Operation(hidden=true)
+    public LOLMap findMapByIdException(){
+        throw new IllegalArgumentException("Erreur 400 : Veuillez préciser l'id d'une map.");
     }
 }

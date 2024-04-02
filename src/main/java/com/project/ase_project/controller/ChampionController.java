@@ -30,6 +30,18 @@ public class ChampionController {
     @Operation(summary = "Get a champion's info", description = "Get a champion's info given by key, as of patch 14.5.1: " +
             "id, name, image information and key.")
     public Champion findChampionById(@PathVariable Integer id){
-        return service.getChampionById(id);
+        Champion res = service.getChampionById(id);
+        if (res == null){
+            throw new IllegalArgumentException("Erreur 400 : l'id n'est pas correct.");
+        } else {
+            return res;
+        }
     }
+
+    @GetMapping("/champion/")
+    @Operation(hidden=true)
+    public Champion findChampionByIdException(){
+        throw new IllegalArgumentException("Erreur 400 : Veuillez préciser l'id d'un champion.");
+    }
+
 }
