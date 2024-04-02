@@ -1,5 +1,7 @@
 # OP-GG like League Of Legends Stat viewer
 
+![front-end](images/guardPage.png)
+
 ## Team
 - Katia BRENAUT
 - Tom FAVEREAU
