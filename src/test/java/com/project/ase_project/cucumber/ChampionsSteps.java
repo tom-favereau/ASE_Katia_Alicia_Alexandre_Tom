@@ -55,7 +55,7 @@ public class ChampionsSteps {
 
         } else if (summoner.equals("Razørk Activoo")){
             ChampionsPlayed razorkGameModesPlayed = razork.getBody();
-            assertEquals("scvOdBRm0CgWGcFFpYOkZ4RTcgyT49gmNG16afYQADqGymo", razorkGameModesPlayed.getSummonerId());
+            assertEquals("4aub4MQ8S40beG-vh50-lfIWW0jo0jNVPLubsVZRqyUArdo", razorkGameModesPlayed.getSummonerId());
             assertNotNull(razorkGameModesPlayed.getTotalKills());
             assertNotNull(razorkGameModesPlayed.getTotalGamesPlayed());
             assertNotNull(razorkGameModesPlayed.getTotalDeaths());
