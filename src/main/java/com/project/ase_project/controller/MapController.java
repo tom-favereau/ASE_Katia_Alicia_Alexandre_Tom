@@ -3,6 +3,10 @@ package com.project.ase_project.controller;
 import com.project.ase_project.model.ddragon.maps.LOLMap;
 import com.project.ase_project.service.MapService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +25,11 @@ public class MapController {
     @Tag(name = "Maps", description = "Methods for Map APIs")
     @Operation(summary = "Get the list of all maps", description = "Get the list of all current" +
             " maps.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved resource", content =
+            @Content(mediaType = "application/json", examples =
+            @ExampleObject(value = "[{\"mapId\":1,\"mapName\":\"Summoner's Rift\",\"notes\":\"Original Summer variant\"},{\"mapId\":2,\"mapName\":\"Summoner's Rift\",\"notes\":\"Original Autumn variant\"}]"))),
+            @ApiResponse(responseCode = "404", description = "Resource not found", content = @Content(examples = @ExampleObject()))})
     public List<LOLMap> findAllMaps(){
         return service.getMaps();
     }
@@ -28,6 +37,11 @@ public class MapController {
     @Tag(name = "Maps")
     @Operation(summary = "Get a map's info", description = "Get a map's info via its id: " +
             "id, name, and associated notes.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved resource",
+                    content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{\"mapId\":1,\"mapName\":\"Summoner's Rift\",\"notes\":\"Original Summer variant\"}"))),
+            @ApiResponse(responseCode = "400", description = "Bad Request",
+                    content = @Content(examples = @ExampleObject()))})
     public LOLMap findMapById(@PathVariable Integer id){
         LOLMap res = service.getMapById(id);
         if (res == null){
