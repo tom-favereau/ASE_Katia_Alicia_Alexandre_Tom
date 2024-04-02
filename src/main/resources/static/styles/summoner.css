@@ -1,7 +1,7 @@
 .summoner-name {
     text-align: center;
-    padding-top: 50px;
-    padding-bottom: 50px;
+    padding-top: 40px;
+    padding-bottom: 30px;
     font-family: "Goblin One", serif;
     font-weight: 400;
     font-size: 1.2rem;
@@ -12,7 +12,7 @@
 #profile-image {
     position: absolute;
     right: 5%;
-    box-shadow: 0 0 50px 0px #ffffffaa;
+    box-shadow: 0 0 100px 0px #ffffffaa;
     height: 300px;
     width: auto;
 }
@@ -82,11 +82,11 @@
 }
 
 #champions .box {
-    background-color: #2060ff40;
+    background-color: #ee990050;
 }
 
 #game-modes .box {
-    background-color: #50ff5020;
+    background-color: #ff222260;
 }
 
 .box-info {
