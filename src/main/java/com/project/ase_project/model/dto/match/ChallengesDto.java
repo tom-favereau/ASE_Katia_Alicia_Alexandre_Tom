@@ -1,5 +1,6 @@
 package com.project.ase_project.model.dto.match;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.Getter;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 @Getter
 @Setter
 @ToString
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ChallengesDto {
     @JsonProperty("12AssistStreakCount")
     private int _12AssistStreakCount;

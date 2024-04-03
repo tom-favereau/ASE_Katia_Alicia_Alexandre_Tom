@@ -18,6 +18,7 @@ import java.util.ArrayList;
 @Setter
 @ToString
 public class InfoDto {
+    private String endOfGameResult;
     private long gameCreation;
     private int gameDuration;
     private long gameEndTimestamp;

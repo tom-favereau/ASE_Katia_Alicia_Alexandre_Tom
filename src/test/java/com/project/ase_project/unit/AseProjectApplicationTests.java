@@ -4,12 +4,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.ase_project.AseProjectApplication;
 import com.project.ase_project.exception.*;
+import com.project.ase_project.model.clean.MostPlayedChampions.ChampionsPlayed;
+import com.project.ase_project.model.clean.MostPlayedGameModes.GameModesPlayed;
 import com.project.ase_project.model.clean.league.League;
 import com.project.ase_project.model.clean.match.Match;
 import com.project.ase_project.model.clean.summary.Summary;
 import com.project.ase_project.model.clean.summoner.Summoner;
 import com.project.ase_project.model.dto.match.MatchDto;
 import com.project.ase_project.service.RiotApiService;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -84,6 +87,139 @@ class AseProjectApplicationTests {
     );
     ArrayList<League> leagues = new ArrayList<>(List.of(league1, league2));
     Summary summary = new Summary(summoner, leagues);
+    ChampionsPlayed championsPlayed = new ChampionsPlayed(
+            "F4btU20wCQOmkMlWn4QJm33f3jH-B5Nj-uPfNnyuLED3PT0DpQ_LLcB_IQ",
+            "Belugafurtif",
+
+            5,
+            3,
+            2,
+            0.6f,
+
+            10,
+            5,
+            6,
+            3.2f,
+
+            83,
+            "Aatrox",
+
+            3,
+            2,
+            1,
+            0.66f,
+
+            7,
+            2,
+            2,
+            4.5f,
+
+            84,
+            "Ahri",
+
+            2,
+            1,
+            1,
+            0.5f,
+
+            3,
+            3,
+            4,
+            2.33f,
+
+            83,
+            "Aatrox",
+
+            3,
+            2,
+            1,
+            0.66f,
+
+            7,
+            2,
+            2,
+            4.5f,
+
+            84,
+            "Ahri",
+
+            2,
+            1,
+            1,
+            0.5f,
+
+            3,
+            3,
+            4,
+            2.33f
+    );
+
+    GameModesPlayed gameModesPlayed = new GameModesPlayed(
+            "F4btU20wCQOmkMlWn4QJm33f3jH-B5Nj-uPfNnyuLED3PT0DpQ_LLcB_IQ",
+            "Belugafurtif",
+
+            5,
+            3,
+            2,
+            0.6f,
+
+            10,
+            5,
+            6,
+            3.2f,
+
+            83,
+            "ARAM",
+
+            3,
+            2,
+            1,
+            0.66f,
+
+            7,
+            2,
+            2,
+            4.5f,
+
+            84,
+            "Summoner's Rift 5vs5 SOLO/DUO",
+
+            2,
+            1,
+            1,
+            0.5f,
+
+            3,
+            3,
+            4,
+            2.33f,
+
+            83,
+            "ARAM",
+
+            3,
+            2,
+            1,
+            0.66f,
+
+            7,
+            2,
+            2,
+            4.5f,
+
+            84,
+            "Summoner's Rift 5vs5 SOLO/DUO",
+
+            2,
+            1,
+            1,
+            0.5f,
+
+            3,
+            3,
+            4,
+            2.33f
+    );
     
     @BeforeAll
     public static void matchSetUp() throws IOException, URISyntaxException {
@@ -91,6 +227,10 @@ class AseProjectApplicationTests {
         JsonNode jsonNode = objectMapper.readTree(new URI("https://europe.api.riotgames.com/lol/match/v5/matches/EUW1_6760205418?api_key=RGAPI-7824e8d4-5ed0-4244-8b26-67ba3e260cc2").toURL());
         matchDto = objectMapper.readValue(jsonNode.toString(), MatchDto.class);
         match = matchDto.toMatch();
+    }
+
+    @AfterAll
+    public static void tearDown() {
     }
 
     @Test
@@ -755,6 +895,264 @@ class AseProjectApplicationTests {
     public void testGetGradeNoArgument() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders
                 .get("/riot/grade/Belugafurtif")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof IllegalArgumentException));
+    }
+
+    @Test
+    public void testGetChampionsPlayed() throws Exception {
+        Mockito.when(riotApiService.getChampionsPlayedByName("Belugafurtif")).thenReturn(championsPlayed);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .get("/riot/championsPlayed/Belugafurtif")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.summonerId").value(summoner.getId()));
+    }
+
+    @Test
+    public void testGetChampionsPlayedBadRequest() throws Exception {
+        Mockito.when(riotApiService.getChampionsPlayedByName("Belugafurtif")).thenThrow(BadRequestException.class);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .get("/riot/championsPlayed/Belugafurtif")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof BadRequestException));
+    }
+
+    @Test
+    public void testGetChampionsPlayedSummonerNotFound() throws Exception {
+        Mockito.when(riotApiService.getChampionsPlayedByName("Belugafurti")).thenThrow(SummonerNotFoundException.class);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .get("/riot/championsPlayed/Belugafurti")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof SummonerNotFoundException));
+    }
+
+    @Test
+    public void testGetChampionsPlayedMatchNotFound() throws Exception {
+        Mockito.when(riotApiService.getChampionsPlayedByName("afaureve")).thenThrow(MatchNotFoundException.class);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .get("/riot/championsPlayed/afaureve")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof MatchNotFoundException));
+    }
+
+    @Test
+    public void testGetChampionsPlayedMethodNotAllowed() throws Exception {
+        Mockito.when(riotApiService.getChampionsPlayedByName("Belugafurtif")).thenThrow(MethodNotAllowed.class);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .post("/riot/championsPlayed/Belugafurtif")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isMethodNotAllowed());
+    }
+
+    @Test
+    public void testGetChampionsPlayedUnsupportedMediaType() throws Exception {
+        Mockito.when(riotApiService.getChampionsPlayedByName("Belugafurtif")).thenThrow(UnsupportedMediaType.class);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .get("/riot/championsPlayed/Belugafurtif")
+                .contentType(MediaType.APPLICATION_XML))
+                .andExpect(status().isUnsupportedMediaType())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof UnsupportedMediaType));
+    }
+
+    @Test
+    public void testGetChampionsPlayedRateLimitExceeded() throws Exception {
+        Mockito.when(riotApiService.getChampionsPlayedByName("Belugafurtif")).thenThrow(RateLimitExceededException.class);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .get("/riot/championsPlayed/Belugafurtif")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof RateLimitExceededException));
+    }
+
+    @Test
+    public void testGetChampionsPlayedInternalServerError() throws Exception {
+        Mockito.when(riotApiService.getChampionsPlayedByName("Belugafurtif")).thenThrow(InternalServerError.class);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .get("/riot/championsPlayed/Belugafurtif")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isInternalServerError())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof InternalServerError));
+    }
+
+    @Test
+    public void testGetChampionsPlayedBadGateway() throws Exception {
+        Mockito.when(riotApiService.getChampionsPlayedByName("Belugafurtif")).thenThrow(BadGateway.class);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .get("/riot/championsPlayed/Belugafurtif")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadGateway())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof BadGateway));
+    }
+
+    @Test
+    public void testGetChampionsPlayedServiceUnavailable() throws Exception {
+        Mockito.when(riotApiService.getChampionsPlayedByName("Belugafurtif")).thenThrow(ServiceUnavailable.class);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .get("/riot/championsPlayed/Belugafurtif")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof ServiceUnavailable));
+    }
+
+    @Test
+    public void testGetChampionsPlayedGatewayTimeout() throws Exception {
+        Mockito.when(riotApiService.getChampionsPlayedByName("Belugafurtif")).thenThrow(GatewayTimeout.class);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .get("/riot/championsPlayed/Belugafurtif")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isGatewayTimeout())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof GatewayTimeout));
+    }
+
+    @Test
+    public void testGetChampionsPlayedNoArgument() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders
+                .get("/riot/championsPlayed/")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof IllegalArgumentException));
+    }
+
+    @Test
+    public void testGetGameModesPlayed() throws Exception {
+        Mockito.when(riotApiService.getGameModesPlayedByName("Belugafurtif")).thenReturn(gameModesPlayed);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .get("/riot/gameModesPlayed/Belugafurtif")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.summonerId").value(summoner.getId()));
+    }
+
+    @Test
+    public void testGetGameModesPlayedBadRequest() throws Exception {
+        Mockito.when(riotApiService.getGameModesPlayedByName("Belugafurtif")).thenThrow(BadRequestException.class);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .get("/riot/gameModesPlayed/Belugafurtif")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof BadRequestException));
+    }
+
+    @Test
+    public void testGetGameModesPlayedSummonerNotFound() throws Exception {
+        Mockito.when(riotApiService.getGameModesPlayedByName("Belugafurti")).thenThrow(SummonerNotFoundException.class);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .get("/riot/gameModesPlayed/Belugafurti")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof SummonerNotFoundException));
+    }
+
+    @Test
+    public void testGetGameModesPlayedMatchNotFound() throws Exception {
+        Mockito.when(riotApiService.getGameModesPlayedByName("afaureve")).thenThrow(MatchNotFoundException.class);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .get("/riot/gameModesPlayed/afaureve")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof MatchNotFoundException));
+    }
+
+    @Test
+    public void testGetGameModesPlayedMethodNotAllowed() throws Exception {
+        Mockito.when(riotApiService.getGameModesPlayedByName("Belugafurtif")).thenThrow(MethodNotAllowed.class);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .post("/riot/gameModesPlayed/Belugafurtif")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isMethodNotAllowed());
+    }
+
+    @Test
+    public void testGetGameModesPlayedUnsupportedMediaType() throws Exception {
+        Mockito.when(riotApiService.getGameModesPlayedByName("Belugafurtif")).thenThrow(UnsupportedMediaType.class);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .get("/riot/gameModesPlayed/Belugafurtif")
+                .contentType(MediaType.APPLICATION_XML))
+                .andExpect(status().isUnsupportedMediaType())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof UnsupportedMediaType));
+    }
+
+    @Test
+    public void testGetGameModesPlayedRateLimitExceeded() throws Exception {
+        Mockito.when(riotApiService.getGameModesPlayedByName("Belugafurtif")).thenThrow(RateLimitExceededException.class);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .get("/riot/gameModesPlayed/Belugafurtif")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof RateLimitExceededException));
+    }
+
+    @Test
+    public void testGetGameModesPlayedInternalServerError() throws Exception {
+        Mockito.when(riotApiService.getGameModesPlayedByName("Belugafurtif")).thenThrow(InternalServerError.class);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .get("/riot/gameModesPlayed/Belugafurtif")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isInternalServerError())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof InternalServerError));
+    }
+
+    @Test
+    public void testGetGameModesPlayedBadGateway() throws Exception {
+        Mockito.when(riotApiService.getGameModesPlayedByName("Belugafurtif")).thenThrow(BadGateway.class);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .get("/riot/gameModesPlayed/Belugafurtif")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadGateway())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof BadGateway));
+    }
+
+    @Test
+    public void testGetGameModesPlayedServiceUnavailable() throws Exception {
+        Mockito.when(riotApiService.getGameModesPlayedByName("Belugafurtif")).thenThrow(ServiceUnavailable.class);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .get("/riot/gameModesPlayed/Belugafurtif")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof ServiceUnavailable));
+    }
+
+    @Test
+    public void testGetGameModesPlayedGatewayTimeout() throws Exception {
+        Mockito.when(riotApiService.getGameModesPlayedByName("Belugafurtif")).thenThrow(GatewayTimeout.class);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .get("/riot/gameModesPlayed/Belugafurtif")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isGatewayTimeout())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof GatewayTimeout));
+    }
+
+    @Test
+    public void testGetGameModesPlayedNoArgument() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders
+                .get("/riot/gameModesPlayed/")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(result -> assertTrue(result.getResolvedException() instanceof IllegalArgumentException));

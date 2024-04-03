@@ -336,17 +336,16 @@ public class RiotApiService {
         }
     }
     public ArrayList<Match> getMatches(String summonerName, Long startTime, Long endTime, Integer queue, String type, Integer start, Integer count) {
-        Summoner summoner = getSummonerByName(summonerName);
-        String apiUrl = "https://europe.api.riotgames.com/lol/match/v5/matches/by-puuid/" + summoner.getPuuid()
-                + "/ids?startTime=" + (startTime == null ? "" : startTime)
-                + "&endTime=" + (endTime == null ? "" : endTime)
-                + "&queue=" + (queue == null ? "" : queue)
-                + "&type=" + (type == null ? "" : type)
-                + "&start=" + (start == null ? "" : start)
-                + "&count=" + (count == null ? "" : count)
-                + "&api_key=" + apiKey;
-
         try {
+            Summoner summoner = getSummonerByName(summonerName);
+            String apiUrl = "https://europe.api.riotgames.com/lol/match/v5/matches/by-puuid/" + summoner.getPuuid()
+                    + "/ids?startTime=" + (startTime == null ? "" : startTime)
+                    + "&endTime=" + (endTime == null ? "" : endTime)
+                    + "&queue=" + (queue == null ? "" : queue)
+                    + "&type=" + (type == null ? "" : type)
+                    + "&start=" + (start == null ? "" : start)
+                    + "&count=" + (count == null ? "" : count)
+                    + "&api_key=" + apiKey;
             String[] matches = restTemplate.getForObject(apiUrl, String[].class);
             ArrayList<Match> matchList = new ArrayList<>();
             ArrayList<CompletableFuture<Match>> matchFutures = new ArrayList<>();
@@ -360,7 +359,8 @@ public class RiotApiService {
                         CompletableFuture<Match> matchFuture = CompletableFuture.supplyAsync(() -> getMatchById(match));
                         matchFutures.add(matchFuture);
                     }
-                    if (count != null && counter++ > count){
+                    counter++;
+                    if (count != null && counter+1 > count){
                         break;
                     }
                 }
@@ -387,9 +387,6 @@ public class RiotApiService {
         }
         catch (HttpClientErrorException.Forbidden e) {
             throw new BadRequestException("Erreur 403 : Forbidden");
-        }
-        catch (HttpClientErrorException.NotFound e) {
-            throw new SummonerNotFoundException("Erreur 404 : Le puuid " + summoner.getPuuid() + " n'existe pas.");
         }
         catch (HttpClientErrorException.MethodNotAllowed e) {
             throw new MethodNotAllowed("Erreur 405 : Method not allowed");
@@ -560,6 +557,7 @@ public class RiotApiService {
         // Création de l'objet de retour
         // Summoner fields
         if (matches.isEmpty()) {
+            championsPlayed.setSummonerName("-");
             return championsPlayed;
         }
         championsPlayed.setSummonerId(matches.get(0).getParticipants().get(participantId).getSummonerId());
@@ -700,6 +698,7 @@ public class RiotApiService {
         // Création de l'objet de retour
         // Summoner fields
         if (matches.isEmpty()) {
+            gameModesPlayed.setSummonerName("-");
             return gameModesPlayed;
         }
         gameModesPlayed.setSummonerId(matches.get(0).getParticipants().get(participantId).getSummonerId());

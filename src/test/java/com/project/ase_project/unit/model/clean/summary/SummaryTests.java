@@ -67,7 +67,8 @@ public class SummaryTests {
                 "rankSolo=Gold I 100 LP 10W / 5L, " +
                 "region=EUW1, " +
                 "average=3.8, " +
-                "cardinal=5)";
+                "cardinal=5, " +
+                "profileIconAddress=https://ddragon.leagueoflegends.com/cdn/14.5.1/img/profileicon/" + summoner.getProfileIconId() + ".png)";
         assertEquals(expected, summary.toString());
     }
 }
