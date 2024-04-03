@@ -220,6 +220,17 @@ class AseProjectApplicationTests {
             4,
             2.33f
     );
+    static MatchDto matchDto1;
+    static Match match1;
+    static MatchDto matchDto2;
+    static Match match2;
+    static MatchDto matchDto3;
+    static Match match3;
+    static MatchDto matchDto4;
+    static Match match4;
+    static MatchDto matchDto5;
+    static Match match5;
+    static ArrayList<Match> matchList;
     
     @BeforeAll
     public static void matchSetUp() throws IOException, URISyntaxException {
@@ -227,6 +238,28 @@ class AseProjectApplicationTests {
         JsonNode jsonNode = objectMapper.readTree(new URI("https://europe.api.riotgames.com/lol/match/v5/matches/EUW1_6760205418?api_key=RGAPI-7824e8d4-5ed0-4244-8b26-67ba3e260cc2").toURL());
         matchDto = objectMapper.readValue(jsonNode.toString(), MatchDto.class);
         match = matchDto.toMatch();
+
+        JsonNode jsonNode1 = objectMapper.readTree(new URI("https://europe.api.riotgames.com/lol/match/v5/matches/EUW1_6760205418?api_key=RGAPI-7824e8d4-5ed0-4244-8b26-67ba3e260cc2").toURL());
+        matchDto1 = objectMapper.readValue(jsonNode1.toString(), MatchDto.class);
+        match1 = matchDto1.toMatch();
+
+        JsonNode jsonNode2 = objectMapper.readTree(new URI("https://europe.api.riotgames.com/lol/match/v5/matches/EUW1_6882261316?api_key=RGAPI-7824e8d4-5ed0-4244-8b26-67ba3e260cc2").toURL());
+        matchDto2 = objectMapper.readValue(jsonNode2.toString(), MatchDto.class);
+        match2 = matchDto2.toMatch();
+
+        JsonNode jsonNode3 = objectMapper.readTree(new URI("https://europe.api.riotgames.com/lol/match/v5/matches/EUW1_6882191359?api_key=RGAPI-7824e8d4-5ed0-4244-8b26-67ba3e260cc2").toURL());
+        matchDto3 = objectMapper.readValue(jsonNode3.toString(), MatchDto.class);
+        match3 = matchDto3.toMatch();
+
+        JsonNode jsonNode4 = objectMapper.readTree(new URI("https://europe.api.riotgames.com/lol/match/v5/matches/EUW1_6882183404?api_key=RGAPI-7824e8d4-5ed0-4244-8b26-67ba3e260cc2").toURL());
+        matchDto4 = objectMapper.readValue(jsonNode4.toString(), MatchDto.class);
+        match4 = matchDto4.toMatch();
+
+        JsonNode jsonNode5 = objectMapper.readTree(new URI("https://europe.api.riotgames.com/lol/match/v5/matches/EUW1_6882143453?api_key=RGAPI-7824e8d4-5ed0-4244-8b26-67ba3e260cc2").toURL());
+        matchDto5 = objectMapper.readValue(jsonNode5.toString(), MatchDto.class);
+        match5 = matchDto5.toMatch();
+
+        matchList = new ArrayList<>(List.of(match1, match2, match3, match4, match5));
     }
 
     @AfterAll
@@ -1156,5 +1189,15 @@ class AseProjectApplicationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(result -> assertTrue(result.getResolvedException() instanceof IllegalArgumentException));
+    }
+
+    @Test
+    public void getLastMatches() throws Exception {
+        Mockito.when(riotApiService.getMatches("Belugafurtif", null, null, null, null, null, 5)).thenReturn(matchList);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .get("/riot/lastMatches/Belugafurtif")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
     }
 }
